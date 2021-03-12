@@ -7,14 +7,14 @@ export default () => {
         for (const m of ['get', 'post', 'delete', 'put', 'head', 'patch', 'options']) {
             const c = new Curl('http://127.0.0.1', {method:m});
             const method = m.toUpperCase();
-            const expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X ${method} -L --url http://127.0.0.1`;
+            const expectedCmdline = `curl -D /dev/stderr -q -X ${method} -L --url http://127.0.0.1`;
             const cmdline = c.cmdline;
             tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using '${method}' method`);
         }
         const m = 'invalid';
         const c = new Curl('http://127.0.0.1', {method:m});
         const method = m.toUpperCase();
-        const expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X GET -L --url http://127.0.0.1`;
+        const expectedCmdline = `curl -D /dev/stderr -q -X GET -L --url http://127.0.0.1`;
         const cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `method should be ignored when using invalid method '${method}'`);
     });
@@ -23,7 +23,7 @@ export default () => {
         const c = new Curl('http://127.0.0.1', {
             userAgent:'myUserAgent'
         });
-        const expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -A myUserAgent -X GET -L --url http://127.0.0.1`;
+        const expectedCmdline = `curl -D /dev/stderr -q -A myUserAgent -X GET -L --url http://127.0.0.1`;
         const cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using a specific user-agent`);
     });
@@ -32,7 +32,7 @@ export default () => {
         const c = new Curl('http://127.0.0.1', {
             insecure:true
         });
-        const expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -k -X GET -L --url http://127.0.0.1`;
+        const expectedCmdline = `curl -D /dev/stderr -q -k -X GET -L --url http://127.0.0.1`;
         const cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using {insecure:true}`);
     });
@@ -44,7 +44,7 @@ export default () => {
                 'X-custom-Header2':'value2'
             }
         });
-        const expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -H X-Custom-Header1: value1 -H X-custom-Header2: value2 -X GET -L --url http://127.0.0.1`;
+        const expectedCmdline = `curl -D /dev/stderr -q -H X-Custom-Header1: value1 -H X-custom-Header2: value2 -X GET -L --url http://127.0.0.1`;
         const cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using custom headers`);
     });
@@ -53,14 +53,14 @@ export default () => {
         let c = new Curl('http://127.0.0.1', {
             maxRedirects:4
         });
-        let expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X GET -L --max-redirs 4 --url http://127.0.0.1`;
+        let expectedCmdline = `curl -D /dev/stderr -q -X GET -L --max-redirs 4 --url http://127.0.0.1`;
         let cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using {maxRedirects:4}`);
 
         c = new Curl('http://127.0.0.1', {
             followRedirects:false
         });
-        expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X GET --url http://127.0.0.1`;
+        expectedCmdline = `curl -D /dev/stderr -q -X GET --url http://127.0.0.1`;
         cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using {followRedirect:false}`);
     });
@@ -69,7 +69,7 @@ export default () => {
         const c = new Curl('http://127.0.0.1', {
             outputFile:'/tmp/output.html'
         });
-        const expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X GET -L -o /tmp/output.html --url http://127.0.0.1`;
+        const expectedCmdline = `curl -D /dev/stderr -q -X GET -L -o /tmp/output.html --url http://127.0.0.1`;
         const cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when defining an output file`);
     });
@@ -78,28 +78,28 @@ export default () => {
         let c = new Curl('http://127.0.0.1', {
             connectTimeout:5
         });
-        let expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X GET -L --connect-timeout 5 --url http://127.0.0.1`;
+        let expectedCmdline = `curl -D /dev/stderr -q -X GET -L --connect-timeout 5 --url http://127.0.0.1`;
         let cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using {connectTimeout:5}`);
 
         c = new Curl('http://127.0.0.1', {
             connectTimeout:'notANumber'
         });
-        expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X GET -L --url http://127.0.0.1`;
+        expectedCmdline = `curl -D /dev/stderr -q -X GET -L --url http://127.0.0.1`;
         cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should not contain '--connect-timeout' when using a value which is not a positive number`);
 
         c = new Curl('http://127.0.0.1', {
             maxTime:10
         });
-        expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X GET -L --max-time 10 --url http://127.0.0.1`;
+        expectedCmdline = `curl -D /dev/stderr -q -X GET -L --max-time 10 --url http://127.0.0.1`;
         cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using {maxTime:10}`);
 
         c = new Curl('http://127.0.0.1', {
             maxTime:'notANumber'
         });
-        expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X GET -L --url http://127.0.0.1`;
+        expectedCmdline = `curl -D /dev/stderr -q -X GET -L --url http://127.0.0.1`;
         cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should not contain '--max-time' when using a value which is not a positive number`);
     });
@@ -111,7 +111,7 @@ export default () => {
                 password:'myPassword'
             }
         });
-        let expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X GET -L -u myUsername:myPassword --url http://127.0.0.1`;
+        let expectedCmdline = `curl -D /dev/stderr -q -X GET -L -u myUsername:myPassword --url http://127.0.0.1`;
         let cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when basic auth`);
 
@@ -120,7 +120,7 @@ export default () => {
                 password:'myPassword'
             }
         });
-        expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X GET -L --url http://127.0.0.1`;
+        expectedCmdline = `curl -D /dev/stderr -q -X GET -L --url http://127.0.0.1`;
         cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should not contain any auth when username is missing`);
 
@@ -129,14 +129,14 @@ export default () => {
                 username:'myUsername'
             }
         });
-        expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X GET -L --url http://127.0.0.1`;
+        expectedCmdline = `curl -D /dev/stderr -q -X GET -L --url http://127.0.0.1`;
         cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should not contain any auth when password is missing`);
 
         c = new Curl('http://127.0.0.1', {
             bearerToken:'myToken'
         });
-        expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X GET -L -H Authorization: Bearer myToken --url http://127.0.0.1`;
+        expectedCmdline = `curl -D /dev/stderr -q -X GET -L -H Authorization: Bearer myToken --url http://127.0.0.1`;
         cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when a bearer token is defined`);
 
@@ -150,7 +150,7 @@ export default () => {
                 param2:'value2='
             }
         });
-        let expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X POST -L -H Content-Type: application/x-www-form-urlencoded -d param1=value1%26 -d param2=value2%3D --url http://127.0.0.1`;
+        let expectedCmdline = `curl -D /dev/stderr -q -X POST -L -H Content-Type: application/x-www-form-urlencoded -d param1=value1%26 -d param2=value2%3D --url http://127.0.0.1`;
         let cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using scalar values as data`);
 
@@ -160,7 +160,7 @@ export default () => {
                 array1:['value1', 'value2&=']
             }
         });
-        expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X POST -L -H Content-Type: application/x-www-form-urlencoded -d array1[]=value1 -d array1[]=value2%26%3D --url http://127.0.0.1`;
+        expectedCmdline = `curl -D /dev/stderr -q -X POST -L -H Content-Type: application/x-www-form-urlencoded -d array1[]=value1 -d array1[]=value2%26%3D --url http://127.0.0.1`;
         cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using arrays as data`);
 
@@ -173,7 +173,7 @@ export default () => {
                 }
             });
             const method = m.toUpperCase();
-            expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X ${method} -L --url http://127.0.0.1`;
+            expectedCmdline = `curl -D /dev/stderr -q -X ${method} -L --url http://127.0.0.1`;
             cmdline = c.cmdline;
             tester.assertEq(cmdline, expectedCmdline, `cmdline should not contain any data when using data with '${method}' method`);
         });
@@ -184,7 +184,7 @@ export default () => {
             method: 'post',
             file:'/tmp/file.png'
         });
-        let expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X POST -L -F file=@/tmp/file.png --url http://127.0.0.1`;
+        let expectedCmdline = `curl -D /dev/stderr -q -X POST -L -F file=@/tmp/file.png --url http://127.0.0.1`;
         let cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using a string as 'file' option`);
 
@@ -193,7 +193,7 @@ export default () => {
             method: 'post',
             file:opt
         });
-        expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X POST -L -F file=@/tmp/file.png --url http://127.0.0.1`;
+        expectedCmdline = `curl -D /dev/stderr -q -X POST -L -F file=@/tmp/file.png --url http://127.0.0.1`;
         cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using ${JSON.stringify(opt)} as 'file' option`);
 
@@ -202,7 +202,7 @@ export default () => {
             method: 'post',
             file:opt
         });
-        expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X POST -L -F myFile=@/tmp/file.png --url http://127.0.0.1`;
+        expectedCmdline = `curl -D /dev/stderr -q -X POST -L -F myFile=@/tmp/file.png --url http://127.0.0.1`;
         cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using ${JSON.stringify(opt)} as 'file' option`);
 
@@ -211,7 +211,7 @@ export default () => {
             method: 'post',
             file:opt
         });
-        expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X POST -L -F myFile=@/tmp/file.png;filename=file2.png --url http://127.0.0.1`;
+        expectedCmdline = `curl -D /dev/stderr -q -X POST -L -F myFile=@/tmp/file.png;filename=file2.png --url http://127.0.0.1`;
         cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using ${JSON.stringify(opt)} as 'file' option`);
     });
@@ -221,7 +221,7 @@ export default () => {
             method: 'post',
             body:'myBody'
         });
-        let expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X POST -L -d myBody --url http://127.0.0.1`;
+        let expectedCmdline = `curl -D /dev/stderr -q -X POST -L -d myBody --url http://127.0.0.1`;
         let cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when passing a string as raw body`);
 
@@ -229,7 +229,7 @@ export default () => {
             method: 'post',
             body:{}
         });
-        expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X POST -L --url http://127.0.0.1`;
+        expectedCmdline = `curl -D /dev/stderr -q -X POST -L --url http://127.0.0.1`;
         cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should not contain any data when using a non-string as raw body`);
     });
@@ -241,7 +241,7 @@ export default () => {
                 param2:'value2='
             }
         });
-        let expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X GET -L --url http://127.0.0.1?param1=value1%26&param2=value2%3D`;
+        let expectedCmdline = `curl -D /dev/stderr -q -X GET -L --url http://127.0.0.1?param1=value1%26&param2=value2%3D`;
         let cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using scalar values as query params`);
 
@@ -250,7 +250,7 @@ export default () => {
                 array1:['value1', 'value2&=']
             }
         });
-        expectedCmdline = `curl -D /dev/stderr --no-progress-meter -q -X GET -L --url http://127.0.0.1?array1[]=value1&array1[]=value2%26%3D`;
+        expectedCmdline = `curl -D /dev/stderr -q -X GET -L --url http://127.0.0.1?array1[]=value1&array1[]=value2%26%3D`;
         cmdline = c.cmdline;
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using arrays as query params`);
     });
