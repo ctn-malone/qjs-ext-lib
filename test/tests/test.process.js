@@ -433,7 +433,7 @@ export default () => {
         const expectedSignal = 'SIGABRT';
         tester.assertEq(state.exitCode, expectedExitCode, `when setting a 1s timeout for child process, exitCode should be as expected`);
         tester.assertEq(state.signal, expectedSignal, `when setting a 1s timeout for child process, signal should be as expected`);
-        tester.assert(tsDelta >= 1000 && tsDelta <= 1100, `when setting a 1s timeout for child process, process should exit after =~ 1000ms (${JSON.stringify(tsDelta)})`);
+        tester.assert(tsDelta >= 1000 && tsDelta <= 1200, `when setting a 1s timeout for child process, process should exit after =~ 1000ms (${JSON.stringify(tsDelta)})`);
 
         done();
     }, {isAsync:true});
