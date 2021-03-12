@@ -270,7 +270,7 @@ export default () => {
     });
 
     tester.test('curl.Curl (GET request)', async (done) => {
-        let c = new Curl('https://jsonplaceholder.typicode.com/posts/1', {
+        let c = new Curl('http://jsonplaceholder.typicode.com/posts/1', {
             json:true,
             parseJson:true
         });
@@ -278,7 +278,7 @@ export default () => {
         tester.assert(result, `when using {"parseJson":true} request should succeed`);
         tester.assertEq(typeof c.body, 'object', `when using {"parseJson":true} response payload should be an object`);
         
-        c = new Curl('https://jsonplaceholder.typicode.com/posts/1', {
+        c = new Curl('http://jsonplaceholder.typicode.com/posts/1', {
             json:true,
             parseJson:false
         });
@@ -291,7 +291,7 @@ export default () => {
 
     tester.test('curl.Curl (GET request with query params)', async (done) => {
         let params = {userId:3};
-        let c = new Curl('https://jsonplaceholder.typicode.com/posts/1', {
+        let c = new Curl('http://jsonplaceholder.typicode.com/posts/1', {
             params:params,
             parseJson:true
         });
@@ -321,7 +321,7 @@ export default () => {
             body: 'bar',
             userId: 1
         };
-        let c = new Curl('https://jsonplaceholder.typicode.com/posts', {
+        let c = new Curl('http://jsonplaceholder.typicode.com/posts', {
             method:'post',
             json:reqBody
         });
@@ -342,7 +342,7 @@ export default () => {
             body: 'bar2',
             userId: 1
         };
-        let c = new Curl('https://jsonplaceholder.typicode.com/posts/1', {
+        let c = new Curl('http://jsonplaceholder.typicode.com/posts/1', {
             method:'put',
             json:reqBody
         });
@@ -359,7 +359,7 @@ export default () => {
         let reqBody = {
             body: 'bar2',
         };
-        let c = new Curl('https://jsonplaceholder.typicode.com/posts/1', {
+        let c = new Curl('http://jsonplaceholder.typicode.com/posts/1', {
             method:'patch',
             json:reqBody
         });
@@ -373,7 +373,7 @@ export default () => {
     }, {isAsync:true});
 
     tester.test('curl.Curl (DELETE request)', async (done) => {
-        let c = new Curl('https://jsonplaceholder.typicode.com/posts/1', {
+        let c = new Curl('http://jsonplaceholder.typicode.com/posts/1', {
             method:'delete',
             json:true
         });
@@ -384,7 +384,7 @@ export default () => {
     }, {isAsync:true});
 
     tester.test('curl.Curl (GET request failure)', async (done) => {
-        let c = new Curl('https://jsonplaceholder.typicode.com/posts/1000', {
+        let c = new Curl('http://jsonplaceholder.typicode.com/posts/1000', {
             failOnHttpError:true
         });
         let result = await c.run();
@@ -395,7 +395,7 @@ export default () => {
     }, {isAsync:true});
 
     tester.test('curl.curlRequest (GET request success)', async (done) => {
-        const resBody = await curlRequest('https://jsonplaceholder.typicode.com/posts/1');
+        const resBody = await curlRequest('http://jsonplaceholder.typicode.com/posts/1');
         tester.assertEq(typeof resBody, 'object', `response payload should be an object`);
 
         done();
@@ -404,7 +404,7 @@ export default () => {
     tester.test('curl.curlRequest (GET request failure)', async (done) => {
         let exception;
         try {
-            await curlRequest('https://jsonplaceholder.typicode.com/posts/1000', {
+            await curlRequest('http://jsonplaceholder.typicode.com/posts/1000', {
                 failOnHttpError:true
             });
         }
@@ -422,7 +422,7 @@ export default () => {
         let exception;
         let resBody;
         try {
-            resBody = await curlRequest('https://jsonplaceholder.typicode.com/posts/1000', {ignoreError:true});
+            resBody = await curlRequest('http://jsonplaceholder.typicode.com/posts/1000', {ignoreError:true});
         }
         catch (e) {
             exception = e;
@@ -439,7 +439,7 @@ export default () => {
             body: 'bar',
             userId: 1
         };
-        const resBody = await curlRequest('https://jsonplaceholder.typicode.com/posts', {
+        const resBody = await curlRequest('http://jsonplaceholder.typicode.com/posts', {
             method:'post',
             json:reqBody
         });
@@ -452,9 +452,9 @@ export default () => {
 
     tester.test('curl.multiCurl', async (done) => {
         const requests = [
-            new Curl('https://jsonplaceholder.typicode.com/posts/1'),
-            new Curl('https://jsonplaceholder.typicode.com/posts/2'),
-            new Curl('https://jsonplaceholder.typicode.com/posts/3')
+            new Curl('http://jsonplaceholder.typicode.com/posts/1'),
+            new Curl('http://jsonplaceholder.typicode.com/posts/2'),
+            new Curl('http://jsonplaceholder.typicode.com/posts/3')
         ];
         const data = await multiCurl(requests);
         tester.assertEq(data.length, 3, 'size of results should be 3');
