@@ -64,8 +64,6 @@ class Curl {
         this._curlArgs = [
             'curl',
             '-D', '/dev/stderr',
-            // disable progress
-            '--no-progress-meter',
             // ignore .curlrc
             '-q'
         ]
@@ -367,9 +365,20 @@ class Curl {
             Parse headers
          */
 
-        // status line
-        const headers = this._process.stderr.trim().split("\r\n");
+        const stderr = this._process.stderr.trim();
+
+        // ignore all content until first "HTTP/" (ie: discard beginning of curl progress info)
+        const firstHttpPos = stderr.indexOf('HTTP/');
+        if (-1 == firstHttpPos) {
+            throw new Error(`Missing status line`);
+        }
+        const headers = stderr.substring(firstHttpPos).split("\r\n");
+        
+        // remove last entry (end of curl progress info)
+        headers.pop();
+
         const nonStatusHeaders = [];
+        // status line
         let statusLine;
         for (let i = 0; i < headers.length; ++i) {
             if (headers[i].startsWith('HTTP/')) {
