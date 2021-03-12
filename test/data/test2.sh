@@ -22,10 +22,10 @@ then
     	do
             if [ $(($i % 2)) -eq 0 ]
             then
-                echo -n "$i"
+                printf "$i"
                 [ $i -eq 2 ] && sleep 0.1
             else
-                echo -n "$i" 1>&2
+                printf "$i" 1>&2
                 [ $i -eq 1 ] && sleep 0.1
             fi
     	done
