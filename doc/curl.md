@@ -82,7 +82,7 @@ console.log(result);
 console.log(JSON.stringify(c.body));
 ```
 
-### Curl.cancel
+### Curl.cancel(...)
 
 `.cancel()`
 

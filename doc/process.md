@@ -95,7 +95,7 @@ Pause child process
 <u>Example</u>
 
 ```js
-const p = new Process('for i in $(seq 1 5) ; do echo -n "$i - " ; date ; sleep 1s ; done', {
+const p = new Process('for i in $(seq 1 5) ; do printf "$i - " ; date ; sleep 1s ; done', {
     useShell:true
 });
 p.run();
@@ -122,7 +122,7 @@ Resume child process
 <u>Example</u>
 
 ```js
-const p = new Process('for i in $(seq 1 5) ; do echo -n "$i - " ; date ; sleep 1s ; done', {
+const p = new Process('for i in $(seq 1 5) ; do printf "$i - " ; date ; sleep 1s ; done', {
     useShell:true
 });
 p.run();
@@ -209,7 +209,7 @@ Indicates whether or not child process is paused
 <u>Example</u>
 
 ```js
-const p = new Process('for i in $(seq 1 5) ; do echo -n "$i - " ; date ; sleep 1s ; done', {
+const p = new Process('for i in $(seq 1 5) ; do printf "$i - " ; date ; sleep 1s ; done', {
     useShell:true
 });
 p.run();

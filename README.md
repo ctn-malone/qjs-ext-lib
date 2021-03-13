@@ -7,6 +7,10 @@ A set of pure JS extensions for [QuickJS](https://github.com/ctn-malone/quickjs-
 * minimal unit testing library (see [doc](doc/tester.md))
 * semver versions comparison (see [doc](doc/version.md))
 
+# Rational
+
+I'm focused on building static binaries targeting linux command line. This library is an intent at providing just enough to make creating static adhoc scripts easier on linux
+
 # Examples
 
 ## Execute external processes
