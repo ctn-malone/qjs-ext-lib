@@ -40,24 +40,40 @@ let runPromise = undefined;
  *
  * @param {string} eventName event name. One of {["begin","end","pass","fail","except","finalize"]}
  * @param {string|undefined} testName test name (`undefined` when `eventName` is `finalize`)
- * @param {string|object|undefined} assertionMsg only defined when {eventName} is one of {["pass","fail","except"]}
+ * @param {object|undefined} assertion only defined when {eventName} is one of {["pass","fail","except"]}
  */
 /*
-    When {assertionMsg} is an {object}, it will have one of the following formats
+    {assertion} will have following properties
 
-    {
-        "msg":string,            // assertion message
-        "actualResult":any,      // actual result
-        "expectedResult":any     // result which was expected
-    }
+    - if {eventName} is "pass"
 
-    {
-        "msg":string,            // assertion message
-        "unexpectedResult":any   // result we are not supposed to get
-    }
+        {
+            "msg":string,            // assertion message
+            "actualResult":any,      // actual result (optional)
+            "expectedResult":any     // result which was expected (optional)
+        }
+    
+    - if {eventName} is "fail"
+
+        {
+            "msg":string,            // assertion message
+            "actualResult":any,      // actual result (optional)
+            "expectedResult":any     // result which was expected (optional)
+        }
+
+        {
+            "msg":string,            // assertion message
+            "unexpectedResult":any   // result we are not supposed to get
+        }
+
+    - if {eventName} is "except"
+
+        {
+            "msg":string,            // exception message
+        }
 
  */
-const defaultReportHandler = (eventName, testName, assertionMsg) => {
+const defaultReportHandler = (eventName, testName, assertion) => {
     const colors = {pass:'',fail:'',except:'',reset:''};
     if (useColorInReport) {
         colors.pass = ANSI_COLOR_SUCCESS;
@@ -75,39 +91,31 @@ const defaultReportHandler = (eventName, testName, assertionMsg) => {
             break;
         case 'pass':
             if (reportVerbosity > 2) {
-                if ('string' == typeof assertionMsg) {
-                    console.log(`  ${colors.pass}ok${colors.reset}: ${assertionMsg}`);
-                }
-                else {
-                    console.log(`  ${colors.pass}ok${colors.reset}: ${assertionMsg.msg}`);
-                }
+                console.log(`  ${colors.pass}ok${colors.reset}: ${assertion.msg}`);
             }
             break;
         case 'fail':
             if (reportVerbosity > 1) {
-                if ('string' == typeof assertionMsg) {
-                    console.log(`  ${colors.fail}nok${colors.reset}: ${assertionMsg}`);
+                console.log(`  ${colors.fail}nok${colors.reset}: ${assertion.msg}`);
+                if (assertion.hasOwnProperty('actualResult')) {
+                    console.log(`    - result  : ${JSON.stringify(assertion.actualResult)}`);
+                    if (assertion.hasOwnProperty('expectedResult')) {
+                        console.log(`    - expected: ${JSON.stringify(assertion.expectedResult)}`);
+                    }
                 }
-                else {
-                    console.log(`  ${colors.fail}nok${colors.reset}: ${assertionMsg.msg}`);
-                    if (assertionMsg.hasOwnProperty('expectedResult')) {
-                        console.log(`    - result  : ${JSON.stringify(assertionMsg.actualResult)}`);
-                        console.log(`    - expected: ${JSON.stringify(assertionMsg.expectedResult)}`);
-                    }
-                    else {
-                        console.log(`    - unexpected: ${JSON.stringify(assertionMsg.unexpectedResult)}`);
-                    }
+                else if (assertion.hasOwnProperty('unexpectedResult')) {
+                    console.log(`    - unexpected: ${JSON.stringify(assertion.unexpectedResult)}`);
                 }
             }
             break;
         case 'except':
-            console.log(`  ${colors.except}exception${colors.reset}: ${assertionMsg}`);
+            console.log(`  ${colors.except}exception${colors.reset}: ${assertion.msg}`);
             break;
         case 'finalize':
             if (reportVerbosity > 1) {
                 console.log('');
             }
-            console.log(`[tests] - ${counters.tests.passed > 0 ? colors.pass : colors.fail}passed${colors.reset}: ${counters.tests.passed}  ${counters.tests.failed > 0 ? colors.fail: colors.reset}failed${colors.reset}: ${counters.tests.failed}`);
+            console.log(`[tests] - ${counters.tests.passed > 0 ? colors.pass : colors.reset}passed${colors.reset}: ${counters.tests.passed}  ${counters.tests.failed > 0 ? colors.fail: colors.reset}failed${colors.reset}: ${counters.tests.failed}`);
             console.log(`[assertions] - ${counters.assertions.passed > 0 ? colors.pass : colors.reset}passed${colors.reset}: ${counters.assertions.passed}  ${counters.assertions.failed > 0 ? colors.fail: colors.reset}failed${colors.reset}: ${counters.assertions.failed}  ${counters.assertions.exceptions > 0 ? colors.except : colors.reset}exceptions${colors.reset}: ${counters.assertions.exceptions}`);
     }
 }
@@ -178,24 +186,27 @@ const _deepEq = (a, b) => {
  * @param {string} testName test name
  * @param {boolean} cond
  * @param {string} msg message to display
- * @param {string|undefined} msgFailed if provided, will only be displayed in case of failure
+ * @param {object} opt options
+ * @param {any} opt.actualResult if defined, will be displayed in case of failure 
  */
-const _assert = (testName, cond, msg, msgFailed) => {
+const _assert = (testName, cond, msg, opt) => {
     cond = !!cond;
     if (cond) {
         // update counters
         ++counters.assertions.passed;
-        reportHandler('pass', testName, msg);
+        reportHandler('pass', testName, {msg:msg});
     } else {
         // update counters
         counters.currentTest.didFail = true;
         ++counters.assertions.failed;
-        if (undefined !== msgFailed) {
-            reportHandler('fail', testName, msgFailed);
+        if (undefined === opt) {
+            opt = {};
         }
-        else {
-            reportHandler('fail', testName, msg);
+        const assertion = {msg:msg};
+        if (opt.hasOwnProperty('actualResult')) {
+            assertion.actualResult = opt.actualResult;
         }
+        reportHandler('fail', testName, assertion);
     }
 };
 
@@ -212,7 +223,7 @@ const _assertEq = (testName, actualResult, expectedResult, msg) => {
     if (result) {
         // update counters
         ++counters.assertions.passed;
-        reportHandler('pass', testName, msg);
+        reportHandler('pass', testName, {msg:msg});
     } else {
         // update counters
         counters.currentTest.didFail = true;
@@ -234,7 +245,7 @@ const _assertNeq = (testName, actualResult, unexpectedResult, msg) => {
     if (result) {
         // update counters
         ++counters.assertions.passed;
-        reportHandler('pass', testName, msg);
+        reportHandler('pass', testName, {msg:msg});
     } else {
         // update counters
         counters.currentTest.didFail = true;
@@ -266,7 +277,7 @@ const handleException = (testName, error) => {
     // update counters
     counters.currentTest.didFail = true;
     ++counters.assertions.exceptions;
-    reportHandler('except', testName, errorMsg);
+    reportHandler('except', testName, {msg:errorMsg});
 }
 
 const pendingTests = [];
@@ -283,13 +294,14 @@ const tester = {
      *
      * @param {boolean} cond
      * @param {string} msg message to display
-     * @param {string|undefined} msgFailed if provided, will only be displayed in case of failure
+     * @param {object} opt options
+     * @param {any} opt.actualResult if defined, will be displayed in case of failure 
      */
-    assert:(cond, msg, msgFailed) => {
+    assert:(cond, msg, opt) => {
         if (counters.currentTest.didFail && stopOnFailure) {
             return;
         }
-        _assert(currentTest, cond, msg, msgFailed);
+        _assert(currentTest, cond, msg, opt);
     },
 
     eq:_deepEq,

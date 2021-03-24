@@ -35,20 +35,30 @@ await tester.run();
 
 ## tester.assert(...)
 
-`tester.assert(cond, msg, msgFailed)`
+`tester.assert(cond, msg, opt)`
 
 Expects a condition to be `true`
 
 * **[cond]** (*boolean*) : condition to check
 * **[msg]** (*string*) : message to display
-* msgFailed (*string*) : message to display in case assertion failed (if not defined, `msg` will be used)
+* opt (*object*) : options
+* opt.actualResult (*any*) : if defined, will be displayed in case of failure
 
-<u>Example</u>
+<u>Examples</u>
 
 ```js
 tester.test('test1', () => {
     const condition = (Math.random() < 0.5);
-    tester.assert(condition, 'condition is true', 'assertion failed');
+    tester.assert(condition, 'condition is true');
+});
+await tester.run();
+```
+
+```js
+tester.test('test2', () => {
+    const number = Math.random();
+    const condition = number < 0.5;
+    tester.assert(condition, 'number should be < 0.5', {actualResult:number});
 });
 await tester.run();
 ```
@@ -205,17 +215,25 @@ Following arguments will be passed to the function
   * `except` : triggered when an exception has been triggered by a test
   * `finalize` : triggered after all tests have been run
 * testName (*string*) : name of current test (`undefined` when `eventName` is `finalize`)
-* assertionMsg (*string|object*) : only defined when `eventName` is one of `["pass","fail","except"]`
+* assertion (*object*) : only defined when `eventName` is one of `["pass","fail","except"]`
 
-When `assertionMsg` is an *object*, it will have following properties :
+`assertion` object will have following properties
 
-* when triggered from `assertEq`
-  * msg (*string*) : assertion message
-  * actualResult (*any*)
-  * expectedResult (*any*) 
-* when triggered from `assertNeq`
-  * msg (*string*) : assertion message
-  * unexpectedResult (*any*)
+* if `eventName` is `pass`
+  * msg (*string*)
+* if `eventName` is `fail`
+  * when triggered from `assert`
+    * msg (*string*) : assertion message
+    * actualResult (*any*) : result which triggered the failure (only if `opt.actualResult` was defined)
+  * when triggered from `assertEq`
+    * msg (*string*) : assertion message
+    * actualResult (*any*)
+    * expectedResult (*any*) 
+  * when triggered from `assertNeq`
+    * msg (*string*) : assertion message
+    * unexpectedResult (*any*)
+* if `eventName` is `except` 
+  * msg (*string*) : exception message
 
 <u>Example</u>
 
@@ -229,7 +247,7 @@ tester.test('test2', () => {
 tester.test('test3', () => {
     throw new Error('Damnit !')
 });
-tester.setReportHandler((eventName, testName, assertionMsg) => {
+tester.setReportHandler((eventName, testName, assertion) => {
     switch (eventName) {
         case 'begin':
         case 'end':
@@ -238,7 +256,7 @@ tester.setReportHandler((eventName, testName, assertionMsg) => {
         case 'pass':
         case 'fail':
         case 'except':
-            console.log(`${eventName} (${testName}): ${assertionMsg}`);
+            console.log(`${eventName} (${testName}): ${assertion.msg}`);
             return;
     }
     console.log('Done !');
