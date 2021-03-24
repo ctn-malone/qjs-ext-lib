@@ -129,14 +129,20 @@ class Process {
         /*
             command
          */
+        this._cmdline = '';
         if (Array.isArray(cmdline)) {
-            this._cmdline = cmdline.join(' ');
-            this._args = [...cmdline];
+            if (0 != cmdline.length) {
+                this._cmdline = cmdline.join(' ');
+                this._args = [...cmdline];
+            }
         }
         // consider it is a string
-        else {
-            this._cmdline = cmdline;
+        else if ('string' == typeof cmdline) {
+            this._cmdline = cmdline.trim();
             this._args = parseArgs(this._cmdline);
+        }
+        if ('' == this._cmdline) {
+            throw new TypeError(`Argument 'cmdline' cannot be empty`);
         }
 
         /*
