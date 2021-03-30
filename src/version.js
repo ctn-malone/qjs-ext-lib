@@ -7,7 +7,7 @@
     An exception will be thrown in case a non semver version is passed as argument
  */
 
-const VERSION = '0.2.0';
+const VERSION = '0.2.1';
 
 /**
  * Check whether or not a version is in semver format
@@ -141,7 +141,7 @@ const version = {
     /**
      * Check whether or not two versions are equal
      *
-     * @param {string} target version to compare to 
+     * @param {string} target version to compare to
      * @param {string} current version to check (optional, defaults to lib version)
      *
      * @return {boolean}
@@ -159,7 +159,7 @@ const version = {
     /**
      * Check whether or not two versions are distinct
      *
-     * @param {string} target version to compare to 
+     * @param {string} target version to compare to
      * @param {string} current version to check (optional, defaults to lib version)
      *
      * @return {boolean}
