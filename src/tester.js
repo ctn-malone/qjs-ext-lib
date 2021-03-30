@@ -49,8 +49,6 @@ let runPromise = undefined;
 
         {
             "msg":string,            // assertion message
-            "actualResult":any,      // actual result (optional)
-            "expectedResult":any     // result which was expected (optional)
         }
     
     - if {eventName} is "fail"
@@ -188,6 +186,7 @@ const _deepEq = (a, b) => {
  * @param {string} msg message to display
  * @param {object} opt options
  * @param {any} opt.actualResult if defined, will be displayed in case of failure 
+ * @param {any} opt.expectedResult if defined, will be displayed in case of failure 
  */
 const _assert = (testName, cond, msg, opt) => {
     cond = !!cond;
@@ -205,6 +204,9 @@ const _assert = (testName, cond, msg, opt) => {
         const assertion = {msg:msg};
         if (opt.hasOwnProperty('actualResult')) {
             assertion.actualResult = opt.actualResult;
+        }
+        if (opt.hasOwnProperty('expectedResult')) {
+            assertion.expectedResult = opt.expectedResult;
         }
         reportHandler('fail', testName, assertion);
     }
@@ -295,7 +297,8 @@ const tester = {
      * @param {boolean} cond
      * @param {string} msg message to display
      * @param {object} opt options
-     * @param {any} opt.actualResult if defined, will be displayed in case of failure 
+     * @param {any} opt.actualResult if defined, will be displayed in case of failure
+     * @param {any} opt.expectedResult if defined, will be displayed in case of failure 
      */
     assert:(cond, msg, opt) => {
         if (counters.currentTest.didFail && stopOnFailure) {

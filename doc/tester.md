@@ -43,6 +43,7 @@ Expects a condition to be `true`
 * **[msg]** (*string*) : message to display
 * opt (*object*) : options
 * opt.actualResult (*any*) : if defined, will be displayed in case of failure
+* opt.expectedResult (*any*) : if defined, will be displayed in case of failure
 
 <u>Examples</u>
 
