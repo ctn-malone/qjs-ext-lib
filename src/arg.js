@@ -48,8 +48,8 @@ export default function arg(opts, {argv = scriptArgs.slice(1), permissive = fals
 
 		if (Array.isArray(type) && type.length === 1 && typeof type[0] === 'function') {
 			const [fn] = type;
-			type = (value, name, prev = []) => {
-				prev.push(fn(value, name, prev[prev.length - 1]));
+			type = (value, name, prev = [], index) => {
+				prev.push(fn(value, name, prev[prev.length - 1], index));
 				return prev;
 			};
 			isFlag = fn === Boolean || fn[flagSymbol] === true;
@@ -111,7 +111,7 @@ export default function arg(opts, {argv = scriptArgs.slice(1), permissive = fals
 				}
 
 				if (isFlag) {
-					result[argName] = type(true, argName, result[argName]);
+					result[argName] = type(true, argName, result[argName], i);
 				} else if (argStr === undefined) {
 					if (
 						argv.length < i + 2 ||
@@ -132,10 +132,10 @@ export default function arg(opts, {argv = scriptArgs.slice(1), permissive = fals
 						throw new ArgError(`option requires argument: ${originalArgName}${extended}`, 'ARG_MISSING_REQUIRED_LONGARG');
 					}
 
-					result[argName] = type(argv[i + 1], argName, result[argName]);
+					result[argName] = type(argv[i + 1], argName, result[argName], i);
 					++i;
 				} else {
-					result[argName] = type(argStr, argName, result[argName]);
+					result[argName] = type(argStr, argName, result[argName], i);
 				}
 			}
 		} else {
