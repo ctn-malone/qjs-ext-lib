@@ -17,12 +17,16 @@ const getScriptName = (withoutExt) => {
     if (undefined === withoutExt) {
         withoutExt = false;
     }
-    const arr = scriptArgs[0].split('/');
+    let arr = scriptArgs[0].split('/');
     let script = arr.pop();
     if (!withoutExt) {
         return script;
     }
-    return script.split('.').slice(0, -1).join('.');
+    arr = script.split('.');
+    if (1 == arr.length) {
+        return script;
+    }
+    return arr.slice(0, -1).join('.');
 }
 
 export {
