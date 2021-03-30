@@ -7,7 +7,7 @@
     An exception will be thrown in case a non semver version is passed as argument
  */
 
-const VERSION = '0.1.1';
+const VERSION = '0.2.0';
 
 /**
  * Check whether or not a version is in semver format
@@ -47,12 +47,12 @@ const split = (v) => {
 /**
  * Check whether or not two versions are equal
  *
- * @param {string} current version to check
  * @param {string} target version to compare to
+ * @param {string} current version to check
  *
  * @return {boolean}
  */
-const eq = (current, target) => {
+const eq = (target, current) => {
     return current === target;
 }
 
@@ -71,12 +71,12 @@ const neq = (current, target) => {
 /**
  * Check whether or not a given version is less than a target version
  *
- * @param {string} current version to check
  * @param {string} target version to compare to
+ * @param {string} current version to check
  *
  * @return {boolean}
  */
-const lt = (current, target) => {
+const lt = (target, current) => {
     const _current = split(current);
     const _target = split(target);
     for (let i = 0; i < _current.length; ++i) {
@@ -93,24 +93,24 @@ const lt = (current, target) => {
 /**
  * Check whether or not a given version is at most equal to a target version
  *
- * @param {string} current version to check
  * @param {string} target version to compare to
+ * @param {string} current version to check
  *
  * @return {boolean}
  */
-const lte = (current, target) => {
-    return eq(current, target) || lt(current, target);
+const lte = (target, current) => {
+    return eq(target, current) || lt(target, current);
 }
 
 /**
  * Check whether or not a given version is greater than a target version
  *
- * @param {string} current version to check
  * @param {string} target version to compare to
+ * @param {string} current version to check
  *
  * @return {boolean}
  */
-const gt = (current, target) => {
+const gt = (target, current) => {
     const _current = split(current);
     const _target = split(target);
     for (let i = 0; i < _current.length; ++i) {
@@ -127,13 +127,13 @@ const gt = (current, target) => {
 /**
  * Check whether or not a given version is at least equal to a target version
  *
- * @param {string} current version to check
  * @param {string} target version to compare to
+ * @param {string} current version to check
  *
  * @return {boolean}
  */
-const gte = (current, target) => {
-    return eq(current, target) || gt(current, target);
+const gte = (target, current) => {
+    return eq(target, current) || gt(target, current);
 }
 
 const version = {
@@ -141,110 +141,110 @@ const version = {
     /**
      * Check whether or not two versions are equal
      *
-     * @param {string} current version to check
-     * @param {string} target version to compare to (optional, defaults to lib version)
+     * @param {string} target version to compare to 
+     * @param {string} current version to check (optional, defaults to lib version)
      *
      * @return {boolean}
      */
-    eq: (current, target) => {
-        isSemver(current, true);
-        if (undefined === target) {
-            target = VERSION;
+    eq: (target, current) => {
+        isSemver(target, true);
+        if (undefined === current) {
+            current = VERSION;
         }
         else {
-            isSemver(target, true);
+            isSemver(current, true);
         }
-        return eq(current, target);
+        return eq(target, current);
     },
     /**
      * Check whether or not two versions are distinct
      *
-     * @param {string} current version to check
-     * @param {string} target version to compare to (optional, defaults to lib version)
+     * @param {string} target version to compare to 
+     * @param {string} current version to check (optional, defaults to lib version)
      *
      * @return {boolean}
      */
-    neq: (current, target) => {
-        isSemver(current, true);
-        if (undefined === target) {
-            target = VERSION;
+    neq: (target, current) => {
+        isSemver(target, true);
+        if (undefined === current) {
+            current = VERSION;
         }
         else {
-            isSemver(target, true);
+            isSemver(current, true);
         }
-        return neq(current, target);
+        return neq(target, current);
     },
     /**
      * Check whether or not a given version is less than a target version
      *
-     * @param {string} current version to check
-     * @param {string} target version to compare to (optional, defaults to lib version)
+     * @param {string} current version to check (optional, defaults to lib version)
+     * @param {string} target version to compare to
      *
      * @return {boolean}
      */
-    lt: (current, target) => {
-        isSemver(current, true);
-        if (undefined === target) {
-            target = VERSION;
+    lt: (target, current) => {
+        isSemver(target, true);
+        if (undefined === current) {
+            current = VERSION;
         }
         else {
-            isSemver(target, true);
+            isSemver(current, true);
         }
-        return lt(current, target);
+        return lt(target, current);
     },
     /**
      * Check whether or not a given version is at most equal to a target version
      *
-     * @param {string} current version to check
-     * @param {string} target version to compare to (optional, defaults to lib version)
+     * @param {string} target version to compare to
+     * @param {string} current version to check (optional, defaults to lib version)
      *
      * @return {boolean}
      */
-    lte: (current, target) => {
-        isSemver(current, true);
+    lte: (target, current) => {
+        isSemver(target, true);
         if (undefined === target) {
-            target = VERSION;
+            current = VERSION;
         }
         else {
-            isSemver(target, true);
+            isSemver(current, true);
         }
-        return lte(current, target);
+        return lte(target, current);
     },
     /**
      * Check whether or not a given version is greater than a target version
      *
-     * @param {string} current version to check
-     * @param {string} target version to compare to (optional, defaults to lib version)
+     * @param {string} target version to compare to
+     * @param {string} current version to check (optional, defaults to lib version)
      *
      * @return {boolean}
      */
-    gt: (current, target) => {
-        isSemver(current, true);
-        if (undefined === target) {
-            target = VERSION;
+    gt: (target, current) => {
+        isSemver(target, true);
+        if (undefined === current) {
+            current = VERSION;
         }
         else {
-            isSemver(target, true);
+            isSemver(current, true);
         }
-        return gt(current, target);
+        return gt(target, current);
     },
     /**
      * Check whether or not a given version is at least equal to a target version
      *
-     * @param {string} current version to check
-     * @param {string} target version to compare to (optional, defaults to lib version)
+     * @param {string} target version to compare to
+     * @param {string} current version to check (optional, defaults to lib version)
      *
      * @return {boolean}
      */
-    gte: (current, target) => {
-        isSemver(current, true);
-        if (undefined === target) {
-            target = VERSION;
+    gte: (target, current) => {
+        isSemver(target, true);
+        if (undefined === current) {
+            current = VERSION;
         }
         else {
-            isSemver(target, true);
+            isSemver(current, true);
         }
-        return gte(current, target);
+        return gte(target, current);
     }
 }
 

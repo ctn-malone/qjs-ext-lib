@@ -31,57 +31,57 @@ export default () => {
     tester.test('version (eq)', () => {
         let current = '1.0.0';
         const target = '1.0.0';
-        tester.assert(version.eq(current, target), `${current} == ${target}`);
+        tester.assert(version.eq(target, current), `${current} == ${target}`);
         current = '1.0.1';
-        tester.assert(!version.eq(current, target), `not (${current} == ${target})`);
+        tester.assert(!version.eq(target, current), `not (${current} == ${target})`);
     });
 
     tester.test('version (neq)', () => {
         let current = '1.0.1';
         const target = '1.0.0';
-        tester.assert(version.neq(current, target), `${current} != ${target}`);
+        tester.assert(version.neq(target, current), `${current} != ${target}`);
         current = '1.0.0';
-        tester.assert(!version.neq(current, target), `not (${current} != ${target})`);
+        tester.assert(!version.neq(target, current), `not (${current} != ${target})`);
     });
 
     tester.test('version (lt)', () => {
         let current = '1.0.0';
         const target = '1.0.1';
-        tester.assert(version.lt(current, target), `${current} < ${target}`);
+        tester.assert(version.lt(target, current), `${current} < ${target}`);
         current = '1.0.1';
-        tester.assert(!version.lt(current, target), `not (${current} < ${target})`);
+        tester.assert(!version.lt(target, current), `not (${current} < ${target})`);
         current = '1.0.2';
-        tester.assert(!version.lt(current, target), `not (${current} < ${target})`);
+        tester.assert(!version.lt(target, current), `not (${current} < ${target})`);
     });
 
     tester.test('version (lte)', () => {
         let current = '1.0.0';
         const target = '1.0.1';
-        tester.assert(version.lte(current, target), `${current} <= ${target}`);
+        tester.assert(version.lte(target, current), `${current} <= ${target}`);
         current = '1.0.1';
-        tester.assert(version.lte(current, target), `${current} <= ${target}`);
+        tester.assert(version.lte(target, current), `${current} <= ${target}`);
         current = '1.0.2';
-        tester.assert(!version.lte(current, target), `not (${current} <= ${target})`);
+        tester.assert(!version.lte(target, current), `not (${current} <= ${target})`);
     });
 
     tester.test('version (gt)', () => {
         let current = '1.0.2';
         const target = '1.0.1';
-        tester.assert(version.gt(current, target), `${current} > ${target}`);
+        tester.assert(version.gt(target, current), `${current} > ${target}`);
         current = '1.0.1';
-        tester.assert(!version.gt(current, target), `not (${current} > ${target})`);
+        tester.assert(!version.gt(target, current), `not (${current} > ${target})`);
         current = '1.0.0';
-        tester.assert(!version.gt(current, target), `not (${current} > ${target})`);
+        tester.assert(!version.gt(target, current), `not (${current} > ${target})`);
     });
 
-    tester.test('version (lte)', () => {
+    tester.test('version (gte)', () => {
         let current = '1.0.2';
         const target = '1.0.1';
-        tester.assert(version.gte(current, target), `${current} >= ${target}`);
+        tester.assert(version.gte(target, current), `${current} >= ${target}`);
         current = '1.0.1';
-        tester.assert(version.gte(current, target), `${current} >= ${target}`);
+        tester.assert(version.gte(target, current), `${current} >= ${target}`);
         current = '1.0.0';
-        tester.assert(!version.gte(current, target), `not (${current} >= ${target})`);
+        tester.assert(!version.gte(target, current), `not (${current} >= ${target})`);
     });
 
 }
