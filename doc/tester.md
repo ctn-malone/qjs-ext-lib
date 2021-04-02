@@ -42,8 +42,8 @@ Expects a condition to be `true`
 * **[cond]** (*boolean*) : condition to check
 * **[msg]** (*string*) : message to display
 * opt (*object*) : options
-* opt.actualResult (*any*) : if defined, will be displayed in case of failure
-* opt.expectedResult (*any*) : if defined, will be displayed in case of failure
+  * opt.actualResult (*any*) : if defined, will be displayed in case of failure
+  * opt.expectedResult (*any*) : if defined, will be displayed in case of failure
 
 <u>Examples</u>
 
@@ -108,12 +108,13 @@ await tester.run();
 
 ## tester.eq(...)
 
-`tester.eq(a, b)`
+`tester.eq(a, b, mismatch)`
 
 Checks whether or not two items are equal (deep object comparison)
 
-* a (*any*) : first item
-* b (*any*) : second item
+* **[a]** (*any*) : first item
+* **[b]** (*any*) : second item
+* mismatch (*object*) will be filled with information in case of mismatch
 
 **return** *boolean*
 
@@ -226,10 +227,16 @@ Following arguments will be passed to the function
   * when triggered from `assert`
     * msg (*string*) : assertion message
     * actualResult (*any*) : result which triggered the failure (only if `opt.actualResult` was defined)
+    * expectedResult (*any*) : result which was expected (only if `opt.expectedResult` was defined)
   * when triggered from `assertEq`
     * msg (*string*) : assertion message
     * actualResult (*any*)
-    * expectedResult (*any*) 
+    * expectedResult (*any*)
+    * mismatch (*object*)
+      * mismatch.path (*[string|integer, string|integer, ...]*) : path of the mismatch key (will be empty for a *top-level* value)
+      * mismatch.types (*[string, string]*) : defined in case of type mismatch
+      * mismatch.lengths (*[integer, integer]*) : defined in case of length mismatch
+      * mismatch.values (*[any, any]*) : defined in case of value mismatch
   * when triggered from `assertNeq`
     * msg (*string*) : assertion message
     * unexpectedResult (*any*)

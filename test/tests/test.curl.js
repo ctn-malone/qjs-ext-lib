@@ -259,7 +259,7 @@ export default () => {
         let c = new Curl('http://0.0.0.0');
         const result = await c.run();
         tester.assert(!result, 'curl should fail');
-        tester.eq(c.body, undefined, 'Payload should be undefined');
+        tester.assertEq(c.body, undefined, 'Payload should be undefined');
         tester.assert(c.curlFailed, '{curlFailed} should be {true}');
         tester.assertNeq(c.curlError, undefined, '{curlError} should be defined');
         tester.assert(0 != c.curlError.length, '{curlError} should not be empty');

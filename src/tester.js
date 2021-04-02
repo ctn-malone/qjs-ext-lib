@@ -6,17 +6,25 @@
 
 /*
     Report verbosity (see {tester.setReportVerbosity})
+    This only apply to default reporter
  */
 let reportVerbosity = 3;
 
 /*
     Whether or not color should be used in report (see {tester.enableColorInReport})
+    This only apply to default reporter
  */
 let useColorInReport = true;
 const ANSI_COLOR_SUCCESS = '\u001b[38;5;40m';
 const ANSI_COLOR_FAILURE = '\u001b[38;5;196m';
 const ANSI_COLOR_EXCEPTION = '\u001b[38;5;208m';
 const ANSI_COLOR_RESET = '\u001b[0m';
+
+/*
+    Whether or not full results should be displayed in case of mismatch (see {tester.displayResultsIfMismatch})
+    This only apply to default reporter
+ */
+let displayResultsIfMismatch = false;
 
 /*
     Various counters about success / failures
@@ -50,14 +58,30 @@ let runPromise = undefined;
         {
             "msg":string,            // assertion message
         }
-    
+
     - if {eventName} is "fail"
 
         {
             "msg":string,            // assertion message
             "actualResult":any,      // actual result (optional)
             "expectedResult":any     // result which was expected (optional)
+            "mismatch":object        // extra information regarding mismatch (optional)
         }
+
+        {mismatch} can contain following promerties :
+            - path : (string|int)[], always defined. Example: ['a', 0, 'b'] indicates the path to each {b} key in below object
+
+                {
+                    "a":[
+                        {
+                            "b":0
+                        }
+                    ]
+                }
+
+            - types : string[2], defined in case of type mismatch
+            - values : any[2], defined in case of value mismatch
+            - lengths : integer[], defined in case of length mismatch
 
         {
             "msg":string,            // assertion message
@@ -95,14 +119,50 @@ const defaultReportHandler = (eventName, testName, assertion) => {
         case 'fail':
             if (reportVerbosity > 1) {
                 console.log(`  ${colors.fail}nok${colors.reset}: ${assertion.msg}`);
+                // we have a mismatch context (print it instead)
+                if (assertion.hasOwnProperty('mismatch')) {
+                    // only print path if mismatch is not related to root value
+                    if (0 != assertion.mismatch.path.length) {
+                        const path = assertion.mismatch.path.reduce((acc, val) => {
+                            if ('number' == typeof val) {
+                                if ('' == acc) {
+                                    acc = '.';
+                                }
+                                return `${acc}[${val}]`;
+                            }
+                            return `${acc}.${val}`;
+                        }, '');
+                        console.log(`    * path: ${path}`);
+                    }
+                    if (assertion.mismatch.hasOwnProperty('types')) {
+                        console.log(`    * type mismatch`);
+                        console.log(`      - actual  : ${assertion.mismatch.types[0]}`);
+                        console.log(`      - expected: ${assertion.mismatch.types[1]}`);
+                    }
+                    if (assertion.mismatch.hasOwnProperty('lengths')) {
+                        console.log(`    * length mismatch`);
+                        console.log(`      - actual  : ${assertion.mismatch.lengths[0]}`);
+                        console.log(`      - expected: ${assertion.mismatch.lengths[1]}`);
+                    }
+                    if (assertion.mismatch.hasOwnProperty('values')) {
+                        console.log(`    * value mismatch`);
+                        console.log(`      - actual  : ${JSON.stringify(assertion.mismatch.values[0])}`);
+                        console.log(`      - expected: ${JSON.stringify(assertion.mismatch.values[1])}`);
+                    }
+                    if (!displayResultsIfMismatch) {
+                        return;
+                    }
+                }
                 if (assertion.hasOwnProperty('actualResult')) {
-                    console.log(`    - result  : ${JSON.stringify(assertion.actualResult)}`);
+                    console.log(`    * results`);
+                    console.log(`      - actual  : ${JSON.stringify(assertion.actualResult)}`);
                     if (assertion.hasOwnProperty('expectedResult')) {
-                        console.log(`    - expected: ${JSON.stringify(assertion.expectedResult)}`);
+                        console.log(`      - expected: ${JSON.stringify(assertion.expectedResult)}`);
                     }
                 }
                 else if (assertion.hasOwnProperty('unexpectedResult')) {
-                    console.log(`    - unexpected: ${JSON.stringify(assertion.unexpectedResult)}`);
+                    console.log(`    * results`);
+                    console.log(`      - unexpected: ${JSON.stringify(assertion.unexpectedResult)}`);
                 }
             }
             break;
@@ -144,38 +204,87 @@ let resultHandler = undefined;
  *
  * @param {any} a first item
  * @param {any} b second item
+ * @param {object} mismatch will be filled with information in case of mismatch
  *
  * @return {boolean}
  */
-const _deepEq = (a, b) => {
+const _deepEq = (a, b, mismatch) => {
+    /*
+        {mismatch} will contain following properties
+        - path : Array of int|string
+        - types : [string, string] defined in case of type mismatch
+        - values : [any, any] defined in case of value mismatch
+        - lengths : [integer, integer] defined in case of length mismatch
+     */
+    if (undefined === mismatch.path) {
+        mismatch.path = [];
+    }
     if (typeof a !== typeof b) {
+        mismatch.types = [typeof a, typeof b];
         return false;
     }
     if (a instanceof Function) {
-        return a.toString() === b.toString();
+        if (a.toString() === b.toString()) {
+            return true;
+        }
+        mismatch.values = [a.toString(), b.toString()];
+        return false;
     }
     if (a === b || a.valueOf() === b.valueOf()) {
         return true;
     }
     if (!(a instanceof Object)) {
+        mismatch.values = [a, b];
         return false;
     }
     const ka = Object.keys(a);
     if (ka.length != Object.keys(b).length) {
+        mismatch.lengths = [ka.length, Object.keys(b).length];
         return false;
     }
-    for (let i in b) {
-        if (!b.hasOwnProperty(i)) {
+    for (let k in b) {
+        if (!b.hasOwnProperty(k)) {
             continue;
         }
-        if (ka.indexOf(i) === -1) {
+        let key = k;
+        if (Array.isArray(a)) {
+            key = parseInt(k);
+        }
+        if (ka.indexOf(k) === -1) {
+            mismatch.values = [undefined, b[k]];
+            mismatch.path.push(key);
             return false;
         }
-        if (!_deepEq(a[i], b[i])) {
+        // save path & use a temporary one
+        const path = mismatch.path;
+        mismatch.path = [key];
+        if (!_deepEq(a[k], b[k], mismatch)) {
+            /*
+                mismatch object has been updated during recursive call
+                just update {path} using saved value
+             */
+            for (let i = 0; i < mismatch.path.length; ++i) {
+                path.push(mismatch.path[i]);
+            }
+            mismatch.path = path;
             return false;
         }
+        // restore path
+        mismatch.path = path;
     }
     return true;
+}
+
+/**
+ * Reset a mismatch context
+ *
+ * @param {object} obj
+ */
+const resetMismatch = (obj) => {
+    const keys = Object.keys(obj);
+    for (let k = 0; k < keys.length; ++k) {
+        delete obj[k];
+    }
 }
 
 /**
@@ -185,8 +294,8 @@ const _deepEq = (a, b) => {
  * @param {boolean} cond
  * @param {string} msg message to display
  * @param {object} opt options
- * @param {any} opt.actualResult if defined, will be displayed in case of failure 
- * @param {any} opt.expectedResult if defined, will be displayed in case of failure 
+ * @param {any} opt.actualResult if defined, will be displayed in case of failure
+ * @param {any} opt.expectedResult if defined, will be displayed in case of failure
  */
 const _assert = (testName, cond, msg, opt) => {
     cond = !!cond;
@@ -221,7 +330,8 @@ const _assert = (testName, cond, msg, opt) => {
  * @param {string} msg message to display
  */
 const _assertEq = (testName, actualResult, expectedResult, msg) => {
-    const result = _deepEq(actualResult, expectedResult);
+    const mismatch = {};
+    const result = _deepEq(actualResult, expectedResult, mismatch);
     if (result) {
         // update counters
         ++counters.assertions.passed;
@@ -230,7 +340,7 @@ const _assertEq = (testName, actualResult, expectedResult, msg) => {
         // update counters
         counters.currentTest.didFail = true;
         ++counters.assertions.failed;
-        reportHandler('fail', testName, {msg:msg, actualResult:actualResult, expectedResult:expectedResult});
+        reportHandler('fail', testName, {msg:msg, actualResult:actualResult, expectedResult:expectedResult, mismatch:mismatch});
     }
 };
 
@@ -243,7 +353,7 @@ const _assertEq = (testName, actualResult, expectedResult, msg) => {
  * @param {string} msg message to display
  */
 const _assertNeq = (testName, actualResult, unexpectedResult, msg) => {
-    const result = !_deepEq(actualResult, unexpectedResult);
+    const result = !_deepEq(actualResult, unexpectedResult, {});
     if (result) {
         // update counters
         ++counters.assertions.passed;
@@ -298,7 +408,7 @@ const tester = {
      * @param {string} msg message to display
      * @param {object} opt options
      * @param {any} opt.actualResult if defined, will be displayed in case of failure
-     * @param {any} opt.expectedResult if defined, will be displayed in case of failure 
+     * @param {any} opt.expectedResult if defined, will be displayed in case of failure
      */
     assert:(cond, msg, opt) => {
         if (counters.currentTest.didFail && stopOnFailure) {
@@ -307,7 +417,27 @@ const tester = {
         _assert(currentTest, cond, msg, opt);
     },
 
-    eq:_deepEq,
+    /**
+     * Test if two items are equal
+     *
+     * @param {any} a first item
+     * @param {any} b second item
+     * @param {object} mismatch will be filled with information in case of mismatch (optional)
+     *
+     * @return {boolean}
+     */
+    eq: (a, b, mismatch) => {
+        if (undefined === mismatch) {
+            mismatch = {};
+        }
+        else {
+            if ('object' != typeof mismatch) {
+                throw new TypeError(`Argument 'mismatch' should be an object`)
+            }
+            resetMismatch(mismatch);
+        }
+        return _deepEq(a, b, mismatch);
+    },
 
     /**
      * Ensure two items are equal
@@ -431,9 +561,9 @@ const tester = {
                     tags = [...opt.tags];
                 }
             }
-    
+
             let tests = pendingTests;
-    
+
             // filter by tags
             if (0 != tags.length) {
                 tests = [];
@@ -446,18 +576,18 @@ const tester = {
                     }
                 });
             }
-    
+
             // run tests
             for (let i = 0; i < tests.length; ++i) {
                 // reset env
                 currentTest = tests[i].name;
                 counters.currentTest.didFail = false;
-    
+
                 // run test
                 reportHandler('begin', currentTest);
                 await pendingTests[i].fn();
                 reportHandler('end', currentTest);
-    
+
                 // update counters
                 if (counters.currentTest.didFail) {
                     ++counters.tests.failed;
@@ -493,6 +623,8 @@ const tester = {
     /**
      * Set verbosity level for reporting
      *
+     * This only apply to default reporter
+     *
      * @param {integer} level (default = 3)
      *                    - 3 (default) : print test name, all assertions & final summary
      *                    - 2: only print test name, failed assertions & final summary
@@ -502,6 +634,7 @@ const tester = {
         const value = parseInt(level);
         if (!isNaN(value)) {
             switch (value) {
+                case 4:
                 case 3:
                 case 2:
                 case 1:
@@ -514,10 +647,24 @@ const tester = {
     /**
      * Configure whether or not report should use color
      *
+     * This only apply to default reporter
+     *
      * @param {boolean} flag
      */
     enableColorInReport: (flag) => {
-        useColorInReport = (flag === true);
+        useColorInReport = (true === flag);
+    },
+
+    /**
+     * Configure whether or not full results should be displayed
+     * in case of mismatch (ie: when calling {assertEq})
+     *
+     * This only apply to default reporter
+     *
+     * @param {boolean} flag
+     */
+    displayResultsIfMismatch: (flag) => {
+        displayResultsIfMismatch = (true === flag);
     },
 
     /**

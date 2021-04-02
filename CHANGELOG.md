@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.2.2]
+* Provide extra information in case of mismatch when using `tester.eq` (`tester.js)
+* Change interface of custom reporter (`tester.js`)
+
 ## [0.2.1]
 * Fix `getScriptName` function (`path.js`)
 
