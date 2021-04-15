@@ -1,7 +1,7 @@
 import * as os from 'os';
 import * as std from 'std';
 import { tester } from '../../src/tester.js';
-import { utf8ArrayToStr } from '../../src/strings.js'
+import { utf8ArrayToStr, getLines } from '../../src/strings.js'
 
 export default () => {
 
@@ -49,6 +49,30 @@ export default () => {
                 }
             }
         }
+    });
+
+    tester.test('strings.getLines', () => {
+        let str, result, expectedResult;
+        
+        str = " a\nb\n\n\c\nd ";
+        result = getLines(str, undefined, false);
+        expectedResult = {lines:[' a', 'b', '', 'c'], incompleteLine:'d '};
+        tester.assertEq(result, expectedResult, 'Result should be as expected');
+
+        str = " a\nb\n\n\c\nd ";
+        result = getLines(str, undefined, true);
+        expectedResult = {lines:[' a', 'b', 'c'], incompleteLine:'d '};
+        tester.assertEq(result, expectedResult, 'Result should be as expected');
+
+        str = " a\nb\n\n\c\nd ";
+        result = getLines(str, 'incomplete ', false);
+        expectedResult = {lines:['incomplete  a', 'b', '', 'c'], incompleteLine:'d '};
+        tester.assertEq(result, expectedResult, 'Result should be as expected');
+
+        str = " a\nb\n\n\c\nd ";
+        result = getLines(str, 'incomplete ', true);
+        expectedResult = {lines:['incomplete  a', 'b', 'c'], incompleteLine:'d '};
+        tester.assertEq(result, expectedResult, 'Result should be as expected');
     });
 
 }

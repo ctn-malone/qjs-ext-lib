@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.2.3] **NOT RELEASED**
+* Move `getLines` from `process.js` to `strings.js`
+
 ## [0.2.2]
 * Provide extra information in case of mismatch when using `tester.eq` (`tester.js)
 * Change interface of custom reporter (`tester.js`)

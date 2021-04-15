@@ -7,7 +7,7 @@
 import * as os from 'os';
 import * as std from 'std';
 
-import { utf8ArrayToStr } from './strings.js';
+import { utf8ArrayToStr, getLines } from './strings.js';
 import { wait } from './timers.js';
 
 /**
@@ -56,42 +56,6 @@ const getSignalName = (signal) => {
         case 15:
             return 'SIGTERM';
     }
-}
-
-/**
- * Split a string into multiple lines
- *
- * @param {string} content new content to split
- * @param {string} incompleteLine previous incomplete line
- * @param {boolean} skipBlankLines if {true} empty lines will be ignored
- *
- * @return {object} {lines:string[], incompleteLine:string}
- */
-const getLines = (content, incompleteLine, skipBlankLines) => {
-    const lines = [];
-    let index;
-    let start = 0;
-    while (-1 != (index = content.indexOf("\n", start))) {
-        const str = content.substring(start, index);
-        start = index + 1;
-        incompleteLine += str;
-        // ignore empty lines if requested
-        if ('' == incompleteLine) {
-            if (!skipBlankLines) {
-                lines.push(incompleteLine);
-            }
-        }
-        else {
-            lines.push(incompleteLine);
-            incompleteLine = '';
-        }
-    }
-    incompleteLine += content.substring(start);
-    const result = {
-        lines:lines,
-        incompleteLine:incompleteLine
-    };
-    return result;
 }
 
 const DEFAULT_SHELL = '/bin/sh';

@@ -52,6 +52,51 @@ const utf8ArrayToStr = (array, len) => {
     return finalStr;
 }
 
+/**
+ * Split a string into multiple lines
+ *
+ * @param {string} content new content to split
+ * @param {string} incompleteLine previous incomplete line
+ * @param {boolean} skipBlankLines if {true} empty lines will be ignored (default = {false})
+ *
+ * @return {object} {lines:string[], incompleteLine:string}
+ */
+const getLines = (content, incompleteLine, skipBlankLines = false) => {
+    if (undefined === incompleteLine) {
+        incompleteLine = '';
+    }
+    const lines = [];
+    let index;
+    let start = 0;
+    let str;
+    while (-1 != (index = content.indexOf("\n", start))) {
+        str = content.substring(start, index);
+        // remove '\r' character in case we have one
+        if (str.endsWith('\r')) {
+            str = str.slice(0, -1);
+        }
+        start = index + 1;
+        incompleteLine += str;
+        // ignore empty lines if requested
+        if ('' == incompleteLine) {
+            if (!skipBlankLines) {
+                lines.push(incompleteLine);
+            }
+        }
+        else {
+            lines.push(incompleteLine);
+            incompleteLine = '';
+        }
+    }
+    incompleteLine += content.substring(start);
+    const result = {
+        lines:lines,
+        incompleteLine:incompleteLine
+    };
+    return result;
+}
+
 export {
-    utf8ArrayToStr
+    utf8ArrayToStr,
+    getLines
 }
