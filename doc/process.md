@@ -53,6 +53,19 @@ const p = new Process('sleep 10s', {
 await p.run();
 ```
 
+### Process.getSignalName(...)
+
+Convert a signal number to a signal name. This is a **static** method
+
+**return** *string|undefined* signal name
+
+<u>Example</u>
+
+```js
+const name = Process.getSignalName(2);
+console.log(name);
+```
+
 ### Process.run(...)
 
 `.run()`

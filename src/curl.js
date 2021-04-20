@@ -316,6 +316,8 @@ class Curl {
         this._didTimeout = false;
         // whether or not request is being cancelled
         this._isBeingCancelled = false;
+        // whether or not request was cancelled
+        this._wasCancelled = false;
 
         this._context = opt.context;
 
@@ -354,8 +356,8 @@ class Curl {
                 this._didTimeout = true;
             }
             // we might have cancelled the process using SIGINT
-            else if ('SIGINT' === state.signal) {
-                this._didTimeout = true;
+            else if (this._isBeingCancelled && 'SIGINT' === state.signal) {
+                this._wasCancelled = true;
             }
             this._promise = undefined;
             this._process = undefined;
@@ -490,6 +492,9 @@ class Curl {
         }
     }
 
+    /**
+     * Get curl command line
+     */
     get cmdline() {
         return this._curlArgs.join(' ');
     }
@@ -518,6 +523,15 @@ class Curl {
      */
     get didTimeout() {
         return this._didTimeout;
+    }
+
+    /**
+     * Indicate whether or not request was cancelled
+     *
+     * @return {boolean}
+     */
+     get wasCancelled() {
+        return this._wasCancelled;
     }
 
     /**
@@ -662,6 +676,7 @@ class Curl {
         this._curlError = undefined;
         this._didTimeout = false;
         this._isBeingCancelled = false;
+        this._wasCancelled = false;
         this._responseHeaders = undefined;
         this._body = undefined;
         this._status = undefined;

@@ -98,7 +98,7 @@ os.setTimeout(() => {
     c.cancel();
 }, 1000);
 await c.run();
-console.log(c.didTimeout);
+console.log(c.wasCancelled);
 ```
 
 ### Curl.cmdline
@@ -133,7 +133,7 @@ curl -D /dev/stderr --no-progress-meter -q -X POST -L -H Content-Type: applicati
 
 `.didTimeout`
 
-Indicates whether or not *curl* request timed out (because of `opt.maxTime` or because `Curl.cancel()` method was called)
+Indicates whether or not *curl* request timed out (because of `opt.maxTime`)
 
 **return** *boolean*
 
@@ -145,6 +145,25 @@ const c = new Curl('https://jsonplaceholder.typicode.com/posts/1000', {
 });
 await c.run();
 console.log(c.didTimeout);
+```
+
+### Curl.wasCancelled
+
+`.wasCancelled`
+
+Indicates whether or not *curl* request was cancelled (because `Curl.cancel()` method was called)
+
+**return** *boolean*
+
+<u>Example</u>
+
+```js
+const c = new Curl(`http://127.0.0.1`);
+os.setTimeout(() => {
+    c.cancel();
+}, 1000);
+await c.run();
+console.log(c.wasCancelled);
 ```
 
 ### Curl.curlFailed

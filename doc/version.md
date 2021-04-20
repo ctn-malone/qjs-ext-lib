@@ -27,6 +27,8 @@ Checks whether or not two versions are equal
 * **[target]** (*string*) : version to compare to
 * current (*string*) : version to compare (default = library version)
 
+**return** *boolean*
+
 <u>Example</u>
 
 ```js
@@ -46,6 +48,8 @@ Checks whether or not two versions are distinct
 * **[target]** (*string*) : version to compare to
 * current (*string*) : version to check (default = library version)
 
+**return** *boolean*
+
 <u>Example</u>
 
 ```js
@@ -64,6 +68,8 @@ Checks if a given version is less than another version
 
 * **[target]** (*string*) : version to compare to
 * current (*string*) : version to check (default = library version)
+
+**return** *boolean*
 
 <u>Example</u>
 
@@ -86,6 +92,8 @@ Checks if a given version is less than or equal to another version
 * **[target]** (*string*) : version to compare to
 * current (*string*) : version to check (default = library version)
 
+**return** *boolean*
+
 <u>Example</u>
 
 ```js
@@ -107,6 +115,8 @@ Checks if a given version is greater than another version
 * **[target]** (*string*) : version to compare to
 * current (*string*) : version to check (default = library version)
 
+**return** *boolean*
+
 <u>Example</u>
 
 ```js
@@ -127,6 +137,8 @@ Checks if a given version is greater than or equal to another version
 
 * **[target]** (*string*) : version to compare to
 * current (*string*) : version to check (default = library version)
+
+**return** *boolean*
 
 <u>Example</u>
 

@@ -146,7 +146,7 @@ class Process {
         this._lineBuffered = (true === opt.lineBuffered);
         // by default trim buffered content
         this._trim = (false !== opt.trim);
-        // by default do not skip enmpty lines
+        // by default do not skip empty lines
         this._skipBlankLines = (true === opt.skipBlankLines);
 
         // environment
@@ -207,6 +207,17 @@ class Process {
                 }
             }
         }
+    }
+
+    /**
+     * Convert signal value to name
+     *
+     * @param {string} signal
+     *
+     * @return {string}
+     */
+    static getSignalName(signal) {
+        return getSignalName(signal);
     }
 
     /**
@@ -531,7 +542,7 @@ class Process {
                     stdoutIncompleteLine = result.incompleteLine;
                     return;
                 }
-                // buffer stdout
+                // buffer output
                 this._output.stdout += content;
             });
 
@@ -614,7 +625,7 @@ class Process {
                         stderrIncompleteLine = result.incompleteLine;
                         return;
                     }
-                    // buffer stdout
+                    // buffer output
                     this._output.stderr += content;
                 });
             }
