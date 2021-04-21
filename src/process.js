@@ -741,6 +741,10 @@ class Process {
             exitCode:0,
             didTimeout:false
         };
+        this._output = {
+            stdout:'',
+            stderr:''
+        };
     }
 
 }

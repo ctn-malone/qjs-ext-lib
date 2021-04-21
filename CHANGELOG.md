@@ -5,6 +5,7 @@
 * Add static method `getSignalName` to `Process` (`process.js`)
 * Add property `wasCancelled` to know whether or not a curl request was cancelled (`curl.js`)
 * Update documentation for `version` module
+* Reset buffered output everytime `run` method is called (`process.js`)
 
 ## [0.2.2]
 * Provide extra information in case of mismatch when using `tester.eq` (`tester.js)

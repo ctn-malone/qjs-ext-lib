@@ -530,7 +530,7 @@ class Curl {
      *
      * @return {boolean}
      */
-     get wasCancelled() {
+    get wasCancelled() {
         return this._wasCancelled;
     }
 
