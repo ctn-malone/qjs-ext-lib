@@ -657,8 +657,6 @@ class Process {
                 }, 1000 * this._timeout.delay);
             }
 
-            return this._state.pid;
-
         });
         return this._promise;
     }

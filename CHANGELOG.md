@@ -1,6 +1,6 @@
 # Change Log
 
-## [0.2.3] **NOT RELEASED**
+## [0.2.3]
 * Move `getLines` from `process.js` to `strings.js`
 * Add static method `getSignalName` to `Process` (`process.js`)
 * Add property `wasCancelled` to know whether or not a curl request was cancelled (`curl.js`)
