@@ -489,6 +489,3 @@ for (let i = 1; i < 3; ++i) {
 const responses = (await multiCurl(requests)).map((e => e.curl.body));
 console.log(JSON.stringify(responses, null, 4));
 ```
-
-
-

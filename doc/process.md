@@ -395,7 +395,3 @@ Wait asynchronously until a given process is terminated
 * pollDelay (*integer*) : delay in ms between polling (default = `250`)
 
 **return** *Promise* which resolves once the process is gone
-
-
-
-

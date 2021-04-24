@@ -494,6 +494,8 @@ class Curl {
 
     /**
      * Get curl command line
+     * 
+     * @return {string}
      */
     get cmdline() {
         return this._curlArgs.join(' ');

@@ -763,7 +763,7 @@ class Process {
  * @param {boolean} opt.newSession if {true} setsid will be used (ie: child will not receive SIGINT sent to parent) (default = {false})
  * @param {boolean} opt.redirectStderr if {true} stderr will be redirected to stdout (default = {false})
  * @param {boolean} opt.lineBuffered if {true} call stdout & stderr event listeners only after a line is complete (default = {false})
- * @param {boolean} opt.trim if {true} stdout & stderr content will be trimmed (default = {true}) (does not apply to stdout & stderr event handlers)
+ * @param {boolean} opt.trim if {true} stdout & stderr content will be trimmed (default = {true})
  * @param {boolean} opt.skipBlankLines if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
  * @param {integer} opt.timeout maximum number of seconds before killing child (if {undefined}, no timeout will be configured)
  * @param {integer} opt.timeoutSignal signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
