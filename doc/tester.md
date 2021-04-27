@@ -12,7 +12,9 @@ Defines a new test
 * **[fn]** (*function*) : test function
 * opt (*object*) : options
   * opt.isAsync (*boolean*) : whether or not test is async (default = `false`)
-  * opt.tags (*string|string[]*) : tags to assign to the test (can be used to filter which tests will be run) 
+  * opt.tags (*string|string[]*) : tags to assign to the test (can be used to filter which tests will be run)
+  * opt.skip (*boolean|function*) : whether or not test should be skipped (default =`false`)
+                                    When using a `function`, it should return a `boolean`
 
 When a test function is *async*, a callback will be passed to the test function and should be called to indicate that test is complete
 
@@ -28,7 +30,10 @@ tester.test('test2', (done) => {
         done();
     }, 1000);
 }, {
-    isAsync:true
+    isAsync:true,
+    skip:() => {
+        return (0 == Date.now() % 2);
+    }
 });
 await tester.run();
 ```
@@ -134,6 +139,7 @@ Run tests
 * tests (*object*)
   * passed (*integer*) : number of tests which passed
   * failed (*integer*) : number of tests which failed
+  * skipped (*integer*) : number of tests which were skipped
 * assertions (*object*)
   * passed (*integer*) : number of assertions which passed
   * failed (*integer*) : number of assertions which failed
@@ -221,6 +227,8 @@ Following arguments will be passed to the function
 
 `assertion` object will have following properties
 
+* if `eventName` is `begin`
+  * skip (*boolean*) : whether or not test will be skipped
 * if `eventName` is `pass`
   * msg (*string*)
 * if `eventName` is `fail`

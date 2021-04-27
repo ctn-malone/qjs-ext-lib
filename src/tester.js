@@ -17,6 +17,7 @@ let reportVerbosity = 3;
 let useColorInReport = true;
 const ANSI_COLOR_SUCCESS = '\u001b[38;5;40m';
 const ANSI_COLOR_FAILURE = '\u001b[38;5;196m';
+const ANSI_COLOR_SKIP = '\u001b[38;5;75m';
 const ANSI_COLOR_EXCEPTION = '\u001b[38;5;208m';
 const ANSI_COLOR_RESET = '\u001b[0m';
 
@@ -31,7 +32,7 @@ let displayResultsIfMismatch = false;
  */
 const initializeCounters = () => {
     return {
-        tests: {passed:0, failed:0},
+        tests: {passed:0, failed:0, skipped:0},
         assertions: {passed:0, failed:0, exceptions:0},
         currentTest: {didFail:false}
     };
@@ -52,6 +53,12 @@ let runPromise = undefined;
  */
 /*
     {assertion} will have following properties
+
+    - if {eventName} is "begin"
+
+        {
+            "skip":boolean           // whether or not test will be skipped
+        }
 
     - if {eventName} is "pass"
 
@@ -96,10 +103,11 @@ let runPromise = undefined;
 
  */
 const defaultReportHandler = (eventName, testName, assertion) => {
-    const colors = {pass:'',fail:'',except:'',reset:''};
+    const colors = {pass:'',fail:'',skip:'',except:'',reset:''};
     if (useColorInReport) {
         colors.pass = ANSI_COLOR_SUCCESS;
         colors.fail = ANSI_COLOR_FAILURE;
+        colors.skip = ANSI_COLOR_SKIP;
         colors.except = ANSI_COLOR_EXCEPTION;
         colors.reset = ANSI_COLOR_RESET;
     }
@@ -107,6 +115,9 @@ const defaultReportHandler = (eventName, testName, assertion) => {
         case 'begin':
             if (reportVerbosity > 1) {
                 console.log(`${testName}`);
+                if (assertion.skip) {
+                    console.log(`  ${colors.skip}skip${colors.reset}`);
+                }
             }
             break;
         case 'end':
@@ -173,7 +184,7 @@ const defaultReportHandler = (eventName, testName, assertion) => {
             if (reportVerbosity > 1) {
                 console.log('');
             }
-            console.log(`[tests] - ${counters.tests.passed > 0 ? colors.pass : colors.reset}passed${colors.reset}: ${counters.tests.passed}  ${counters.tests.failed > 0 ? colors.fail: colors.reset}failed${colors.reset}: ${counters.tests.failed}`);
+            console.log(`[tests] - ${counters.tests.passed > 0 ? colors.pass : colors.reset}passed${colors.reset}: ${counters.tests.passed}  ${counters.tests.failed > 0 ? colors.fail: colors.reset}failed${colors.reset}: ${counters.tests.failed}  ${counters.tests.skipped > 0 ? colors.skip: colors.reset}skipped${colors.reset}: ${counters.tests.skipped}`);
             console.log(`[assertions] - ${counters.assertions.passed > 0 ? colors.pass : colors.reset}passed${colors.reset}: ${counters.assertions.passed}  ${counters.assertions.failed > 0 ? colors.fail: colors.reset}failed${colors.reset}: ${counters.assertions.failed}  ${counters.assertions.exceptions > 0 ? colors.except : colors.reset}exceptions${colors.reset}: ${counters.assertions.exceptions}`);
     }
 }
@@ -475,6 +486,7 @@ const tester = {
      * @param {object} opt options
      * @param {boolean} opt.isAsync whether or not test is async (default = {false})
      * @param {string[]|string} opt.tags tags to assign to this test
+     * @param {boolean|function} opt.skip whether or not test should be skipped (default = {false})
      */
     test: (testName, fn, opt) => {
         if (undefined === opt) {
@@ -482,6 +494,17 @@ const tester = {
         }
 
         const _isAsync = (true === opt.isAsync);
+        
+        // whether or not test should be skipped
+        let skipFn = () => { return false };
+        if (undefined !== opt.skip) {
+            if (true === opt.skip || false === opt.skip) {
+                skipFn = () => { return opt.skip };
+            }
+            else if ('function' == typeof opt.skip) {
+                skipFn = opt.skip;
+            }
+        }
 
         // check tags
         let tags = [];
@@ -497,7 +520,12 @@ const tester = {
         /*
             Create a new function which returns a promise
          */
-        const _fn = () => {
+        const _fn = (skip) => {
+            if (skip) {
+                return new Promise((resolve) => {
+                    resolve();
+                });
+            }
             // fn is not async
             if (!_isAsync) {
                 return new Promise((resolve) => {
@@ -528,7 +556,7 @@ const tester = {
                 }
             });
         }
-        pendingTests.push({name:testName, fn:_fn, tags:tags});
+        pendingTests.push({name:testName, fn:_fn, skipFn:skipFn, tags:tags});
     },
 
     /**
@@ -584,12 +612,22 @@ const tester = {
                 counters.currentTest.didFail = false;
 
                 // run test
-                reportHandler('begin', currentTest);
-                await pendingTests[i].fn();
+                let skip = false;
+                try {
+                    skip = tests[i].skipFn();
+                }
+                catch (e) {
+                    // nothing to do
+                }
+                reportHandler('begin', currentTest, {skip:skip});
+                await pendingTests[i].fn(skip);
                 reportHandler('end', currentTest);
 
                 // update counters
-                if (counters.currentTest.didFail) {
+                if (skip) {
+                    ++counters.tests.skipped;
+                }
+                else if (counters.currentTest.didFail) {
                     ++counters.tests.failed;
                 }
                 else {
