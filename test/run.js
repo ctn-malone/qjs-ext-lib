@@ -7,10 +7,11 @@ import testPath from './tests/test.path.js';
 import testProcess from './tests/test.process.js';
 import testCurl from './tests/test.curl.js';
 import testVersion from './tests/test.version.js';
+import testSsh from './tests/test.ssh.js';
 
 import * as std from 'std';
 
-const testSuites = ['timers', 'strings', 'path', 'process', 'curl', 'version'];
+const testSuites = ['timers', 'strings', 'path', 'process', 'curl', 'version', 'ssh'];
 const verbosity_levels = [1, 2, 3];
 
 const getUsage = () => {
@@ -112,6 +113,9 @@ if (undefined === testSuite ||'curl' === testSuite) {
 }
 if (undefined === testSuite ||'version' === testSuite) {
     testVersion();
+}
+if (undefined === testSuite ||'ssh' === testSuite) {
+    testSsh();
 }
 
 tester.run({stopOnFailure: args['--stop-on-failure']});
