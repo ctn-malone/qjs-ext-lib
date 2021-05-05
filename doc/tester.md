@@ -15,6 +15,7 @@ Defines a new test
   * opt.tags (*string|string[]*) : tags to assign to the test (can be used to filter which tests will be run)
   * opt.skip (*boolean|function*) : whether or not test should be skipped (default =`false`)
                                     When using a `function`, it should return a `boolean`
+  * opt.repeat (*integer*) : number of times test should be repeated (default =`1`)
 
 When a test function is *async*, a callback will be passed to the test function and should be called to indicate that test is complete
 

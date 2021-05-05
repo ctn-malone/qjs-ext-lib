@@ -487,6 +487,7 @@ const tester = {
      * @param {boolean} opt.isAsync whether or not test is async (default = {false})
      * @param {string[]|string} opt.tags tags to assign to this test
      * @param {boolean|function} opt.skip whether or not test should be skipped (default = {false})
+     * @param {integer} opt.repeat number of times test should be repeated (default = 1)
      */
     test: (testName, fn, opt) => {
         if (undefined === opt) {
@@ -556,7 +557,16 @@ const tester = {
                 }
             });
         }
-        pendingTests.push({name:testName, fn:_fn, skipFn:skipFn, tags:tags});
+        let repeat = 1;
+        if (undefined !== opt.repeat) {
+            const value = parseInt(opt.repeat);
+            if (!isNaN(value) && value > 0) {
+                repeat = value;
+            }
+        }
+        for (let i = 0; i < repeat; ++i) {
+            pendingTests.push({name:testName, fn:_fn, skipFn:skipFn, tags:tags});
+        }
     },
 
     /**
