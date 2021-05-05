@@ -4,11 +4,12 @@ A wrapper around *ssh* binary
 
 <u>NB</u> : it has **only be tested with OpenSSH**. Following versions have been tested
 
-* OpenSSH_5.5p1
-* OpenSSH_6.7p1
-* OpenSSH_7.9p1
-* OpenSSH_8.1p1
-* OpenSSH_8.2p1
+* OpenSSH_5.5p1 (debian 6.x)
+* OpenSSH_6.0p1 (debian 7.x)
+* OpenSSH_6.7p1 (debian 8.x)
+* OpenSSH_7.4p1 (debian 9.x)
+* OpenSSH_7.9p1 (debian 10.x)
+* OpenSSH_8.4p1 (debian 11.x)
 
 Following features are not supported
 
