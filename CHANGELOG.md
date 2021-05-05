@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.3.0] **NOT RELEASED**
+* Possibility to indicate that a test should be skipped using `opt.skip` (`tester.js`)
+* Possibility to repeat a test multiple times using `opt.repeat` (`tester.js`)
+* Wrapper around *ssh* binary (`ssh.js`)
+* Wrapper around *ssh-agent* binary (`ssh.js`)
+
 ## [0.2.3]
 * Move `getLines` from `process.js` to `strings.js`
 * Add static method `getSignalName` to `Process` (`process.js`)
