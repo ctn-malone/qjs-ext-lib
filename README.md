@@ -106,6 +106,6 @@ qjs run.js
 <u>NB</u>: some tests will be skipped unless specific environment variables are defined
 
 * ssh : by default, no real SSH connection will be made from unit tests. Following environment variables can be defined to change behaviour
-  * QJS_EXT_TEST_SSH_REAL_CONNECT : if set to `1`, SSH connections will be made to localhost to execute scripts located under `test/data` (ensure that current user is allowed to SSH to localhost using default SSH key)
-  * QJS_EXT_TEST_SSH_REAL_LOCAL_FORWARD : if set to `1`, real local SSH forward will be tested (will be ignored if `QJS_EXT_TEST_SSH_REAL_CONNECT` != `1`)
-  * QJS_EXT_TEST_SSH_REAL_REMOTE_FORWARD : if set to `1`, real remote SSH forward will be tested (will be ignored if `QJS_EXT_TEST_SSH_REAL_CONNECT` != `1`)
+  * QJS_EXT_LIB_TEST_SSH_REAL_CONNECT : if set to `1`, SSH connections will be made to localhost to execute scripts located under `test/data` (ensure that current user is allowed to SSH to localhost using default SSH key)
+  * QJS_EXT_LIB_TEST_SSH_REAL_LOCAL_FORWARD : if set to `1`, real local SSH forward will be tested (will be ignored if `QJS_EXT_TEST_SSH_REAL_CONNECT` != `1`)
+  * QJS_EXT_LIB_TEST_SSH_REAL_REMOTE_FORWARD : if set to `1`, real remote SSH forward will be tested (will be ignored if `QJS_EXT_TEST_SSH_REAL_CONNECT` != `1`)

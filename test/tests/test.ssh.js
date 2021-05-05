@@ -8,11 +8,11 @@ import * as os from 'os';
 export default () => {
 
     // wether or not we should do real ssh connections
-    const real_ssh_connect = ('1' == std.getenv('QJS_EXT_TEST_SSH_REAL_CONNECT'));
+    const real_ssh_connect = ('1' == std.getenv('QJS_EXT_LIB_TEST_SSH_REAL_CONNECT'));
     // whether or not local forward should be tested
-    const real_local_forward = (real_ssh_connect && ('1' == std.getenv('QJS_EXT_TEST_SSH_REAL_LOCAL_FORWARD')));
+    const real_local_forward = (real_ssh_connect && ('1' == std.getenv('QJS_EXT_LIB_TEST_SSH_REAL_LOCAL_FORWARD')));
     // whether or not remote forward should be tested
-    const real_remote_forward = (real_ssh_connect && ('1' == std.getenv('QJS_EXT_TEST_SSH_REAL_REMOTE_FORWARD')));
+    const real_remote_forward = (real_ssh_connect && ('1' == std.getenv('QJS_EXT_LIB_TEST_SSH_REAL_REMOTE_FORWARD')));
     // full path to data directory
     const data_directory = `${os.getcwd()[0]}/data`;
 
