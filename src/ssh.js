@@ -32,7 +32,8 @@
         - debug1: SSH2_MSG_NEWKEYS sent => host key matches
         - debug1: Authentication succeeded => auth ok
         - debug1: Requesting no-more-sessions@openssh.com => session is setup (no remote port forwarding requested)
-        - debug1: All remote forwarding requests processed => session is setup (one or more remote port forwarding were requested)
+        - debug1: All remote forwarding requests processed => session is setup (one or more remote port forwarding were requested <= 8.4p1)
+        - debug1: forwarding_success: all expected forwarding replies received => session is setup (one or more remote port forwarding were requested, >= 8.4p1)
         - debug1: Sending command => process stdout/stderr will start
         - debug1: [...] free: client-session => remote process exited
 
@@ -300,7 +301,7 @@ const getDynamicRemotePorts = (content) => {
     let str;
     let strIndex, eolIndex;
     let start = 0;
-    while (-1 != (strIndex = content.indexOf("debug1: Updating allowed port ", start))) {
+    while (-1 != (strIndex = content.indexOf("Allocated port ", start))) {
         eolIndex = content.indexOf("\n", strIndex + 1);
         if (-1 != eolIndex) {
             str = content.substring(strIndex, eolIndex).trimEnd();
@@ -309,17 +310,20 @@ const getDynamicRemotePorts = (content) => {
             str = content.substring(strIndex);
         }
         /*
-            Example: "debug1: Updating allowed port 39930 for forwarding to host 127.0.0.1 port 22"
+            Example: "Allocated port 38001 for remote forward to 127.0.0.1:22"
          */
         const arr = str.split(' ');
-        if (12 == arr.length) {
+        if (8 == arr.length) {
             const port = {};
-            port.remotePort = parseInt(arr[4]);
+            port.remotePort = parseInt(arr[2]);
             if (!isNaN(port.remotePort)) {
-                port.localAddr = arr[9];
-                port.localPort = parseInt(arr[11]);
-                if (!isNaN(port.localPort)) {
-                    ports.push(port);
+                const hostPort = arr[7].split(':');
+                if (2 == hostPort.length) {
+                    port.localAddr = hostPort[0];
+                    port.localPort = parseInt(hostPort[1]);
+                    if (!isNaN(port.localPort)) {
+                        ports.push(port);
+                    }
                 }
             }
         }
@@ -347,7 +351,6 @@ const getDynamicRemotePorts = (content) => {
  * @return {object} {"output":string|undefined}
  */
  const parseContent = (content, steps, opt) => {
-
     /*  
         NB: Output can be mixed with debug lines which will need to be stripped
         
@@ -371,6 +374,10 @@ const getDynamicRemotePorts = (content) => {
         // we only have output
         if ((steps.didSetupSession && !opt.hasCommand) || steps.didSendCommand) {
             return {output:content};
+        }
+        // try to parse dynamic ports
+        if (opt.hasRemotePortForwarding) {
+            return {remotePorts:getDynamicRemotePorts(content)};
         }
         // ignore content
         return {};
@@ -403,6 +410,12 @@ const getDynamicRemotePorts = (content) => {
                 result.output = str;
             }
             return result;
+        }
+        else {
+            // try to parse dynamic ports
+            if (opt.hasRemotePortForwarding && undefined === result.remotePorts) {
+                result.remotePorts = getDynamicRemotePorts(content);
+            }
         }
     }
     // we have a command
@@ -453,7 +466,8 @@ const getDynamicRemotePorts = (content) => {
             steps.didSetupSession = true;
             steps.didSendCommand = true;
     
-            if (opt.hasRemotePortForwarding) {
+            // try to parse dynamic ports
+            if (opt.hasRemotePortForwarding && undefined === result.remotePorts) {
                 result.remotePorts = getDynamicRemotePorts(content);
             }
     
@@ -484,6 +498,11 @@ const getDynamicRemotePorts = (content) => {
             }
             return result;
         }
+    }
+
+    // try to parse dynamic ports
+    if (opt.hasRemotePortForwarding && undefined === result.remotePorts) {
+        result.remotePorts = getDynamicRemotePorts(content);
     }
 
     /*
@@ -538,16 +557,10 @@ const getDynamicRemotePorts = (content) => {
                                 forwarding requests have been processed successfully
                             */
                             else {
-                                const remotePorts = getDynamicRemotePorts(str);
-                                if (undefined !== remotePorts) {
-                                    if (undefined == result.remotePorts) {
-                                        result.remotePorts = [];
-                                    }
-                                    remotePorts.forEach((e) => {
-                                        result.remotePorts.push(e);
-                                    });
-                                }
                                 if (str.startsWith('debug1: All remote forwarding requests processed')) {
+                                    steps.didSetupSession = true;
+                                }
+                                else if (str.startsWith('debug1: forwarding_success: all expected forwarding replies received')) {
                                     steps.didSetupSession = true;
                                 }
                             }
