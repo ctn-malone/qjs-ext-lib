@@ -1,6 +1,6 @@
 # Change Log
 
-## [0.3.0] **NOT RELEASED**
+## [0.3.0]
 * Possibility to indicate that a test should be skipped using `opt.skip` (`tester.js`)
 * Possibility to repeat a test multiple times using `opt.repeat` (`tester.js`)
 * Wrapper around *ssh* binary (`ssh.js`)
