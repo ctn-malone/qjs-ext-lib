@@ -247,7 +247,7 @@ export default () => {
         done();
     }, {isAsync:true, skip:!real_ssh_connect});
 
-    tester.test('ssh.Ssh (real / invalid command', async (done) => {
+    tester.test('ssh.Ssh (real / invalid command)', async (done) => {
         const cmd = getRemoteCmd('invalid.sh');
         const ssh = new Ssh('127.0.0.1', cmd);
         const result = await ssh.run();
@@ -264,7 +264,7 @@ export default () => {
         done();
     }, {isAsync:true, skip:!real_ssh_connect});
 
-    tester.test('ssh.Ssh (real / invalid auth', async (done) => {
+    tester.test('ssh.Ssh (real / invalid auth)', async (done) => {
         const ssh = new Ssh('127.0.0.1', 'date', {
             identityFile:'/dev/null'
         });

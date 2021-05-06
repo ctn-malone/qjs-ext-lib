@@ -194,9 +194,12 @@ await p;
 
 ### Ssh.cancel(...)
 
-`.cancel()`
+`.cancel(opt)`
 
 Cancels *ssh* session (ie: kills ssh process)
+
+* opt (*object*) : options
+  * opt.signal (*integer*) : signal signal to use (default = `os.SIGINT`)
 
 **return** *boolean* : `true` if *ssh* process was successfully killed, `false` otherwise
 

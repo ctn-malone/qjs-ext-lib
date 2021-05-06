@@ -88,6 +88,9 @@ console.log(JSON.stringify(c.body));
 
 Cancels *curl* request
 
+* opt (*object*) : options
+  * opt.signal (*integer*) : signal signal to use (default = `os.SIGINT`)
+
 **return** *boolean* : `true` if *curl* process was successfully cancelled, `false` otherwise
 
 <u>Example</u>
