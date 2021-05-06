@@ -316,6 +316,9 @@ class Curl {
         this._didTimeout = false;
         // whether or not request is being cancelled
         this._isBeingCancelled = false;
+        // the signal used to cancel the process
+        this._cancelSignal = undefined;
+
         // whether or not request was cancelled
         this._wasCancelled = false;
 
@@ -355,8 +358,8 @@ class Curl {
             if (CURL_ERR_TIMEOUT == state.exitCode) {
                 this._didTimeout = true;
             }
-            // we might have cancelled the process using SIGINT
-            else if (this._isBeingCancelled && 'SIGINT' === state.signal) {
+            // we might have cancelled the process using a signal
+            if (this._isBeingCancelled && this._cancelSignal == (-state.exitCode)) {
                 this._wasCancelled = true;
             }
             this._promise = undefined;
@@ -451,17 +454,25 @@ class Curl {
     /**
      * Cancel curl process
      * 
+     * @param {object} opt options
+     * @param {integer} opt.signal signal to use (default = {SIGINT})
+     * 
      * @return {boolean} {true} if process was successfully cancelled, {false} otherwise
      */
-    cancel() {
+    cancel(opt) {
         if (undefined === this._process) {
             return false;
         }
         if (this._isBeingCancelled) {
             return true;
         }
+        let signal = os.SIGINT;
+        if (undefined !== opt && undefined !== opt.signal) {
+            signal = opt.signal;
+        }
         this._isBeingCancelled = true;
-        this._process.kill(os.SIGINT);
+        this._cancelSignal = signal;
+        this._process.kill(signal);
         return true;
     }
 
