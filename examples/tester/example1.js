@@ -20,8 +20,10 @@ tester.test('test2', (done) => {
     done();
 }, {isAsync:true});
 
+// whether or not last test should be skipped
+const skipLast = false;
 tester.test('test3', () => {
     throw new Error('unexpected error');
-});
+}, {skip:skipLast});
 
 tester.run();
