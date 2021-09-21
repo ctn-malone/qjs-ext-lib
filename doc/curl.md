@@ -50,6 +50,8 @@ Constructor
     * opt.basicAuth.password (*string*) : auth password
   * opt.bearerToken (*string*) : bearer token to use
     * will be ignored if `opt.basicAuth` was set
+  * opt.jwt (*string*) : *JWT* token to use (with or without *JWT* prefix)
+    * will be ignored if one of (`opt.basicAuth`, `opt.bearerToken`) was set
   * opt.context (*any*) : user define context (can be used to identify curl request later by client code)
 
 <u>Example</u>
@@ -460,6 +462,9 @@ Perfoms a *curl* request and return the response's body
     * opt.basicAuth.password (*string*) : auth password
   * opt.bearerToken (*string*) : bearer token to use
     * will be ignored if `opt.basicAuth` was set
+  * opt.jwt (*string*) : *JWT* token to use (with or without *JWT* prefix)
+    * provided as an alternative for services which require `JWT xxxx`  instead of `Bearer xxx` in `Authorization` header
+    * will be ignored if one of (`opt.basicAuth`, `opt.bearerToken`) was set
   * opt.context (*any*) : user define context (can be used to identify curl request later by client code)
   * opt.ignoreError (*boolean*):  if `true` promise will resolve to the response's body even if curl failed or HTTP failed
 

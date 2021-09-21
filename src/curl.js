@@ -52,6 +52,7 @@ class Curl {
      * @param {boolean} opt.failOnHttpError if {true}, {run} method will return {false} in case status code is not in [200, 299] (default = {false})
      * @param {object} opt.basicAuth basic HTTP authentication {"username":"string", "password":"string"}
      * @param {string} opt.bearerToken bearer token to use. Will be ignored if {opt.basicAuth} was set
+     * @param {string} opt.jwt JWT token to use (with or without JWT prefix). Will be ignored if one ({opt.basicAuth}, {opt.bearerToken}) was set
      * @param {any} opt.context user define context (can be used to identify curl request later by client code)
      */
     constructor(url, opt) {
@@ -168,6 +169,17 @@ class Curl {
         else if (undefined !== opt.bearerToken) {
             this._curlArgs.push('-H');
             const header = `Authorization: Bearer ${opt.bearerToken}`;
+            this._curlArgs.push(header);
+        }
+        // JWT token
+        else if (undefined !== opt.jwt) {
+            let token = opt.jwt;
+            // add prefix if needed
+            if (!token.startsWith('JWT ')) {
+                token = `JWT ${token}`;
+            }
+            this._curlArgs.push('-H');
+            const header = `Authorization: ${token}`;
             this._curlArgs.push(header);
         }
 
@@ -760,7 +772,7 @@ class Curl {
  * @param {boolean} opt.failOnHttpError if {true}, {run} method will return {false} in case status code is not in [200, 299] (default = {false})
  * @param {object} opt.basicAuth basic HTTP authentication {"username":"string", "password":"string"}
  * @param {string} opt.bearerToken bearer token to use. Will be ignored if {opt.basicAuth} was set
- *
+ * @param {string} opt.jwt JWT token to use (with or without JWT prefix). Will be ignored if one ({opt.basicAuth}, {opt.bearerToken}) was set
  * @param {boolean} opt.ignoreError if {true}, promise will resolve to the response's body even if curl failed or HTTP failed
  *
  * @return {Promise} promise which will resolve to the body in case of success
