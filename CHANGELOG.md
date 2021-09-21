@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.3.1]
+* feat: add support for *JWT* tokens in *curl* requests (`curl.js`)
+* feat: add `error` property to `Curl` (`curl.js`)
+* fix: remove progress meter from `Curl.curlError` (`curl.js`)
+
 ## [0.3.0]
 * Possibility to indicate that a test should be skipped using `opt.skip` (`tester.js`)
 * Possibility to repeat a test multiple times using `opt.repeat` (`tester.js`)
