@@ -242,6 +242,24 @@ await c.run();
 console.log(c.failed);
 ```
 
+### Curl.error
+
+`.curlError`
+
+Retrieves error message (in case of *curl* failure or HTTP failure)
+
+**return** *string*
+
+Property will be `undefined` unless there was a *curl* failure or an HTTP failure
+
+<u>Example</u>
+
+```js
+const c = new Curl('http://0.0.0.0');
+await c.run();
+console.log(c.error);
+```
+
 ### Curl.method
 
 `.method`

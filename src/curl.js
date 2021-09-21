@@ -355,6 +355,11 @@ class Curl {
         // process failed
         if (0 != state.exitCode) {
             this._curlError = this._process.stderr.trim();
+            // only keep curl error and ignore anything before it
+            const index = this._curlError.indexOf('curl:');
+            if (-1 != index) {
+                this._curlError = this._curlError.substring(index);
+            }
             if (CURL_ERR_TIMEOUT == state.exitCode) {
                 this._didTimeout = true;
             }
@@ -577,6 +582,23 @@ class Curl {
      */
     get curlError() {
         return this._curlError;
+    }
+
+    /**
+     * Return error (curl error or http error)
+     *
+     * @return {string|undefined}
+     */
+    get error() {
+        if (undefined !== this._curlError) {
+            return this._curlError;
+        }
+        if (undefined !== this._status) {
+            if (this._status.code < 200 || this._status.code > 299) {
+                return `${this._status.code} ${this._status.text}`;
+            }
+        }
+        return undefined;
     }
 
     /**
