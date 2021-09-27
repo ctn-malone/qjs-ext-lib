@@ -1,7 +1,11 @@
 # Change Log
 
+## [0.3.2]
+* feat: add support for passing *JSON* body from a file (`curl.js`)
+* feat: add support for passing *raw* body from a file (`curl.js`)
+
 ## [0.3.1]
-* feat: add support for *JWT* tokens in *curl* requests (`curl.js`)
+* feat: add support for *JWT* in *curl* requests (`curl.js`)
 * feat: add `error` property to `Curl` (`curl.js`)
 * fix: remove progress meter from `Curl.curlError` (`curl.js`)
 
