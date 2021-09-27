@@ -35,17 +35,24 @@ class Curl {
      *                                      Content type will automatically be set to application/json
      *                                      Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
      *                                      Will be ignored if {opt.data} was set
+     * @param {object|string|true} opt.jsonFile file containing data to send as application/json
+     *                                          Content type will automatically be set to application/json
+     *                                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
+     *                                          Will be ignored if one of ({opt.data}, {opt.json}) was set
      * @param {string|object} opt.file used to upload a file
      *                                 Content type will automatically be set to multipart/form-data
      *                                 Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
-     *                                 Will be ignored if one of ({opt.data}, {opt.json}) was set
+     *                                 Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}) was set
      *                                 When using a {string}, {opt.file} should be the path of the file to upload
      * @param {string} opt.file.filepath path of the local file (mandatory)
      * @param {string} opt.file.name name of the form parameter (default = {"file"})
      * @param {string} opt.file.filename name of the file (defaults to the name of the local file)
-     * @param {string} opt.body body to send
+     * @param {string} opt.body file containing the body to send
      *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
-     *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.file}) was set
+     *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}) was set
+     * @param {string} opt.bodyFile body to send 
+     *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
+     *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
      * @param {object} opt.params parameters to add as query string
      * @param {boolean} opt.normalizeHeaders if {true}, header names in response will be converted to lower case (default = {true})
      * @param {boolean} opt.parseJson if {true}, automatically parse JSON in responses (default = {true})
@@ -230,6 +237,15 @@ class Curl {
                     }
                 }
             }
+            // json body from json file
+            else if (undefined !== opt.jsonFile) {
+                if ('application/json' != contentType) {
+                    this._curlArgs.push('-H');
+                    this._curlArgs.push(`Content-Type: application/json`);
+                }
+                this._curlArgs.push('-d');
+                this._curlArgs.push(`@${opt.jsonFile}`);
+            }
             else if (undefined !== opt.file) {
                 /*
                     Content-Type will be set automatically to
@@ -267,6 +283,11 @@ class Curl {
                 this._curlArgs.push('-d');
                 // no need to escape anything since we're using exec
                 this._curlArgs.push(opt.body);
+            }
+            // raw content from file
+            else if (undefined !== opt.bodyFile) {
+                this._curlArgs.push('-d');
+                this._curlArgs.push(`@${opt.bodyFile}`);
             }
         }
         // url & query string
@@ -755,17 +776,24 @@ class Curl {
  *                                      Content type will automatically be set to application/json
  *                                      Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
  *                                      Will be ignored if {opt.data} was set
+ * @param {object|string|true} opt.jsonFile file containing data to send as application/json
+ *                                          Content type will automatically be set to application/json
+ *                                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
+ *                                          Will be ignored if one of ({opt.data}, {opt.json}) was set
  * @param {string|object} opt.file used to upload a file
  *                                 Content type will automatically be set to multipart/form-data
  *                                  Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
- *                                 Will be ignored if one of ({opt.data}, {opt.json}) was set
+ *                                 Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}) was set
  *                                 When using a {string}, {opt.file} should be the path of the file to upload
  * @param {string} opt.file.filepath path of the local file (mandatory)
  * @param {string} opt.file.name name of the form parameter (default = {"file"})
  * @param {string} opt.file.filename name of the file (defaults to the name of the local file)
  * @param {string} opt.body body to send
  *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
- *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.file}) was set
+ *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}) was set
+ * @param {string} opt.bodyFile body to send 
+ *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
+ *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
  * @param {object} opt.params parameters to add as query string
  * @param {boolean} opt.normalizeHeaders if {true}, header names in response will be converted to lower case (default = {true})
  * @param {boolean} opt.parseJson if {true}, automatically parse JSON in responses (default = {true})

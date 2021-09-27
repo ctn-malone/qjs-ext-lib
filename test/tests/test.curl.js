@@ -1,3 +1,4 @@
+import * as std from 'std';
 import { tester } from '../../src/tester.js';
 import { Curl, curlRequest, multiCurl } from '../../src/curl.js'
 
@@ -234,6 +235,16 @@ export default () => {
         tester.assertEq(cmdline, expectedCmdline, `cmdline should not contain any data when using a non-string as raw body`);
     });
 
+    tester.test('curl.Curl (send raw body from file)', () => {
+        let c = new Curl('http://127.0.0.1', {
+            method: 'post',
+            bodyFile:'body.txt'
+        });
+        let expectedCmdline = `curl -D /dev/stderr -q -X POST -L -d @body.txt --url http://127.0.0.1`;
+        let cmdline = c.cmdline;
+        tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using a file to define raw body`);
+    });
+
     tester.test('curl.Curl (send query parameters)', () => {
         let c = new Curl('http://127.0.0.1', {
             params:{
@@ -324,6 +335,23 @@ export default () => {
         let c = new Curl('http://jsonplaceholder.typicode.com/posts', {
             method:'post',
             json:reqBody
+        });
+        let result = await c.run();
+        tester.assert(result, `request should succeed`);
+        tester.assertEq(typeof c.body, 'object', `response payload should be an object`);
+        let resBody = c.body;
+        delete resBody.id;
+        tester.assertEq(resBody, reqBody, `response payload should be as expected`);
+        
+        done();
+    }, {isAsync:true});
+
+    tester.test('curl.Curl (POST request from file)', async (done) => {
+        const jsonFile = 'data/post_json1.json';
+        const reqBody = JSON.parse(std.loadFile(jsonFile));
+        let c = new Curl('http://jsonplaceholder.typicode.com/posts', {
+            method:'post',
+            jsonFile:jsonFile
         });
         let result = await c.run();
         tester.assert(result, `request should succeed`);

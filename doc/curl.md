@@ -29,10 +29,14 @@ Constructor
     * content type will automatically be set to application/json
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if `opt.data` was set
+  * opt.jsonFile (*string*) : file containing the data to send as `application/json`
+    * content type will automatically be set to application/json
+    * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
+    * will be ignored if one of (`opt.data`, `opt.json`) was set
   * opt.file (*string|object*) : used to upload a file
     * content type will automatically be set to `multipart/form-data`
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
-    * will be ignored if one of (`opt.data`, `opt.json`) was set
+    * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`) was set
     * when using a *string*, `opt.file` should be the path of the file to upload
     * when using an *object*
       * **[opt.file.filepath]** (*string*) : path of the local file (mandatory)
@@ -40,7 +44,10 @@ Constructor
       * opt.file.filename (*string*) : name of the file (defaults to the name of the local file)
   * opt.body (*string*) : raw body to send
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
-    * will be ignored if one of (`opt.data`, `opt.json`, `opt.file`) was set
+    * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`) was set
+  * opt.bodyFile (*string*) : file containing the raw body to send
+    * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
+    * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`, `opt.body`) was set
   * opt.params (*object*) : parameters to add as query string
   * opt.normalizeHeaders (*boolean*) : if `true`, header names in response will be converted to lower case (default = `true`)
   * opt.parseJson (*boolean*) : if `true`, automatically parse JSON in responses (default = `true`)
@@ -441,10 +448,14 @@ Perfoms a *curl* request and return the response's body
     * content type will automatically be set to application/json
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if `opt.data` was set
+  * opt.jsonFile (*string*) : file containing the data to send as `application/json`
+    * content type will automatically be set to application/json
+    * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
+    * will be ignored if one of (`opt.data`, `opt.json`) was set
   * opt.file (*string|object*) : used to upload a file
     * content type will automatically be set to `multipart/form-data`
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
-    * will be ignored if one of (`opt.data`, `opt.json`) was set
+    * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`) was set
     * when using a *string*, `opt.file` should be the path of the file to upload
     * when using an *object*
       * **[opt.file.filepath]** (*string*) : path of the local file (mandatory)
@@ -452,7 +463,10 @@ Perfoms a *curl* request and return the response's body
       * opt.file.filename (*string*) : name of the file (defaults to the name of the local file)
   * opt.body (*string*) : raw body to send
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
-    * will be ignored if one of (`opt.data`, `opt.json`, `opt.file`) was set
+    * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`) was set
+  * opt.bodyFile (*string*) : file containing the raw body to send
+    * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
+    * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`, `opt.body`) was set
   * opt.params (*object*) : parameters to add as query string
   * opt.normalizeHeaders (*boolean*) : if `true`, header names in response will be converted to lower case (default = `true`)
   * opt.parseJson (*boolean*) : if `true`, automatically parse JSON in responses (default = `true`)
