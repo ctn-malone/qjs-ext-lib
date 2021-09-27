@@ -84,6 +84,8 @@ class Process {
      * @param {boolean} opt.skipBlankLines if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
      * @param {integer} opt.timeout maximum number of seconds before killing child (if {undefined}, no timeout will be configured)
      * @param {integer} opt.timeoutSignal signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
+     * @param {integer} opt.stdin if defined, sets the stdin handle used by child process
+     *                            NB: don't share the same handle between multiple instances
      */
     constructor(cmdline, opt) {
         if (undefined === opt) {
@@ -178,6 +180,9 @@ class Process {
             gid:opt.gid,
             env:newEnv
         };
+        if (undefined !== opt.stdin) {
+            this._qjsOpt.stdin = opt.stdin;
+        }
         // by default don't use shell
         this._useShell = {flag:false, shell:DEFAULT_SHELL};
         if (true === opt.useShell) {
@@ -639,6 +644,10 @@ class Process {
             if (undefined !== stderrPipe) {
                 qjsOpt.stderr = stderrPipe[1];
             }
+            // rewind file descriptor
+            if (undefined !== qjsOpt.stdin) {
+                os.seek(qjsOpt.stdin, 0, std.SEEK_SET);
+            }
             this._state.pid = os.exec(args, qjsOpt);
 
             // close the write ends of the pipes as we don't need them anymore
@@ -767,6 +776,8 @@ class Process {
  * @param {boolean} opt.skipBlankLines if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
  * @param {integer} opt.timeout maximum number of seconds before killing child (if {undefined}, no timeout will be configured)
  * @param {integer} opt.timeoutSignal signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
+ * @param {integer} opt.stdin if defined, sets the stdin handle used by child process
+ *                            NB: don't share the same handle between multiple instances
  * @param {boolean} opt.ignoreError if {true} promise will resolve to the content of stdout even if process exited with a non zero code
  *
  * @return {Promise} promise which will resolve to the content of stdout in case process exited with zero or {opt.ignoreError} is {true}

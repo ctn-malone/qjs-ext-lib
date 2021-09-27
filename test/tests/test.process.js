@@ -438,6 +438,34 @@ export default () => {
         done();
     }, {isAsync:true});
 
+    tester.test('process.Process (stdin redirect)', async (done) => {
+        let opt, cmdline, p;
+        let state;
+
+        // load input
+        const inputFile = 'data/input1.txt';
+        const input = std.loadFile(inputFile).trim();
+        const tmpFile = std.tmpfile();
+        tmpFile.puts(input);
+        tmpFile.flush();
+        // rewind
+        tmpFile.seek(0);
+
+        const expectedContent = input.split("\n").map(line => `[in] ${line}`).join("\n");
+
+        cmdline = 'data/test9.sh';
+        opt = {stdin:tmpFile.fileno(), timeout:5};
+        p = new Process(cmdline, opt);
+        state = await p.run();
+
+        // tmp file can now be closed
+        tmpFile.close();
+
+        tester.assertEq(p.stdout, expectedContent, `when redirecting 'stdin', 'stdout' content retrieved using 'stdout' property should be as expected`);
+
+        done();
+    }, {isAsync:true});
+
     tester.test('process.exec', async (done) => {
         let opt, cmdline;
         let expectedContent, content;

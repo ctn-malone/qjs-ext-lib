@@ -43,6 +43,7 @@ Constructor
   * opt.skipBlankLines (*boolean*) : if `true` empty lines will be ignored in both *stdout* & *stderr* content (default = `false`)
   * opt.timeout (*integer*) :  maximum number of seconds before killing child (if `undefined`, no timeout will be configured)
   * opt.timeoutSignal (*integer*) : signal to use when killing the child after timeout (default = `SIGTERM`, ignored if `opt.timeout` is not defined)
+  * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by child process (don't share the same *handle* between multiple instances !)
 
 <u>Example</u>
 
@@ -361,6 +362,7 @@ Executes a command and return the content of *stdout*
   * opt.skipBlankLines (*boolean*) : if `true` empty lines will be ignored in both *stdout* & *stderr* content (default = `false`)
   * opt.timeout (*integer*) :  maximum number of seconds before killing child (if `undefined`, no timeout will be configured)
   * opt.timeoutSignal (*integer*) : signal to use when killing the child after timeout (default = `SIGTERM`, ignored if `opt.timeout` is not defined)
+  * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by child process (don't share the same *handle* between multiple instances !)
   * opt.ignoreError (*boolean*) : if `true` promise will resolve to the content of stdout even if process exited with a non zero code
 
 **return** *Promise* which resolves to the content of *stdout*
