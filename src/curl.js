@@ -61,11 +61,14 @@ class Curl {
      * @param {string} opt.bearerToken bearer token to use. Will be ignored if {opt.basicAuth} was set
      * @param {string} opt.jwt JWT token to use (with or without JWT prefix). Will be ignored if one ({opt.basicAuth}, {opt.bearerToken}) was set
      * @param {any} opt.context user define context (can be used to identify curl request later by client code)
+     * @param {integer} opt.stdin : if defined, sets the stdin handle used by curl process
+     *                              NB: don't share the same handle between multiple instances
      */
     constructor(url, opt) {
         if (undefined === opt) {
             opt = {};
         }
+
         this._url = url;
 
         // curl arguments
@@ -362,6 +365,12 @@ class Curl {
         this._contentType = undefined;
         this._body = undefined;
         this._status = undefined;
+
+        // stdin
+        this._stdin = undefined;
+        if (undefined !== opt.stdin) {
+            this._stdin = opt.stdin;
+        }
     }
 
     /**
@@ -378,7 +387,11 @@ class Curl {
         const startTime = Date.now();
 
         const cmdline = [...this._curlArgs]
-        this._process = new Process(cmdline);
+        const processOpt = {};
+        if (undefined !== this._stdin) {
+            processOpt.stdin = this._stdin;
+        }
+        this._process = new Process(cmdline, processOpt);
         this._promise = this._process.run();
         const state = await this._promise;
 
@@ -801,6 +814,8 @@ class Curl {
  * @param {object} opt.basicAuth basic HTTP authentication {"username":"string", "password":"string"}
  * @param {string} opt.bearerToken bearer token to use. Will be ignored if {opt.basicAuth} was set
  * @param {string} opt.jwt JWT token to use (with or without JWT prefix). Will be ignored if one ({opt.basicAuth}, {opt.bearerToken}) was set
+ * @param {integer} opt.stdin : if defined, sets the stdin handle used by curl process
+ *                              NB: don't share the same handle between multiple instances
  * @param {boolean} opt.ignoreError if {true}, promise will resolve to the response's body even if curl failed or HTTP failed
  *
  * @return {Promise} promise which will resolve to the body in case of success

@@ -17,7 +17,7 @@ Constructor
   * opt.insecure (*boolean*) : if `true` ignore SSL errors (default = `false`)
   * opt.headers (*object*) dictionary of extra headers (ex: `{"x-header":"value"}`)
   * opt.followRedirects (*boolean*) : whether or not HTTP redirects should be followed (default = `true`)
-  * opt.maxRedirects (*integer*) : maximum number of HTTP redirects to follow (by default, use curl default)
+  * opt.maxRedirects (*integer*) : maximum number of HTTP redirects to follow (by default, use *curl* default)
     * will be ignored if `opt.followRedirects` is `false`
   * opt.outputFile (*string*) : if set, *curl* output will be redirected to this file
   * opt.connectTimeout (*integer*) : maximum number of seconds allowed for connection
@@ -30,6 +30,7 @@ Constructor
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if `opt.data` was set
   * opt.jsonFile (*string*) : file containing the data to send as `application/json`
+    * use `-` for *stdin* 
     * content type will automatically be set to application/json
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if one of (`opt.data`, `opt.json`) was set
@@ -46,6 +47,7 @@ Constructor
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`) was set
   * opt.bodyFile (*string*) : file containing the raw body to send
+    * use `-` for *stdin* 
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`, `opt.body`) was set
   * opt.params (*object*) : parameters to add as query string
@@ -59,7 +61,8 @@ Constructor
     * will be ignored if `opt.basicAuth` was set
   * opt.jwt (*string*) : *JWT* token to use (with or without *JWT* prefix)
     * will be ignored if one of (`opt.basicAuth`, `opt.bearerToken`) was set
-  * opt.context (*any*) : user define context (can be used to identify curl request later by client code)
+  * opt.context (*any*) : user define context (can be used to identify *curl* request later by client code)
+  * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by curl process (don't share the same *handle* between multiple instances !)
 
 <u>Example</u>
 
@@ -436,7 +439,7 @@ Perfoms a *curl* request and return the response's body
   * opt.insecure (*boolean*) : if `true` ignore SSL errors (default = `false`)
   * opt.headers (*object*) dictionary of extra headers (ex: `{"x-header":"value"}`)
   * opt.followRedirects (*boolean*) : whether or not HTTP redirects should be followed (default = `true`)
-  * opt.maxRedirects (*integer*) : maximum number of HTTP redirects to follow (by default, use curl default)
+  * opt.maxRedirects (*integer*) : maximum number of HTTP redirects to follow (by default, use *curl* default)
     * will be ignored if `opt.followRedirects` is `false`
   * opt.outputFile (*string*) : if set, *curl* output will be redirected to this file
   * opt.connectTimeout (*integer*) : maximum number of seconds allowed for connection
@@ -449,6 +452,7 @@ Perfoms a *curl* request and return the response's body
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if `opt.data` was set
   * opt.jsonFile (*string*) : file containing the data to send as `application/json`
+    * use `-` for *stdin* 
     * content type will automatically be set to application/json
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if one of (`opt.data`, `opt.json`) was set
@@ -465,6 +469,7 @@ Perfoms a *curl* request and return the response's body
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`) was set
   * opt.bodyFile (*string*) : file containing the raw body to send
+    * use `-` for *stdin* 
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`, `opt.body`) was set
   * opt.params (*object*) : parameters to add as query string
@@ -480,6 +485,7 @@ Perfoms a *curl* request and return the response's body
     * provided as an alternative for services which require `JWT xxxx`  instead of `Bearer xxx` in `Authorization` header
     * will be ignored if one of (`opt.basicAuth`, `opt.bearerToken`) was set
   * opt.context (*any*) : user define context (can be used to identify curl request later by client code)
+  * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by curl process (don't share the same *handle* between multiple instances !)
   * opt.ignoreError (*boolean*):  if `true` promise will resolve to the response's body even if curl failed or HTTP failed
 
 **return** *Promise* which resolves to the response's body
