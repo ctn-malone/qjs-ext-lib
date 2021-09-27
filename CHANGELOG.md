@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.3.3]
+* feat: add support for setting *stdin* handle in the child process (`process.js`)
+* feat: add support for setting *stdin* handle for curl process (`curl.js`)
+
 ## [0.3.2]
 * feat: add support for passing *JSON* body from a file (`curl.js`)
 * feat: add support for passing *raw* body from a file (`curl.js`)
