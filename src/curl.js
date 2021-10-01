@@ -35,7 +35,7 @@ class Curl {
      *                                      Content type will automatically be set to application/json
      *                                      Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
      *                                      Will be ignored if {opt.data} was set
-     * @param {object|string|true} opt.jsonFile file containing data to send as application/json
+     * @param {string} opt.jsonFile file containing data to send as application/json
      *                                          Content type will automatically be set to application/json
      *                                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
      *                                          Will be ignored if one of ({opt.data}, {opt.json}) was set
@@ -789,7 +789,7 @@ class Curl {
  *                                      Content type will automatically be set to application/json
  *                                      Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
  *                                      Will be ignored if {opt.data} was set
- * @param {object|string|true} opt.jsonFile file containing data to send as application/json
+ * @param {string} opt.jsonFile file containing data to send as application/json
  *                                          Content type will automatically be set to application/json
  *                                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
  *                                          Will be ignored if one of ({opt.data}, {opt.json}) was set
