@@ -7,6 +7,14 @@ export default () => {
         tester.assert(undefined !== version.VERSION, `lib version should be defined`);
     });
 
+    tester.test('version (semver)', () => {
+        ['1.0.0', '1.0.0-alpha', '1.0.0-0.3.7+exp.sha.5114f85'].forEach((v) => {
+            tester.assert(version.isSemver(v), `'${v}' should be a valid semver version`);
+            const converted = version.convert(v);
+            tester.assertEq(converted, v, `'${v}' should remain unchanged after conversion`);
+        });
+    });
+
     tester.test('version (non semver)', () => {
         [version.eq, version.neq, version.lt, version.lte, version.gt, version.gte].forEach((fn) => {
             let exception;
@@ -25,6 +33,15 @@ export default () => {
                 exception = e;
             }
             tester.assert(undefined !== exception, `'${fn.name}' should throw an exception when using a non semver version as second argument`);
+        });
+        [
+            {from:'1.0.0a', to:'1.0.0'},
+            {from:'1.0.0-a@b', to:'1.0.0'},
+            {from:'1.0.0-alpha+a@b', to:'1.0.0'},
+        ].forEach((e) => {
+            tester.assert(!version.isSemver(e.from), `'${e.from}' should not be a valid semver version`);
+            const converted = version.convert(e.from);
+            tester.assertEq(converted, e.to, `'${e.from}' should be converted to '${e.to}'`);
         });
     });
 

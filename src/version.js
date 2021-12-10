@@ -7,7 +7,7 @@
     An exception will be thrown in case a non semver version is passed as argument
  */
 
-const VERSION = '0.3.3';
+const VERSION = '0.3.4';
 
 /**
  * Check whether or not a version is in semver format
@@ -18,7 +18,7 @@ const VERSION = '0.3.3';
  * @return {boolean}
  */
 const isSemver = (v, throwException) => {
-    if (!/^[0-9]\.[0-9]\.[0-9]$/.test(v)) {
+    if (!/^[0-9]+\.[0-9]+\.[0-9]+(\-[0-9A-Za-z-.]+)?(\+[0-9A-Za-z-.]+)?$/.test(v)) {
         if (true === throwException) {
             let value = v;
             if ('string' != typeof v) {
@@ -40,7 +40,8 @@ const isSemver = (v, throwException) => {
  * @return {integer[]}
  */
 const split = (v) => {
-    const arr = v.split('.').map(e => parseInt(e));
+    const value = v.replace(/[-+].*$/g, '');
+    const arr = value.split('.').map(e => parseInt(e));
     return arr;
 }
 
@@ -138,6 +139,33 @@ const gte = (target, current) => {
 
 const version = {
     VERSION:VERSION,
+    /**
+     * Check whether or not a version matches semver
+     *
+     * @param {string} version version to check
+     *
+     * @return {boolean}
+     */
+    isSemver: (version) => {
+        return isSemver(version, false);
+    },
+    /**
+     * Try to convert to semver
+     * 
+     * @param {string} version to convert
+     * 
+     * @return {string|undefined} will return {undefined} if {version} does not start with x.y.z
+     */
+    convert: (version) => {
+        if (isSemver(version)) {
+            return version;
+        }
+        const matches = version.match(/^([0-9]+\.[0-9]+\.[0-9]+).*$/);
+        if (null === matches) {
+            return undefined;
+        }
+        return matches[1];
+    },
     /**
      * Check whether or not two versions are equal
      *
