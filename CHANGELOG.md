@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.3.4]
+* feat: add support for setting *stdout* handle in the child process (`process.js`)
+* feat: add support for outputting to a file only if a given condition was fulfilled (`curl.js`)
+* feat: support broader semver format (`version.js`)
+
 ## [0.3.3]
 * feat: add support for setting *stdin* handle in the child process (`process.js`)
 * feat: add support for setting *stdin* handle for curl process (`curl.js`)
