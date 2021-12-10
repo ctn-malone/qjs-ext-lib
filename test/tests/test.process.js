@@ -241,6 +241,25 @@ export default () => {
 
     }, {isAsync:true});
 
+    tester.test('process.Process (custom stdout)', async (done) => {
+        const tmpFile = std.tmpfile();
+        // redirect stderr will be ignored
+        const opt = {trim:false, redirectStderr: true, stdout: tmpFile.fileno()};
+        const cmdline = 'data/test1.sh 10';
+        const p = new Process(cmdline, opt);
+        let expectedContent;
+        await p.run();
+
+        const stdoutContent = tmpFile.readAsString();
+
+        expectedContent = `2\n4\n6\n8\n10\n`;
+        tester.assertEq(stdoutContent, expectedContent, `when using custom 'stdout' handle, content retrieved using by reading temp file should be as expected`);
+        expectedContent = `1\n3\n5\n7\n9\n`;
+        tester.assertEq(p.stderr, expectedContent, `when using custom 'stdout' handle, content retrieved using 'stderr' property should be as expected`);
+
+        done();
+    }, {isAsync:true});
+
     tester.test('process.Process (env)', async (done) => {
         let opt, cmdline, p;
         let expectedContent;

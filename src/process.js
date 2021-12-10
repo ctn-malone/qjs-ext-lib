@@ -84,8 +84,12 @@ class Process {
      * @param {boolean} opt.skipBlankLines if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
      * @param {integer} opt.timeout maximum number of seconds before killing child (if {undefined}, no timeout will be configured)
      * @param {integer} opt.timeoutSignal signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
-     * @param {integer} opt.stdin if defined, sets the stdin handle used by child process
+     * @param {integer} opt.stdin if defined, sets the stdin handle used by child process (it will be rewind)
      *                            NB: don't share the same handle between multiple instances
+     * @param {integer} opt.stdout if defined, sets the stdout handle used by child process (it will be rewind)
+     *                            NB: - don't share the same handle between multiple instances
+     *                                - stdout event handler will be ignored
+     *                                - stderr redirection will be ignored
      */
     constructor(cmdline, opt) {
         if (undefined === opt) {
@@ -182,6 +186,11 @@ class Process {
         };
         if (undefined !== opt.stdin) {
             this._qjsOpt.stdin = opt.stdin;
+        }
+        if (undefined !== opt.stdout) {
+            this._qjsOpt.stdout = opt.stdout;
+            // disable stderr redirection
+            this._redirectStderr = false;
         }
         // by default don't use shell
         this._useShell = {flag:false, shell:DEFAULT_SHELL};
@@ -406,7 +415,9 @@ class Process {
             }
 
             /**
-             * Executed once both stdout & stderr are closed
+             * Executed after :
+             * - both stdout & stderr are closed if no stdout handle was passed to constructor
+             * - stderr is closed if a stdout handle was passed to constructor
              */
             const finalize = () => {
                 // remove timer
@@ -447,7 +458,7 @@ class Process {
                             }
                         }
                     }
-                    // check stdout
+                    // check stdout (only if no stdout handle was passed to constructor)
                     else {
                         // we didn't receive any content on stdout => use custom message
                         if (!gotStdoutContent) {
@@ -463,6 +474,10 @@ class Process {
                         }
                     }
                 }
+                // rewind stdout file descriptor
+                if (undefined !== this._qjsOpt.stdout) {
+                    os.seek(this._qjsOpt.stdout, 0, std.SEEK_SET);
+                }
                 // call callback
                 this._didStop = true;
                 const data = Object.assign({}, this._state);
@@ -473,83 +488,86 @@ class Process {
             }
 
             /*
-                process stdout
+                process stdout (only if no stdout handle was passed to constructor)
              */
-            const stdoutPipe = os.pipe();
-            if (null === stdoutPipe) {
-                throw new InternalError(`Could not create stdout pipe`);
+            let stdoutPipe;
+            if (undefined === this._qjsOpt.stdout) {
+                stdoutPipe = os.pipe();
+                if (null === stdoutPipe) {
+                    throw new InternalError(`Could not create stdout pipe`);
+                }
+                const stdoutBuffer = new Uint8Array(BUFFER_SIZE);
+                let stdoutIncompleteLine = '';
+                os.setReadHandler(stdoutPipe[0], () => {
+                    if (0 === this._state.pid) {
+                        return;
+                    }
+                    let len;
+                    let content = '';
+                    for (;;) {
+                        len = os.read(stdoutPipe[0], stdoutBuffer.buffer, 0, stdoutBuffer.length);
+                        // end of stream
+                        if (0 == len) {
+                            os.setReadHandler(stdoutPipe[0], null);
+                            endOfStdout = true;
+                            // process incomplete line if needed
+                            if (undefined !== this._cb.stdout) {
+                                if (this._lineBuffered && '' != stdoutIncompleteLine) {
+                                    this._cb.stdout({
+                                        pid:this._state.pid,
+                                        data:stdoutIncompleteLine
+                                    });
+                                }
+                            }
+                            // update buffered content
+                            else {
+                                if ('' != this._output.stdout) {
+                                    // remove empty lines
+                                    if (this._skipBlankLines) {
+                                        this._output.stdout = this._output.stdout.replace(/^\s*\n/gm, '');
+                                    }
+                                    // trim
+                                    if (this._trim) {
+                                        this._output.stdout = this._output.stdout.trim();
+                                    }
+                                }
+                            }
+                            if (endOfStderr) {
+                                finalize();
+                            }
+                            return;
+                        }
+                        gotStdoutContent = true;
+                        // process data
+                        content += utf8ArrayToStr(stdoutBuffer, len);
+                        // we don't have more data to process
+                        if (len < stdoutBuffer.length) {
+                            break;
+                        }
+                    }
+                    // call callbacks
+                    if (undefined !== this._cb.stdout) {
+                        if (!this._lineBuffered) {
+                            this._cb.stdout({
+                                pid:this._state.pid,
+                                data:content
+                            });
+                            return;
+                        }
+                        const result = getLines(content, stdoutIncompleteLine, this._skipBlankLines);
+                        result.lines.forEach((str) => {
+                            this._cb.stdout({
+                                pid:this._state.pid,
+                                data:str
+                            });
+                        });
+                        stdoutIncompleteLine = result.incompleteLine;
+                        return;
+                    }
+                    // buffer output
+                    this._output.stdout += content;
+                });
             }
-            const stdoutBuffer = new Uint8Array(BUFFER_SIZE);
-            let stdoutIncompleteLine = '';
-            os.setReadHandler(stdoutPipe[0], () => {
-                if (0 === this._state.pid) {
-                    return;
-                }
-                let len;
-                let content = '';
-                for (;;) {
-                    len = os.read(stdoutPipe[0], stdoutBuffer.buffer, 0, stdoutBuffer.length);
-                    // end of stream
-                    if (0 == len) {
-                        os.setReadHandler(stdoutPipe[0], null);
-                        endOfStdout = true;
-                        // process incomplete line if needed
-                        if (undefined !== this._cb.stdout) {
-                            if (this._lineBuffered && '' != stdoutIncompleteLine) {
-                                this._cb.stdout({
-                                    pid:this._state.pid,
-                                    data:stdoutIncompleteLine
-                                });
-                            }
-                        }
-                        // update buffered content
-                        else {
-                            if ('' != this._output.stdout) {
-                                // remove empty lines
-                                if (this._skipBlankLines) {
-                                    this._output.stdout = this._output.stdout.replace(/^\s*\n/gm, '');
-                                }
-                                // trim
-                                if (this._trim) {
-                                    this._output.stdout = this._output.stdout.trim();
-                                }
-                            }
-                        }
-                        if (endOfStderr) {
-                            finalize();
-                        }
-                        return;
-                    }
-                    gotStdoutContent = true;
-                    // process data
-                    content += utf8ArrayToStr(stdoutBuffer, len);
-                    // we don't have more data to process
-                    if (len < stdoutBuffer.length) {
-                        break;
-                    }
-                }
-                // call callbacks
-                if (undefined !== this._cb.stdout) {
-                    if (!this._lineBuffered) {
-                        this._cb.stdout({
-                            pid:this._state.pid,
-                            data:content
-                        });
-                        return;
-                    }
-                    const result = getLines(content, stdoutIncompleteLine, this._skipBlankLines);
-                    result.lines.forEach((str) => {
-                        this._cb.stdout({
-                            pid:this._state.pid,
-                            data:str
-                        });
-                    });
-                    stdoutIncompleteLine = result.incompleteLine;
-                    return;
-                }
-                // buffer output
-                this._output.stdout += content;
-            });
 
             /*
                 process stderr
@@ -559,10 +577,12 @@ class Process {
             if (!this._redirectStderr) {
                 stderrPipe = os.pipe();
                 if (null === stderrPipe) {
-                    // close stdout pipe
-                    os.setReadHandler(stdoutPipe[0], null);
-                    os.close(stdoutPipe[0]);
-                    os.close(stdoutPipe[1]);
+                    // close stdout pipe (only if no stdout handle was passed to constructor)
+                    if (undefined !== this._qjsOpt.stdout) {
+                        os.setReadHandler(stdoutPipe[0], null);
+                        os.close(stdoutPipe[0]);
+                        os.close(stdoutPipe[1]);
+                    }
                     throw new InternalError(`Could not create stderr pipe`);
                 }
                 stderrBuffer = new Uint8Array(BUFFER_SIZE);
@@ -598,7 +618,7 @@ class Process {
                                     }
                                 }
                             }
-                            if (endOfStdout) {
+                            if (endOfStdout || (undefined !== this._qjsOpt.stdout)) {
                                 finalize();
                             }
                             return;
@@ -639,19 +659,30 @@ class Process {
                 create process
              */
             const qjsOpt = Object.assign({}, this._qjsOpt);
-            qjsOpt.stdout = stdoutPipe[1];
-            qjsOpt.stderr = stdoutPipe[1];
+            if (undefined !== this._qjsOpt.stdout) {
+                // rewind stdout file descriptor
+                os.seek(this._qjsOpt.stdout, 0, std.SEEK_SET);
+            }
+            else {
+                qjsOpt.stdout = stdoutPipe[1];
+            }
+            qjsOpt.stderr = qjsOpt.stdout;
             if (undefined !== stderrPipe) {
                 qjsOpt.stderr = stderrPipe[1];
             }
-            // rewind file descriptor
-            if (undefined !== qjsOpt.stdin) {
-                os.seek(qjsOpt.stdin, 0, std.SEEK_SET);
+            // rewind stdin file descriptor
+            if (undefined !== this._qjsOpt.stdin) {
+                os.seek(this._qjsOpt.stdin, 0, std.SEEK_SET);
             }
             this._state.pid = os.exec(args, qjsOpt);
 
-            // close the write ends of the pipes as we don't need them anymore
-            os.close(stdoutPipe[1]);
+            /*
+                close the write ends of the pipes as we don't need them anymore
+             */
+            // only close pipe if no stdout handle was passed to constructor
+            if (undefined === this._qjsOpt.stdout) {
+                os.close(stdoutPipe[1]);
+            }
             if (undefined !== stderrPipe) {
                 os.close(stderrPipe[1]);
             }
@@ -776,9 +807,12 @@ class Process {
  * @param {boolean} opt.skipBlankLines if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
  * @param {integer} opt.timeout maximum number of seconds before killing child (if {undefined}, no timeout will be configured)
  * @param {integer} opt.timeoutSignal signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
- * @param {integer} opt.stdin if defined, sets the stdin handle used by child process
+ * @param {integer} opt.stdin if defined, sets the stdin handle used by child process (it will be rewind)
  *                            NB: don't share the same handle between multiple instances
- * @param {boolean} opt.ignoreError if {true} promise will resolve to the content of stdout even if process exited with a non zero code
+ * @param {integer} opt.stdout if defined, sets the stdout handle used by child process (it will be rewind)
+ *                             NB: - don't share the same handle between multiple instances
+ *                                 - stderr redirection will be ignored
+* @param {boolean} opt.ignoreError if {true} promise will resolve to the content of stdout even if process exited with a non zero code
  *
  * @return {Promise} promise which will resolve to the content of stdout in case process exited with zero or {opt.ignoreError} is {true}
  *                   and will an throw an {Error} with the content of stderr and following extra extra properties :

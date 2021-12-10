@@ -43,7 +43,10 @@ Constructor
   * opt.skipBlankLines (*boolean*) : if `true` empty lines will be ignored in both *stdout* & *stderr* content (default = `false`)
   * opt.timeout (*integer*) :  maximum number of seconds before killing child (if `undefined`, no timeout will be configured)
   * opt.timeoutSignal (*integer*) : signal to use when killing the child after timeout (default = `SIGTERM`, ignored if `opt.timeout` is not defined)
-  * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by child process (don't share the same *handle* between multiple instances !)
+  * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by child process (don't share the same *handle* between multiple instances as it will be automatically rewind !)
+  * opt.stdout (*integer*) : if defined, sets the *stdout* handle used by child process (don't share the same *handle* between multiple instances as it will be automatically rewind !)
+    * *stdout* event handler will be ignored
+    * *stderr* redirection will be ignored
 
 <u>Example</u>
 
@@ -363,6 +366,8 @@ Executes a command and return the content of *stdout*
   * opt.timeout (*integer*) :  maximum number of seconds before killing child (if `undefined`, no timeout will be configured)
   * opt.timeoutSignal (*integer*) : signal to use when killing the child after timeout (default = `SIGTERM`, ignored if `opt.timeout` is not defined)
   * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by child process (don't share the same *handle* between multiple instances !)
+  * opt.stdout (*integer*) : if defined, sets the *stdout* handle used by child process (don't share the same *handle* between multiple instances as it will be automatically rewind !)
+    * *stderr* redirection will be ignored
   * opt.ignoreError (*boolean*) : if `true` promise will resolve to the content of stdout even if process exited with a non zero code
 
 **return** *Promise* which resolves to the content of *stdout*
