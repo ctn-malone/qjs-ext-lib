@@ -7,9 +7,13 @@
 import { Process } from './process.js';
 
 import * as os from 'os';
+import * as std from 'std';
 
 // in case of timeout, curl process will exit with this error code 
 const CURL_ERR_TIMEOUT = 28;
+
+// size of the buffer used in case of conditional output (10MB)
+const CONDITIONAL_OUTPUT_BUFFER_SIZE = 1024 * 1024 * 10;
 
 class Curl {
 
@@ -25,8 +29,14 @@ class Curl {
      * @param {boolean} opt.followRedirects whether or not HTTP redirects should be followed (default = {true})
      * @param {integer} opt.maxRedirects maximum number of HTTP redirects to follow (by default, use curl default)
      *                                   Will be ignored if {opt.followRedirects} is {false}
-     * @param {string} opt.outputFile if set output will be redirected to this file
-     * @param {integer} opt.connectTimeout maximum number of seconds allowed for connection
+     * @param {string|object} opt.outputFile if set, output will be redirected to this file
+     *                                       When using a {string}, {opt.outputFile} should be the path of the output file
+     * @param {string} opt.outputFile.filepath path of the output file (mandatory)
+     * @param {boolean} opt.outputFile.conditionalOutput if {true}, output file will only be written if {opt.outputFile.onCheckCondition}
+     *                                                   returns {true} (default = {false})
+     * @param {function} opt.outputFile.onCheckCondition function which take a {Curl} instance as single parameter
+     *                                                   It should return {true} if case output file should be written, {false} otherwise
+     *                                                   Default implementation returns {true} if curl request succeeded
      * @param {integer} opt.maxTime maximum number of seconds allowed for the transfer
      * @param {object} opt.data data to send as application/x-www-form-urlencoded
      *                          Content type will automatically be set to application/x-www-form-urlencoded
@@ -36,9 +46,9 @@ class Curl {
      *                                      Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
      *                                      Will be ignored if {opt.data} was set
      * @param {string} opt.jsonFile file containing data to send as application/json
-     *                                          Content type will automatically be set to application/json
-     *                                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
-     *                                          Will be ignored if one of ({opt.data}, {opt.json}) was set
+     *                              Content type will automatically be set to application/json
+     *                              Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
+     *                              Will be ignored if one of ({opt.data}, {opt.json}) was set
      * @param {string|object} opt.file used to upload a file
      *                                 Content type will automatically be set to multipart/form-data
      *                                 Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
@@ -51,8 +61,8 @@ class Curl {
      *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
      *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}) was set
      * @param {string} opt.bodyFile body to send 
-     *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
-     *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
+     *                              Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
+     *                              Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
      * @param {object} opt.params parameters to add as query string
      * @param {boolean} opt.normalizeHeaders if {true}, header names in response will be converted to lower case (default = {true})
      * @param {boolean} opt.parseJson if {true}, automatically parse JSON in responses (default = {true})
@@ -61,7 +71,7 @@ class Curl {
      * @param {string} opt.bearerToken bearer token to use. Will be ignored if {opt.basicAuth} was set
      * @param {string} opt.jwt JWT token to use (with or without JWT prefix). Will be ignored if one ({opt.basicAuth}, {opt.bearerToken}) was set
      * @param {any} opt.context user define context (can be used to identify curl request later by client code)
-     * @param {integer} opt.stdin : if defined, sets the stdin handle used by curl process
+     * @param {integer} opt.stdin : if defined, sets the stdin handle used by curl process (it will be rewind)
      *                              NB: don't share the same handle between multiple instances
      */
     constructor(url, opt) {
@@ -140,13 +150,50 @@ class Curl {
             }
         }
 
+        /**
+         * By default, only write output if request succeeded
+         * 
+         * @param {object} curlInstance {Curl} instance
+         * 
+         * @returns {boolean}
+         */
+        const onCheckCondition = (curlInstance) => {
+            return !curlInstance.failed;
+        }
+
         // output file
+        this._outputFile = undefined;
         if (undefined !== opt.outputFile) {
-            const value = opt.outputFile.trim();
-            if ('' != value) {
-                this._curlArgs.push('-o');
-                this._curlArgs.push(value);
+            // we only have filepath
+            if ('string' == typeof opt.outputFile) {
+                const value = opt.outputFile.trim();
+                if ('' != value) {
+                    this._outputFile = {
+                        filepath:value,
+                        conditionalOutput:false,
+                        onCheckCondition:onCheckCondition
+                    }
+                }
             }
+            else {
+                if (undefined !== opt.outputFile.filepath) {
+                    const value = opt.outputFile.filepath.trim();
+                    if ('' != value) {
+                        this._outputFile = {
+                            filepath:value,
+                            conditionalOutput:(true === opt.outputFile.conditionalOutput),
+                            onCheckCondition:onCheckCondition
+                        };
+                        if (undefined !== opt.outputFile.onCheckCondition && 'function' == typeof opt.outputFile.onCheckCondition) {
+                            this._outputFile.onCheckCondition = opt.outputFile.onCheckCondition;
+                        }
+                    }
+                }
+            }
+        }
+        if (undefined !== this._outputFile && !this._outputFile.conditionalOutput) {
+            this._curlArgs.push('-o');
+            this._curlArgs.push(this._outputFile.filepath);
         }
 
         // connect timeout
@@ -378,6 +425,7 @@ class Curl {
      * Result depends on Process state + http code
      */
     async run() {
+        
         // do nothing if process is still running
         if (undefined !== this._promise) {
             return this._promise;
@@ -391,6 +439,13 @@ class Curl {
         if (undefined !== this._stdin) {
             processOpt.stdin = this._stdin;
         }
+        // in case of conditional output, pass a temporary file as stdout to process
+        let conditionalOutputTmpFile;
+        if (undefined !== this._outputFile && this._outputFile.conditionalOutput) {
+            conditionalOutputTmpFile = std.tmpfile();
+            processOpt.stdout = conditionalOutputTmpFile.fileno();
+        }
+
         this._process = new Process(cmdline, processOpt);
         this._promise = this._process.run();
         const state = await this._promise;
@@ -478,28 +533,51 @@ class Curl {
         });
         this._responseHeaders = responseHeaders;
 
+        // compute final status
+        let didFail = false;
+        if (this._status.code < 200 || this._status.code > 299) {
+            if (this._failOnHttpError) {
+                didFail = true;
+            }
+        }
+
         // body
         this._body = this._process.stdout.trim();
-        if ('application/json' == this._contentType && this._parseJson) {
-            try {
-                const body = JSON.parse(this._body);
-                this._body = body;
+        // only try to parse body if conditional output was not requested
+        if (undefined === conditionalOutputTmpFile) {
+            if ('application/json' == this._contentType && this._parseJson) {
+                try {
+                    const body = JSON.parse(this._body);
+                    this._body = body;
+                }
+                catch (e) {
+                    // invalid JSON, do nothing, keep raw body
+                }
             }
-            catch (e) {
-                // invalid JSON, do nothing, keep raw body
+        }
+
+        // in case of conditional output, check condition
+        if (undefined !== conditionalOutputTmpFile) {
+            const canWrite = this._outputFile.onCheckCondition(this);
+            if (canWrite) {
+                let errObj;
+                const destFile = std.open(this._outputFile.filepath, 'wb', errObj);
+                if (null === destFile) {
+                    throw new Error(`Could not open dest file (${errObj.errno})`);
+                }
+                const buffer = new Uint8Array(CONDITIONAL_OUTPUT_BUFFER_SIZE);
+                let size;
+                while (0 != (size = conditionalOutputTmpFile.read(buffer.buffer, 0, CONDITIONAL_OUTPUT_BUFFER_SIZE))) {
+                    destFile.write(buffer.buffer, 0, size);
+                }
+                destFile.close();
             }
         }
 
         this._promise = undefined;
         this._process = undefined;
 
-        if (this._status.code < 200 || this._status.code > 299) {
-            if (this._failOnHttpError) {
-                return false;
-            }
-        }
-
-        return true;
+        return !didFail;
     }
 
     /**
@@ -778,8 +856,15 @@ class Curl {
  * @param {object} opt.headers dictionary of extra headers
  * @param {boolean} opt.followRedirects whether or not HTTP redirects should be followed (default = {true})
  * @param {integer} opt.maxRedirects maximum number of HTTP redirects to follow (by default, use curl default)
-*                                    Will be ignored if {opt.followRedirects} is {false}
- * @param {string} opt.outputFile if set output will be redirected to this file
+ *                                   Will be ignored if {opt.followRedirects} is {false}
+ * @param {string|object} opt.outputFile if set, output will be redirected to this file
+ *                                       When using a {string}, {opt.outputFile} should be the path of the output file
+ * @param {string} opt.outputFile.filepath path of the output file (mandatory)
+ * @param {boolean} opt.outputFile.conditionalOutput if {true}, output file will only be written if {opt.outputFile.onCheckCondition}
+ *                                                   returns {true} (default = {false})
+ * @param {function} opt.outputFile.onCheckCondition function which take a {Curl} instance as single parameter
+ *                                                   It should return {true} if case output file should be written, {false} otherwise
+ *                                                   Default implementation returns {true} if curl request succeeded
  * @param {integer} opt.connectTimeout maximum number of seconds allowed for connection
  * @param {integer} opt.maxTime maximum number of seconds allowed for the transfer
  * @param {object} opt.data data to send as application/x-www-form-urlencoded
@@ -790,12 +875,12 @@ class Curl {
  *                                      Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
  *                                      Will be ignored if {opt.data} was set
  * @param {string} opt.jsonFile file containing data to send as application/json
- *                                          Content type will automatically be set to application/json
- *                                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
- *                                          Will be ignored if one of ({opt.data}, {opt.json}) was set
+ *                              Content type will automatically be set to application/json
+ *                              Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
+ *                              Will be ignored if one of ({opt.data}, {opt.json}) was set
  * @param {string|object} opt.file used to upload a file
  *                                 Content type will automatically be set to multipart/form-data
- *                                  Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
+ *                                 Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
  *                                 Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}) was set
  *                                 When using a {string}, {opt.file} should be the path of the file to upload
  * @param {string} opt.file.filepath path of the local file (mandatory)
@@ -814,7 +899,7 @@ class Curl {
  * @param {object} opt.basicAuth basic HTTP authentication {"username":"string", "password":"string"}
  * @param {string} opt.bearerToken bearer token to use. Will be ignored if {opt.basicAuth} was set
  * @param {string} opt.jwt JWT token to use (with or without JWT prefix). Will be ignored if one ({opt.basicAuth}, {opt.bearerToken}) was set
- * @param {integer} opt.stdin : if defined, sets the stdin handle used by curl process
+ * @param {integer} opt.stdin : if defined, sets the stdin handle used by curl process (it will be rewind)
  *                              NB: don't share the same handle between multiple instances
  * @param {boolean} opt.ignoreError if {true}, promise will resolve to the response's body even if curl failed or HTTP failed
  *

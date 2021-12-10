@@ -19,7 +19,14 @@ Constructor
   * opt.followRedirects (*boolean*) : whether or not HTTP redirects should be followed (default = `true`)
   * opt.maxRedirects (*integer*) : maximum number of HTTP redirects to follow (by default, use *curl* default)
     * will be ignored if `opt.followRedirects` is `false`
-  * opt.outputFile (*string*) : if set, *curl* output will be redirected to this file
+  * opt.outputFile (*string|object*) : if set, *curl* output will be redirected to this file
+    * when using a *string*, `opt.outputFile` should be the path of the output file
+    * when using an *object*
+      * **[opt.outputFile.filepath]** (*string*) : path of the output file (mandatory)
+      * opt.outputFile.conditionalOutput (*boolean*) : if `true`, output file will only be written if `opt.outputFile.onCheckCondition` returns `true` (default = `false`)
+      * opt.outputFile.onCheckCondition (*function*) : function which take a `Curl` instance as single parameter
+        * it should return `true` if case output file should be written, `false` otherwise
+        * default implementation returns `true` if *curl* request succeeded
   * opt.connectTimeout (*integer*) : maximum number of seconds allowed for connection
   * opt.maxTime (*integer*) : maximum number of seconds allowed for the transfer
   * opt.data (*object*) : data to send as `application/x-www-form-urlencoded`
@@ -441,7 +448,14 @@ Perfoms a *curl* request and return the response's body
   * opt.followRedirects (*boolean*) : whether or not HTTP redirects should be followed (default = `true`)
   * opt.maxRedirects (*integer*) : maximum number of HTTP redirects to follow (by default, use *curl* default)
     * will be ignored if `opt.followRedirects` is `false`
-  * opt.outputFile (*string*) : if set, *curl* output will be redirected to this file
+  * opt.outputFile (*string|object*) : if set, *curl* output will be redirected to this file
+    * when using a *string*, `opt.outputFile` should be the path of the output file
+    * when using an *object*
+      * **[opt.outputFile.filepath]** (*string*) : path of the output file (mandatory)
+      * opt.outputFile.conditionalOutput (*boolean*) : if `true`, output file will only be written if `opt.outputFile.onCheckCondition` returns `true` (default = `false`)
+      * opt.outputFile.onCheckCondition (*function*) : function which take a `Curl` instance as single parameter
+        * it should return `true` if case output file should be written, `false` otherwise
+        * default implementation returns `true` if *curl* request succeeded
   * opt.connectTimeout (*integer*) : maximum number of seconds allowed for connection
   * opt.maxTime (*integer*) : maximum number of seconds allowed for the transfer
   * opt.data (*object*) : data to send as `application/x-www-form-urlencoded`
