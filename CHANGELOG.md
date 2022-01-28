@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.3.5] **PENDING**
+* feat: add timestamp when emitting `stdout` and `stderr` events (`process.js`)
+
 ## [0.3.4]
 * feat: add support for setting *stdout* handle in the child process (`process.js`)
 * feat: add support for outputting to a file only if a given condition was fulfilled (`curl.js`)

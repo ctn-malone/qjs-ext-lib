@@ -450,7 +450,8 @@ class Process {
                             if (undefined !== this._cb.stderr) {
                                 this._cb.stderr({
                                     pid:this._state.pid,
-                                    data:content
+                                    data:content,
+                                    timestamp:Date.now()
                                 });
                             }
                             else {
@@ -465,7 +466,8 @@ class Process {
                             if (undefined !== this._cb.stdout) {
                                 this._cb.stdout({
                                     pid:this._state.pid,
-                                    data:content
+                                    data:content,
+                                    timestamp:Date.now()
                                 });
                             }
                             else {
@@ -497,13 +499,17 @@ class Process {
                     throw new InternalError(`Could not create stdout pipe`);
                 }
                 const stdoutBuffer = new Uint8Array(BUFFER_SIZE);
-                let stdoutIncompleteLine = '';
+                let stdoutIncompleteLine = {
+                    data:'',
+                    timestamp:Date.now()
+                };
                 os.setReadHandler(stdoutPipe[0], () => {
                     if (0 === this._state.pid) {
                         return;
                     }
                     let len;
                     let content = '';
+                    const timestamp = Date.now();
                     for (;;) {
                         len = os.read(stdoutPipe[0], stdoutBuffer.buffer, 0, stdoutBuffer.length);
                         // end of stream
@@ -512,10 +518,11 @@ class Process {
                             endOfStdout = true;
                             // process incomplete line if needed
                             if (undefined !== this._cb.stdout) {
-                                if (this._lineBuffered && '' != stdoutIncompleteLine) {
+                                if (this._lineBuffered && '' != stdoutIncompleteLine.data) {
                                     this._cb.stdout({
                                         pid:this._state.pid,
-                                        data:stdoutIncompleteLine
+                                        data:stdoutIncompleteLine.data,
+                                        timestamp:stdoutIncompleteLine.timestamp
                                     });
                                 }
                             }
@@ -550,18 +557,35 @@ class Process {
                         if (!this._lineBuffered) {
                             this._cb.stdout({
                                 pid:this._state.pid,
-                                data:content
+                                data:content,
+                                timestamp:timestamp
                             });
                             return;
                         }
-                        const result = getLines(content, stdoutIncompleteLine, this._skipBlankLines);
-                        result.lines.forEach((str) => {
+                        const result = getLines(content, stdoutIncompleteLine.data, this._skipBlankLines);
+                        result.lines.forEach((str, i) => {
+                            /*
+                                check first line in case we're sending a previously
+                                incomplete line, to set correct timestamp
+                            */
+                            if (0 == i) {
+                                if ('' != stdoutIncompleteLine.data) {
+                                    this._cb.stdout({
+                                        pid:this._state.pid,
+                                        data:str,
+                                        timestamp:stdoutIncompleteLine.timestamp
+                                    });
+                                    return;
+                                }
+                            }
                             this._cb.stdout({
                                 pid:this._state.pid,
-                                data:str
+                                data:str,
+                                timestamp:timestamp
                             });
                         });
-                        stdoutIncompleteLine = result.incompleteLine;
+                        stdoutIncompleteLine.data = result.incompleteLine;
+                        stdoutIncompleteLine.timestamp = timestamp;
                         return;
                     }
                     // buffer output
@@ -586,10 +610,14 @@ class Process {
                     throw new InternalError(`Could not create stderr pipe`);
                 }
                 stderrBuffer = new Uint8Array(BUFFER_SIZE);
-                let stderrIncompleteLine = '';
+                let stderrIncompleteLine = {
+                    data:'',
+                    timestamp:Date.now()
+                };
                 os.setReadHandler(stderrPipe[0], () => {
                     let len;
                     let content = '';
+                    const timestamp = Date.now();
                     for (;;) {
                         len = os.read(stderrPipe[0], stderrBuffer.buffer, 0, stderrBuffer.length);
                         // end of stream
@@ -598,10 +626,11 @@ class Process {
                             endOfStderr = true;
                             // process incomplete line if needed
                             if (undefined !== this._cb.stderr) {
-                                if (this._lineBuffered && '' != stderrIncompleteLine) {
+                                if (this._lineBuffered && '' != stderrIncompleteLine.data) {
                                     this._cb.stderr({
                                         pid:this._state.pid,
-                                        data:stderrIncompleteLine
+                                        data:stderrIncompleteLine.data,
+                                        timestamp:stderrIncompleteLine.timestamp
                                     });
                                 }
                             }
@@ -636,18 +665,35 @@ class Process {
                         if (!this._lineBuffered) {
                             this._cb.stderr({
                                 pid:this._state.pid,
-                                data:content
+                                data:content,
+                                timestamp:timestamp
                             });
                             return;
                         }
-                        const result = getLines(content, stderrIncompleteLine, this._skipBlankLines);
-                        result.lines.forEach((str) => {
+                        const result = getLines(content, stderrIncompleteLine.data, this._skipBlankLines);
+                        result.lines.forEach((str, i) => {
+                            /*
+                                check first line in case we're sending a previously
+                                incomplete line, to set correct timestamp
+                            */
+                            if (0 == i) {
+                                if ('' != stderrIncompleteLine.data) {
+                                    this._cb.stderr({
+                                        pid:this._state.pid,
+                                        data:str,
+                                        timestamp:stderrIncompleteLine.timestamp
+                                    });
+                                    return;
+                                }
+                            }
                             this._cb.stderr({
                                 pid:this._state.pid,
-                                data:str
+                                data:str,
+                                timestamp:stderrIncompleteLine.timestamp
                             });
                         });
-                        stderrIncompleteLine = result.incompleteLine;
+                        stderrIncompleteLine.data = result.incompleteLine;
+                        stderrIncompleteLine.timestamp = timestamp;
                         return;
                     }
                     // buffer output
