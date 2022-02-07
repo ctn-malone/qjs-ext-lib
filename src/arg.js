@@ -142,7 +142,15 @@ export default function arg(opts, {argv = scriptArgs.slice(1), permissive = fals
 			result._.push(wholeArg);
 		}
 	}
-
+	/*
+		Extra function to fallback to a default value
+	 */
+	result.get = function(name, defaultValue) {
+		if (undefined === result[name]) {
+			return defaultValue;
+		}
+		return result[name];
+	}
 	return result;
 }
 

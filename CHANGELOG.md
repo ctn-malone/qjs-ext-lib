@@ -2,6 +2,7 @@
 
 ## [0.3.5] **PENDING**
 * feat: add timestamp when emitting `stdout` and `stderr` events (`process.js`)
+* feat: add extra function to fallback to a default value when a command line argument is missing (`arg.js`)
 
 ## [0.3.4]
 * feat: add support for setting *stdout* handle in the child process (`process.js`)
