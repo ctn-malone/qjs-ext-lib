@@ -5,16 +5,17 @@ import { exec } from '../../src/process.js';
 import * as std from 'std';
 
 /*
-    Simple CLI example
+    Simple CLI example with default argument
  */
 
 const COMMANDS = ['date', 'uptime'];
+const DEFAULT_COMMAND = 'date';
 
 const getUsage = () => {
     const message = `
 Usage: ${path.getScriptName(true)} [-h|--help] [-c|--command] [-v|--verbose]
-    -c  --command (*) :  run command
-                         Should be one of [${COMMANDS.join(',')}]
+    -c  --command     :  run command
+                         Should be one of [${COMMANDS.join(',')}] (default = ${DEFAULT_COMMAND})
     -v  --verbose     :  enable verbose mode
     -h, --help        :  print help
 `.trim();
@@ -66,7 +67,7 @@ if (args['--help']) {
 }
 
 // ensure all required arguments were provided
-['--command'].forEach((n) => {
+[].forEach((n) => {
     if (undefined === args[n]) {
         std.err.printf(`Option ${n} is required\n`);
         std.err.printf(`${getUsage()}\n`);
@@ -77,6 +78,8 @@ if (args['--help']) {
 if (args['--verbose']) {
     console.log(`Will run command '${args['--command']}'`);
 }
-exec(args['--command']).then((output) => {
+// fallback to default value if argument was not provided
+const cmd = args.get('--command', DEFAULT_COMMAND);
+exec(cmd).then((output) => {
     console.log(output);
 });
