@@ -60,7 +60,7 @@ const getSignalName = (signal) => {
 
 const DEFAULT_SHELL = '/bin/sh';
 const SETSID_BINARY = '/usr/bin/setsid';
-const BUFFER_SIZE = 256;
+const DEFAULT_BUFFER_SIZE = 512;
 
 class Process {
 
@@ -90,6 +90,8 @@ class Process {
      *                            NB: - don't share the same handle between multiple instances
      *                                - stdout event handler will be ignored
      *                                - stderr redirection will be ignored
+     * @param {integer} opt.bufferSize size (in bytes) of the buffer used to read from process stdout & stderr streams (default = {512})
+     * @param {object} opt.props custom properties
      */
     constructor(cmdline, opt) {
         if (undefined === opt) {
@@ -221,6 +223,19 @@ class Process {
                 }
             }
         }
+
+        this._props = opt.props;
+        if (undefined === this._props || 'object' != typeof this._props) {
+            this._props = {};
+        }
+
+        this._bufferSize = DEFAULT_BUFFER_SIZE;
+        if (undefined !== opt.bufferSize) {
+            const value = parseInt(opt.bufferSize);
+            if (!isNaN(value) && value > 0) {
+                this._bufferSize = value;
+            }
+        }
     }
 
     /**
@@ -309,6 +324,15 @@ class Process {
      */
     get pid() {
         return this._state.pid;
+    }
+
+    /**
+     * Retrieve custom properties passed in constructor
+     * 
+     * @return {object}
+     */
+    get props() {
+        return this._props;
     }
 
     /**
@@ -498,7 +522,7 @@ class Process {
                 if (null === stdoutPipe) {
                     throw new InternalError(`Could not create stdout pipe`);
                 }
-                const stdoutBuffer = new Uint8Array(BUFFER_SIZE);
+                const stdoutBuffer = new Uint8Array(this._bufferSize);
                 let stdoutIncompleteLine = {
                     data:'',
                     timestamp:Date.now()
@@ -507,51 +531,47 @@ class Process {
                     if (0 === this._state.pid) {
                         return;
                     }
-                    let len;
-                    let content = '';
+                    
                     const timestamp = Date.now();
-                    for (;;) {
-                        len = os.read(stdoutPipe[0], stdoutBuffer.buffer, 0, stdoutBuffer.length);
-                        // end of stream
-                        if (0 == len) {
-                            os.setReadHandler(stdoutPipe[0], null);
-                            endOfStdout = true;
-                            // process incomplete line if needed
-                            if (undefined !== this._cb.stdout) {
-                                if (this._lineBuffered && '' != stdoutIncompleteLine.data) {
-                                    this._cb.stdout({
-                                        pid:this._state.pid,
-                                        data:stdoutIncompleteLine.data,
-                                        timestamp:stdoutIncompleteLine.timestamp
-                                    });
+                    const len = os.read(stdoutPipe[0], stdoutBuffer.buffer, 0, stdoutBuffer.length);
+                    
+                    // end of stream
+                    if (0 == len) {
+                        os.setReadHandler(stdoutPipe[0], null);
+                        endOfStdout = true;
+                        // process incomplete line if needed
+                        if (undefined !== this._cb.stdout) {
+                            if (this._lineBuffered && '' != stdoutIncompleteLine.data) {
+                                this._cb.stdout({
+                                    pid:this._state.pid,
+                                    data:stdoutIncompleteLine.data,
+                                    timestamp:stdoutIncompleteLine.timestamp
+                                });
+                            }
+                        }
+                        // update buffered content
+                        else {
+                            if ('' != this._output.stdout) {
+                                // remove empty lines
+                                if (this._skipBlankLines) {
+                                    this._output.stdout = this._output.stdout.replace(/^\s*\n/gm, '');
+                                }
+                                // trim
+                                if (this._trim) {
+                                    this._output.stdout = this._output.stdout.trim();
                                 }
                             }
-                            // update buffered content
-                            else {
-                                if ('' != this._output.stdout) {
-                                    // remove empty lines
-                                    if (this._skipBlankLines) {
-                                        this._output.stdout = this._output.stdout.replace(/^\s*\n/gm, '');
-                                    }
-                                    // trim
-                                    if (this._trim) {
-                                        this._output.stdout = this._output.stdout.trim();
-                                    }
-                                }
-                            }
-                            if (endOfStderr) {
-                                finalize();
-                            }
-                            return;
                         }
-                        gotStdoutContent = true;
-                        // process data
-                        content += utf8ArrayToStr(stdoutBuffer, len);
-                        // we don't have more data to process
-                        if (len < stdoutBuffer.length) {
-                            break;
+                        if (endOfStderr) {
+                            finalize();
                         }
+                        return;
                     }
+
+                    // process data
+                    const content = utf8ArrayToStr(stdoutBuffer, len);
+                    gotStdoutContent = true;
+
                     // call callbacks
                     if (undefined !== this._cb.stdout) {
                         if (!this._lineBuffered) {
@@ -609,57 +629,52 @@ class Process {
                     }
                     throw new InternalError(`Could not create stderr pipe`);
                 }
-                stderrBuffer = new Uint8Array(BUFFER_SIZE);
+                stderrBuffer = new Uint8Array(this._bufferSize);
                 let stderrIncompleteLine = {
                     data:'',
                     timestamp:Date.now()
                 };
                 os.setReadHandler(stderrPipe[0], () => {
-                    let len;
-                    let content = '';
                     const timestamp = Date.now();
-                    for (;;) {
-                        len = os.read(stderrPipe[0], stderrBuffer.buffer, 0, stderrBuffer.length);
-                        // end of stream
-                        if (0 == len) {
-                            os.setReadHandler(stderrPipe[0], null);
-                            endOfStderr = true;
-                            // process incomplete line if needed
-                            if (undefined !== this._cb.stderr) {
-                                if (this._lineBuffered && '' != stderrIncompleteLine.data) {
-                                    this._cb.stderr({
-                                        pid:this._state.pid,
-                                        data:stderrIncompleteLine.data,
-                                        timestamp:stderrIncompleteLine.timestamp
-                                    });
+                    const len = os.read(stderrPipe[0], stderrBuffer.buffer, 0, stderrBuffer.length);
+                    
+                    // end of stream
+                    if (0 == len) {
+                        os.setReadHandler(stderrPipe[0], null);
+                        endOfStderr = true;
+                        // process incomplete line if needed
+                        if (undefined !== this._cb.stderr) {
+                            if (this._lineBuffered && '' != stderrIncompleteLine.data) {
+                                this._cb.stderr({
+                                    pid:this._state.pid,
+                                    data:stderrIncompleteLine.data,
+                                    timestamp:stderrIncompleteLine.timestamp
+                                });
+                            }
+                        }
+                        // update buffered content
+                        else {
+                            if ('' != this._output.stderr) {
+                                // remove empty lines
+                                if (this._skipBlankLines) {
+                                    this._output.stderr = this._output.stderr.replace(/^\s*\n/gm, '');
+                                }
+                                // trim buffered content
+                                if (this._trim) {
+                                    this._output.stderr = this._output.stderr.trim();
                                 }
                             }
-                            // update buffered content
-                            else {
-                                if ('' != this._output.stderr) {
-                                    // remove empty lines
-                                    if (this._skipBlankLines) {
-                                        this._output.stderr = this._output.stderr.replace(/^\s*\n/gm, '');
-                                    }
-                                    // trim buffered content
-                                    if (this._trim) {
-                                        this._output.stderr = this._output.stderr.trim();
-                                    }
-                                }
-                            }
-                            if (endOfStdout || (undefined !== this._qjsOpt.stdout)) {
-                                finalize();
-                            }
-                            return;
                         }
-                        // process data
-                        content += utf8ArrayToStr(stderrBuffer, len);
-                        // we don't have more data to process
-                        if (len < stderrBuffer.length) {
-                            break;
+                        if (endOfStdout || (undefined !== this._qjsOpt.stdout)) {
+                            finalize();
                         }
+                        return;
                     }
+                    
+                    // process data
+                    const content = utf8ArrayToStr(stderrBuffer, len);
                     gotStderrContent = true;
+                    
                     // call callbacks
                     if (undefined !== this._cb.stderr) {
                         if (!this._lineBuffered) {
@@ -858,7 +873,8 @@ class Process {
  * @param {integer} opt.stdout if defined, sets the stdout handle used by child process (it will be rewind)
  *                             NB: - don't share the same handle between multiple instances
  *                                 - stderr redirection will be ignored
-* @param {boolean} opt.ignoreError if {true} promise will resolve to the content of stdout even if process exited with a non zero code
+ * @param {boolean} opt.ignoreError if {true} promise will resolve to the content of stdout even if process exited with a non zero code
+ * @param {integer} opt.bufferSize size (in bytes) of the buffer used to read from process stdout & stderr streams (default = {512})
  *
  * @return {Promise} promise which will resolve to the content of stdout in case process exited with zero or {opt.ignoreError} is {true}
  *                   and will an throw an {Error} with the content of stderr and following extra extra properties :

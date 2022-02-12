@@ -47,6 +47,8 @@ Constructor
   * opt.stdout (*integer*) : if defined, sets the *stdout* handle used by child process (don't share the same *handle* between multiple instances as it will be automatically rewind !)
     * *stdout* event handler will be ignored
     * *stderr* redirection will be ignored
+ * opt.bufferSize (*integer*) : size (in bytes) of the buffer used to read from child process streams (default = `512`)
+ * opt.props (*object*) : custom properties
 
 <u>Example</u>
 
@@ -293,6 +295,25 @@ console.log(p.pid);
 await p.wait();
 ```
 
+### Process.props
+
+`.props`
+
+Returns the custom properties passed in constructor
+
+**return** *object*
+
+<u>Example</u>
+
+```js
+const p = new Process('uptime -p', {
+    props:{cmd:'uptime'}
+});
+p.run();
+console.log(JSON.stringify(p.props));
+await p.wait();
+```
+
 ### Process.setEventListener(...)
 
 `.setEventListener(eventType, cb)`
@@ -323,7 +344,7 @@ Following events are supported :
 ```js
 /*
     Writes every even number to stdout & every odd number to stderr
-    */
+ */
 const p = new Process('for i in $(seq 1 5) ; do if [ $(($i % 2)) -eq 0 ] ; then echo $i ; else echo $i 1>&2 ; fi ; sleep 1s ; done', {
     useShell:true,
     lineBuffered:true
@@ -346,7 +367,7 @@ os.setTimeout(() => {
 
 ## exec(...)
 
-`exec(cmdline, opt)`
+`.exec(cmdline, opt)`
 
 Executes a command and return the content of *stdout*
 
@@ -371,6 +392,7 @@ Executes a command and return the content of *stdout*
   * opt.stdout (*integer*) : if defined, sets the *stdout* handle used by child process (don't share the same *handle* between multiple instances as it will be automatically rewind !)
     * *stderr* redirection will be ignored
   * opt.ignoreError (*boolean*) : if `true` promise will resolve to the content of stdout even if process exited with a non zero code
+  * opt.bufferSize (*integer*) : size (in bytes) of the buffer used to read from child process streams (default = `512`)
 
 **return** *Promise* which resolves to the content of *stdout*
 
@@ -396,7 +418,7 @@ catch (e) {
 
 ## waitpid(...)
 
-`waitpid(pid, pollDelay)`
+`.waitpid(pid, pollDelay)`
 
 Wait asynchronously until a given process is terminated
 

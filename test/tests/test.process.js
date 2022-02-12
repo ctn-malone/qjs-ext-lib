@@ -5,6 +5,14 @@ import { Process, exec, waitpid } from '../../src/process.js';
 
 export default () => {
 
+    tester.test('process.Process (props)', () => {
+        const props = {cmd:'date'};
+        const p = new Process('date', {
+            props:props
+        });
+        tester.assertEq(p.props, props, `{props} should match`);
+    });
+
     tester.test('process.Process with stdout/stderr handlers', async (done) => {
         const opt = {trim:false};
         const cmdline = 'data/test1.sh 10';
