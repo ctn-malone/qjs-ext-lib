@@ -1,8 +1,12 @@
 # Change Log
 
-## [0.3.5] **PENDING**
+## [0.4.0]
 * feat: add timestamp when emitting `stdout` and `stderr` events (`process.js`)
 * feat: add extra function to fallback to a default value when a command line argument is missing (`arg.js`)
+* feat: allow to pass custom properties to `Process` constructor (`process.js`)
+* feat: possibility to use custom buffer size when reading from child process streams (`process.js`)
+* refactor: set default buffer size to `512` bytes
+* fix: remove loop when reading from child process
 
 ## [0.3.4]
 * feat: add support for setting *stdout* handle in the child process (`process.js`)
