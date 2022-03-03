@@ -7,7 +7,7 @@
     An exception will be thrown in case a non semver version is passed as argument
  */
 
-const VERSION = '0.4.0';
+const VERSION = '0.4.1';
 
 /**
  * Check whether or not a version is in semver format
@@ -33,16 +33,20 @@ const isSemver = (v, throwException) => {
 }
 
 /**
- * Split a version
+ * Reduce a semver version to an number
  *
- * @param {string} v version to split
+ * @param {string} v version to reduce
  *
- * @return {integer[]}
+ * @return {integer} integer representation of the version
  */
-const split = (v) => {
-    const value = v.replace(/[-+].*$/g, '');
+const reduce = (v) => {
+    const value = v.replace(/[-+].*$/g, '');    
     const arr = value.split('.').map(e => parseInt(e));
-    return arr;
+    let sum = 0;
+    for (let i = 0; i < arr.length; ++i) {
+        sum += arr[i] * Math.pow(10, i);
+    }
+    return sum;
 }
 
 /**
@@ -78,17 +82,9 @@ const neq = (current, target) => {
  * @return {boolean}
  */
 const lt = (target, current) => {
-    const _current = split(current);
-    const _target = split(target);
-    for (let i = 0; i < _current.length; ++i) {
-        if (_current[i] > _target[i]) {
-            return false;
-        }
-    }
-    if (_current[2] >= _target[2]) {
-        return false;
-    }
-    return true;
+    const _current = reduce(current);
+    const _target = reduce(target);
+    return _current < _target;
 }
 
 /**
@@ -112,17 +108,9 @@ const lte = (target, current) => {
  * @return {boolean}
  */
 const gt = (target, current) => {
-    const _current = split(current);
-    const _target = split(target);
-    for (let i = 0; i < _current.length; ++i) {
-        if (_current[i] < _target[i]) {
-            return false;
-        }
-    }
-    if (_current[2] <= _target[2]) {
-        return false;
-    }
-    return true;
+    const _current = reduce(current);
+    const _target = reduce(target);
+    return _current > _target;
 }
 
 /**

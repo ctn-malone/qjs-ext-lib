@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.4.1]
+* fix: fix semver comparison (`version.js`)
+
 ## [0.4.0]
 * feat: add timestamp when emitting `stdout` and `stderr` events (`process.js`)
 * feat: add extra function to fallback to a default value when a command line argument is missing (`arg.js`)

@@ -9,7 +9,7 @@ It only accept versions matching `x.y.z-p+m` where
 
 It will throw an exception in case an invalid version is passed
 
-## version.VERSSION
+## version.VERSION
 
 `version.VERSION`
 
