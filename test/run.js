@@ -87,6 +87,7 @@ if (args['--help']) {
 
 tester.setReportVerbosity(args['--verbosity']);
 tester.enableColorInReport(!args['--no-color']);
+tester.displayResultsIfMismatch(true);
 tester.setResultHandler((r) => {
     if (!r.success) {
         std.exit(1);

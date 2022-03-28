@@ -76,7 +76,7 @@ let runPromise = undefined;
         }
 
         {mismatch} can contain following promerties :
-            - path : (string|int)[], always defined. Example: ['a', 0, 'b'] indicates the path to each {b} key in below object
+            - path : (string|int)[], always defined. Example: ['a', 0, 'b'] indicates the path to reach {b} key in below object
 
                 {
                     "a":[
@@ -229,6 +229,20 @@ const _deepEq = (a, b, mismatch) => {
      */
     if (undefined === mismatch.path) {
         mismatch.path = [];
+    }
+    if (null === a) {
+        if (null !== b) {
+            mismatch.types = ['null', typeof b];
+            return false;
+        }
+        return true;
+    }
+    else if (null === b) {
+        if (null !== a) {
+            mismatch.types = [typeof a, 'null'];
+            return false;
+        }
+        // already checked above
     }
     if (typeof a !== typeof b) {
         mismatch.types = [typeof a, typeof b];

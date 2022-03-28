@@ -25,7 +25,8 @@ class Curl {
      * @param {string} opt.method HTTP method (default = "GET")
      * @param {string} opt.userAgent
      * @param {boolean} opt.insecure if {true} ignore SSL errors (default = {false})
-     * @param {object} opt.headers dictionary of extra headers
+     * @param {object} opt.headers dictionary of extra headers (each value can be a {string} or a {string[]})
+     * @param {object} opt.cookies dictionary of cookies (each value should be a {string} or an {object} with a {value} property))
      * @param {boolean} opt.followRedirects whether or not HTTP redirects should be followed (default = {true})
      * @param {integer} opt.maxRedirects maximum number of HTTP redirects to follow (by default, use curl default)
      *                                   Will be ignored if {opt.followRedirects} is {false}
@@ -65,6 +66,10 @@ class Curl {
      *                              Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
      * @param {object} opt.params parameters to add as query string
      * @param {boolean} opt.normalizeHeaders if {true}, header names in response will be converted to lower case (default = {true})
+     * @param {boolean} opt.returnHeadersAs indicates how response headers should be returned
+     *                                      - "string" (default) : if an header appears multiple times, only the first value will be kept
+     *                                      - "array" : always return an array of values for each header
+     *                                      - "auto" : return an array of values only for headers which appear multiple times
      * @param {boolean} opt.parseJson if {true}, automatically parse JSON in responses (default = {true})
      * @param {boolean} opt.failOnHttpError if {true}, {run} method will return {false} in case status code is not in [200, 299] (default = {false})
      * @param {object} opt.basicAuth basic HTTP authentication {"username":"string", "password":"string"}
@@ -108,13 +113,36 @@ class Curl {
         if (undefined !== opt.headers && 'object' == typeof opt.headers) {
             for (const [key, value] of Object.entries(opt.headers)) {
                 const headerName = key.toLowerCase();
-                if ('content-type' == headerName) {
-                    // in case we have '; charset...'
-                    const arr = value.trim().split(';');
-                    contentType = arr[0].trim();
+                const values = Array.isArray(value) ? value : [value];
+                for (const v of values) {
+                    this._curlArgs.push('-H');
+                    const header = `${key}: ${v}`
+                    this._curlArgs.push(header);
+                    // only handle the first one
+                    if ('content-type' == headerName) {
+                        // in case we have '; charset...'
+                        const arr = v.trim().split(';');
+                        contentType = arr[0].trim();
+                        break;
+                    }
                 }
+            }
+        }
+
+        // cookies
+        if (undefined !== opt.cookies && 'object' == typeof opt.cookies) {
+            const arr = [];
+            for (const [key, value] of Object.entries(opt.cookies)) {
+                if ('string' == typeof value) {
+                    arr.push(`${key}=${value}`);
+                }
+                else if (undefined !== value.value) {
+                    arr.push(`${key}=${value.value}`);
+                }
+            }
+            if (0 != arr.length) {
+                const header = `Cookie: ${arr.join('; ')}`;
                 this._curlArgs.push('-H');
-                const header = `${key}: ${value}`
                 this._curlArgs.push(header);
             }
         }
@@ -372,6 +400,16 @@ class Curl {
         if (false === opt.normalizeHeaders) {
             this._normalizeHeaders = false;
         }
+        // by default ignore duplicate headers
+        this._returnHeadersAs = 'string';
+        if (undefined !== opt.returnHeadersAs) {
+            switch (opt.returnHeadersAs) {
+                case 'string':
+                case 'array':
+                case 'auto':
+                    this._returnHeadersAs = opt.returnHeadersAs;
+            }
+        }
 
         // by default automatically parse json responses
         this._parseJson = true;
@@ -409,6 +447,7 @@ class Curl {
 
         // response
         this._responseHeaders = undefined;
+        this._responseCookies = undefined;
         this._contentType = undefined;
         this._body = undefined;
         this._status = undefined;
@@ -510,6 +549,7 @@ class Curl {
 
         // headers
         const responseHeaders = {};
+        const setCookieHeaders = [];
         nonStatusHeaders.forEach((headerLine, i) => {
             const pos = headerLine.indexOf(':');
             // invalid header
@@ -524,14 +564,37 @@ class Curl {
                 const arr = value.split(';');
                 this._contentType = arr[0].toLowerCase();
             }
-            if (this._normalizeHeaders) {
-                responseHeaders[normalizedName] = value;
+            else if ('set-cookie' == normalizedName) {
+                setCookieHeaders.push(value);
             }
+            const headerName = this._normalizeHeaders ? normalizedName : name;
+            // always return an array of values
+            if ('array' == this._returnHeadersAs) {
+                if (undefined === responseHeaders[headerName]) {
+                    responseHeaders[headerName] = [];
+                }
+                responseHeaders[headerName].push(value);
+            }
+            // return an array only if an header appears multiple time
+            else if ('auto' == this._returnHeadersAs) {
+                if (undefined !== responseHeaders[headerName]) {
+                    // convert to an array
+                    if (!Array.isArray(responseHeaders[headerName])) {
+                        responseHeaders[headerName] = [responseHeaders[headerName]];
+                    }
+                    responseHeaders[headerName].push(value);
+                }
+                else {
+                    responseHeaders[headerName] = value;
+                }
+            }
+            // only keep first value
             else {
-                responseHeaders[name] = value;
-            }
+                responseHeaders[headerName] = value;
+            }   
         });
         this._responseHeaders = responseHeaders;
+        this._responseCookies = this._parseSetCookieHeaders(setCookieHeaders);
 
         // compute final status
         let didFail = false;
@@ -631,6 +694,26 @@ class Curl {
             text:statusText
         }
     }
+
+    /**
+     * Parses an array of set-cookie headers values
+     * 
+     * @param {string|string[]} values array of set-cookie headers values
+     * 
+     * @return {object} cookies
+     */
+    _parseSetCookieHeaders(values) {
+        const cookies = {};
+        const arr = Array.isArray(values) ? values : [values];
+        for (const value of arr) {
+            const cookiesStrings = splitCookiesString(value);
+            for (const cookieString of cookiesStrings) {
+                const cookie = parseSetCookieHeader(cookieString);
+                cookies[cookie.name] = cookie;
+            }
+        }
+        return cookies;
+    }    
 
     /**
      * Get curl command line
@@ -767,7 +850,7 @@ class Curl {
     }
 
     /**
-     * Response headers
+     * Response headers (deep copy)
      * Will be {undefined} if {run} was not called or if curl failed
      *
      * @return {object|undefined}
@@ -777,6 +860,70 @@ class Curl {
             return undefined;
         }
         return Object.assign({}, this._responseHeaders);
+    }
+
+    /**
+     * Retrieve all response cookies (deep copy)
+     * Will be {undefined} if {run} was not called or if curl failed
+     * 
+     * @return {object|undefined} cookies
+     */
+    get cookies() {
+        if (undefined === this._responseCookies) {
+            return undefined;
+        }
+        const result = {};
+        for (const cookie of Object.values(this._responseCookies)) {
+            result[cookie.name] = Object.assign({}, cookie);
+        }
+        return result;
+    }
+
+    /**
+     * Retrieve a single response cookie (deep copy)
+     * Will be {undefined} if {run} was not called or if curl failed
+     * 
+     * @param {string} name cookie name
+     * 
+     * @return {object|undefined} cookie
+     */
+    getCookie(name) {
+        if (undefined === this._responseCookies) {
+            return undefined;
+        }
+        if (undefined === this._responseCookies[name]) {
+            return undefined;
+        }
+        return Object.assign({}, this._responseCookies[name]);
+    }
+
+    /**
+     * Retrieve the value of single response cookie
+     * Will be {undefined} if {run} was not called or if curl failed
+     * 
+     * @param {string} name cookie name
+     * 
+     * @return {string|undefined} cookie
+     */
+     getCookieValue(name) {
+        if (undefined === this._responseCookies) {
+            return undefined;
+        }
+        return this._responseCookies[name]?.value;
+    }
+
+    /**
+     * Indicates whether or not a given response cookie exist
+     * 
+     * @param {string} name cookie name
+     * 
+     * @return {boolean}
+     */
+    hasCookie(name) {
+        if (undefined === this._responseCookies) {
+            return false;
+        }
+        return undefined !== this._responseCookies[name];
     }
 
     /**
@@ -837,6 +984,7 @@ class Curl {
         this._isBeingCancelled = false;
         this._wasCancelled = false;
         this._responseHeaders = undefined;
+        this._responseCookies = undefined;
         this._body = undefined;
         this._status = undefined;
         this._contentType = undefined;
@@ -893,7 +1041,6 @@ class Curl {
  *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
  *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
  * @param {object} opt.params parameters to add as query string
- * @param {boolean} opt.normalizeHeaders if {true}, header names in response will be converted to lower case (default = {true})
  * @param {boolean} opt.parseJson if {true}, automatically parse JSON in responses (default = {true})
  * @param {boolean} opt.failOnHttpError if {true}, {run} method will return {false} in case status code is not in [200, 299] (default = {false})
  * @param {object} opt.basicAuth basic HTTP authentication {"username":"string", "password":"string"}
@@ -958,8 +1105,150 @@ const multiCurl = async (list) => {
     return data;
 }
 
+/**
+ * Set-Cookie header field-values are sometimes comma joined in one string. This splits them without choking on commas
+ * that are within a single set-cookie field-value, such as in the Expires portion.
+ * This is uncommon, but explicitly allowed - see https://tools.ietf.org/html/rfc2616#section-4.2
+ * Node.js does this for every header *except* set-cookie - see https://github.com/nodejs/node/blob/d5e363b77ebaf1caf67cd7528224b651c86815c1/lib/_http_incoming.js#L128
+ * React Native's fetch does this for *every* header, including set-cookie.
+ * Based on: https://github.com/google/j2objc/commit/16820fdbc8f76ca0c33472810ce0cb03d20efe25
+ * Credits to: https://github.com/tomball for original and https://github.com/chrusart for JavaScript implementation
+ * 
+ * Borrowed from https://github.com/nfriedly/set-cookie-parser/commit/21d45a64b57745691ead23cd2656845af4457d6a ;)
+ * 
+ * @param {string} cookieString
+ * 
+ * @return {string[]}
+ */
+const splitCookiesString = (cookiesString) => {
+    const cookiesStrings = [];
+    let pos = 0;
+    let start;
+    let ch;
+    let lastComma;
+    let nextStart;
+    let cookiesSeparatorFound;
+  
+    const skipWhitespace = () => {
+        while (pos < cookiesString.length && /\s/.test(cookiesString.charAt(pos))) {
+            pos += 1;
+        }
+        return pos < cookiesString.length;
+    }
+  
+    const notSpecialChar = () => {
+        ch = cookiesString.charAt(pos);
+        return ch !== "=" && ch !== ";" && ch !== ",";
+    }
+  
+    while (pos < cookiesString.length) {
+        start = pos;
+        cookiesSeparatorFound = false;
+  
+        while (skipWhitespace()) {
+            ch = cookiesString.charAt(pos);
+            if (ch === ",") {
+                // ',' is a cookie separator if we have later first '=', not ';' or ','
+                lastComma = pos;
+                pos += 1;
+  
+                skipWhitespace();
+                nextStart = pos;
+  
+                while (pos < cookiesString.length && notSpecialChar()) {
+                    pos += 1;
+                }
+  
+                // currently special character
+                if (pos < cookiesString.length && cookiesString.charAt(pos) === "=") {
+                    // we found cookies separator
+                    cookiesSeparatorFound = true;
+                    // pos is inside the next cookie, so back up and return it.
+                    pos = nextStart;
+                    cookiesStrings.push(cookiesString.substring(start, lastComma));
+                    start = pos;
+                } 
+                else {
+                    // in param ',' or param separator ';',
+                    // we continue from that comma
+                    pos = lastComma + 1;
+                }
+            } 
+            else {
+                pos += 1;
+            }
+        }
+  
+        if (!cookiesSeparatorFound || pos >= cookiesString.length) {
+            cookiesStrings.push(cookiesString.substring(start, cookiesString.length));
+        }
+    }
+    return cookiesStrings;
+}
+
+/**
+ * Parses a set-cookie header value
+ * 
+ * Borrowed from https://github.com/nfriedly/set-cookie-parser/commit/21d45a64b57745691ead23cd2656845af4457d6a ;)
+ * 
+ * @param {string} value set-cookie header value
+ * 
+ * @return {object} cookie
+ */
+const parseSetCookieHeader = (value) => {
+    const parts = value.split(";").filter(str => 'string' == typeof str && !!str.trim());
+    if (0 === parts.length) {
+        return {};
+    }
+    const nameValue = parts.shift().split("=");
+    const name = nameValue.shift();
+    let val = nameValue.join("="); // everything after the first =, joined by a "=" if there was more than one part
+  
+    try {
+        val = decodeURIComponent(val); // decode cookie value
+    } 
+    catch (e) {
+        // ignore error
+    }
+  
+    const cookie = {
+        name: name, // grab everything before the first =
+        value: val,
+    };
+  
+    parts.forEach((part) => {
+        const sides = part.split("=");
+        const key = sides.shift().trimStart().toLowerCase();
+        const value = sides.join("=");
+        if (key === "expires") {
+            cookie.expires = new Date(value);
+        } 
+        else if (key === "max-age") {
+            cookie.maxAge = parseInt(value, 10);
+        } 
+        else if (key === "secure") {
+            cookie.secure = true;
+        } 
+        else if (key === "httponly") {
+            cookie.httpOnly = true;
+        } 
+        else if (key === "samesite") {
+            cookie.sameSite = value;
+        } 
+        else {
+            cookie[key] = value;
+        }
+        // remove {expires}
+        if (0 === cookie.maxAge) {
+            delete cookie.expires;
+        }
+    });
+  
+    return cookie;
+}
+
 export {
     Curl,
     multiCurl,
-    curlRequest
+    curlRequest,
 }

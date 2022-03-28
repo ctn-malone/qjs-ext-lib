@@ -16,6 +16,10 @@ Constructor
   * opt.userAgent (*string*) : user agent
   * opt.insecure (*boolean*) : if `true` ignore SSL errors (default = `false`)
   * opt.headers (*object*) dictionary of extra headers (ex: `{"x-header":"value"}`)
+    * each value can be a `string` or a `string[]`
+  * opt.cookies dictionary of cookies. Each value can be one of
+    * a `string`
+    * an `object` with a `value` property (as returned by `.cookies`)
   * opt.followRedirects (*boolean*) : whether or not HTTP redirects should be followed (default = `true`)
   * opt.maxRedirects (*integer*) : maximum number of HTTP redirects to follow (by default, use *curl* default)
     * will be ignored if `opt.followRedirects` is `false`
@@ -362,6 +366,54 @@ await c.run();
 console.log(JSON.stringify(c.headers));
 ```
 
+### Curl.cookies
+
+`.cookies`
+
+Retrieves all response's cookies
+
+**return** *object*
+
+<u>Example</u>
+
+```js
+const c = new Curl(`https://jsonplaceholder.typicode.com/posts/1`);
+await c.run();
+console.log(JSON.stringify(c.cookies));
+```
+
+### Curl.getCookie(...)
+
+`.getCookie(name)`
+
+Retrieves a single response's cookie
+
+**return** *object|undefined*
+
+<u>Example</u>
+
+```js
+const c = new Curl(`https://jsonplaceholder.typicode.com/posts/1`);
+await c.run();
+console.log(JSON.stringify(c.getCookie('session')));
+```
+
+### Curl.getCookieValue(...)
+
+`.getCookieValue(name)`
+
+Retrieves the value of a single response's cookie
+
+**return** *string|undefined*
+
+<u>Example</u>
+
+```js
+const c = new Curl(`https://jsonplaceholder.typicode.com/posts/1`);
+await c.run();
+console.log(JSON.stringify(c.getCookieValue('session')));
+```
+
 ### Curl.statusCode
 
 `.statusCode`
@@ -445,6 +497,10 @@ Perfoms a *curl* request and return the response's body
   * opt.userAgent (*string*) : user agent
   * opt.insecure (*boolean*) : if `true` ignore SSL errors (default = `false`)
   * opt.headers (*object*) dictionary of extra headers (ex: `{"x-header":"value"}`)
+    * each value can be a `string` or a `string[]`
+  * opt.cookies dictionary of cookies. Each value can be one of
+    * a `string`
+    * an `object` with a `value` property (as returned by `.cookies`)
   * opt.followRedirects (*boolean*) : whether or not HTTP redirects should be followed (default = `true`)
   * opt.maxRedirects (*integer*) : maximum number of HTTP redirects to follow (by default, use *curl* default)
     * will be ignored if `opt.followRedirects` is `false`
@@ -487,7 +543,6 @@ Perfoms a *curl* request and return the response's body
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`, `opt.body`) was set
   * opt.params (*object*) : parameters to add as query string
-  * opt.normalizeHeaders (*boolean*) : if `true`, header names in response will be converted to lower case (default = `true`)
   * opt.parseJson (*boolean*) : if `true`, automatically parse JSON in responses (default = `true`)
   * opt.failOnHttpError (*boolean*) : if `true`, `run` method will return `false` in case status code is not in `[200, 299]` (default = `false`)
   * opt.basicAuth (*object*) : basic HTTP authentication 

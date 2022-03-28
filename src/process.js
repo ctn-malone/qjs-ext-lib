@@ -870,9 +870,6 @@ class Process {
  * @param {integer} opt.timeoutSignal signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
  * @param {integer} opt.stdin if defined, sets the stdin handle used by child process (it will be rewind)
  *                            NB: don't share the same handle between multiple instances
- * @param {integer} opt.stdout if defined, sets the stdout handle used by child process (it will be rewind)
- *                             NB: - don't share the same handle between multiple instances
- *                                 - stderr redirection will be ignored
  * @param {boolean} opt.ignoreError if {true} promise will resolve to the content of stdout even if process exited with a non zero code
  * @param {integer} opt.bufferSize size (in bytes) of the buffer used to read from process stdout & stderr streams (default = {512})
  *
@@ -884,6 +881,8 @@ const exec = async (cmdline, opt) => {
     const options = Object.assign({}, opt);
     const ignoreError = (true === options.ignoreError);
     delete options.ignoreError;
+    // supporting {opt.stdout} does not make sense here
+    delete options.stdout;
     const p = new Process(cmdline, options);
     const state = await p.run();
     if (0 == state.exitCode) {

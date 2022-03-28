@@ -50,6 +50,30 @@ export default () => {
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using custom headers`);
     });
 
+    tester.test('curl.Curl (cookies)', () => {
+        let c;
+        let expectedCmdline;
+        let cmdline;
+        c = new Curl('http://127.0.0.1', {
+            cookies:{
+                'cookie1':'value1',
+                'cookie2':'value2'
+            }
+        });
+        expectedCmdline = `curl -D /dev/stderr -q -H Cookie: cookie1=value1; cookie2=value2 -X GET -L --url http://127.0.0.1`;
+        cmdline = c.cmdline;
+        tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using cookies (when using string as values)`);
+        c = new Curl('http://127.0.0.1', {
+            cookies:{
+                'cookie1':{'value': 'value1'},
+                'cookie2':{'value': 'value2'},
+            }
+        });
+        expectedCmdline = `curl -D /dev/stderr -q -H Cookie: cookie1=value1; cookie2=value2 -X GET -L --url http://127.0.0.1`;
+        cmdline = c.cmdline;
+        tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using cookies (when using objects as values)`);
+    });
+
     tester.test('curl.Curl (follow redirects)', () => {
         let c = new Curl('http://127.0.0.1', {
             maxRedirects:4
@@ -477,6 +501,97 @@ export default () => {
 
         done();
     }, {isAsync:true});
+
+    tester.test('curl.Curl (set-cookie parsing)', () => {
+        const c = new Curl('http://127.0.0.1');
+        let setCookieValues = [
+            {
+                description: 'a single cookie',
+                cookiesStrings: 'token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lQGdtYWlsLmNvbSIsImlhdCI6MTY0Nzk4NDA2OH0.TkImMUNI0QDOYOwtRKXqz5xCHpIdNB-2owYH2tkyxZ4; Max-Age=1800; Path=/; Expires=Tue, 22 Mar 2022 21:51:08 GMT; HttpOnly; Secure; SameSite=Strict',
+                expectedCookies: {
+                    "token": {
+                        "name": "token",
+                        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lQGdtYWlsLmNvbSIsImlhdCI6MTY0Nzk4NDA2OH0.TkImMUNI0QDOYOwtRKXqz5xCHpIdNB-2owYH2tkyxZ4",
+                        "maxAge": 1800,
+                        "path": "/",
+                        "expires": new Date("2022-03-22T21:51:08.000Z"),
+                        "httpOnly": true,
+                        "secure": true,
+                        "sameSite": "Strict"
+                    }
+                }
+            },
+            {
+                description: 'multiple cookies in separate cookies strings',
+                cookiesStrings: [
+                    'sticky-session=http://10.1.0.1:10000; Path=/',
+                    'token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lQGdtYWlsLmNvbSIsImlhdCI6MTY0Nzk4NDA2OH0.TkImMUNI0QDOYOwtRKXqz5xCHpIdNB-2owYH2tkyxZ4; Max-Age=1800; Path=/; Expires=Tue, 22 Mar 2022 21:51:08 GMT; HttpOnly; Secure; SameSite=Strict'
+                ],
+                expectedCookies: {
+                    "sticky-session": {
+                        "name": "sticky-session",
+                        "value": "http://10.1.0.1:10000",
+                        "path": "/"
+                    },
+                    "token": {
+                        "name": "token",
+                        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lQGdtYWlsLmNvbSIsImlhdCI6MTY0Nzk4NDA2OH0.TkImMUNI0QDOYOwtRKXqz5xCHpIdNB-2owYH2tkyxZ4",
+                        "maxAge": 1800,
+                        "path": "/",
+                        "expires": new Date("2022-03-22T21:51:08.000Z"),
+                        "httpOnly": true,
+                        "secure": true,
+                        "sameSite": "Strict"
+                    }
+                }
+            },
+            {
+                description: 'multiple cookies in the same cookies strings',
+                cookiesStrings: [
+                    'AUTH_SESSION_ID_LEGACY=d637d240-500b-49e3-8691-74b53d98c8f5.ae2d4b6f8713; Version=1; Path=/auth/realms/testing/; Secure; HttpOnly, KEYCLOAK_IDENTITY=; Version=1; Comment=Expiring cookie; Expires=Thu, 01 Jan 1970 00:00:10 GMT; Max-Age=0; Path=/auth/realms/testing/; Secure; HttpOnly, sticky-session=http://10.1.0.1:10000; Path=/, token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lQGdtYWlsLmNvbSIsImlhdCI6MTY0Nzk4NDA2OH0.TkImMUNI0QDOYOwtRKXqz5xCHpIdNB-2owYH2tkyxZ4; Max-Age=1800; Path=/; Expires=Tue, 22 Mar 2022 21:51:08 GMT; HttpOnly; Secure; SameSite=Strict',
+                ],
+                expectedCookies: {
+                    "AUTH_SESSION_ID_LEGACY": {
+                        "name": "AUTH_SESSION_ID_LEGACY",
+                        "value": "d637d240-500b-49e3-8691-74b53d98c8f5.ae2d4b6f8713",
+                        "version": "1",
+                        "path": "/auth/realms/testing/",
+                        "secure": true,
+                        "httpOnly": true
+                    },
+                    "KEYCLOAK_IDENTITY": {
+                        "name": "KEYCLOAK_IDENTITY",
+                        "value": "",
+                        "version": "1",
+                        "comment": "Expiring cookie",
+                        "maxAge": 0,
+                        "path": "/auth/realms/testing/",
+                        "secure": true,
+                        "httpOnly": true
+                    },
+                    "sticky-session": {
+                        "name": "sticky-session",
+                        "value": "http://10.1.0.1:10000",
+                        "path": "/"
+                    },
+                    "token": {
+                        "name": "token",
+                        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpvaG4uZG9lQGdtYWlsLmNvbSIsImlhdCI6MTY0Nzk4NDA2OH0.TkImMUNI0QDOYOwtRKXqz5xCHpIdNB-2owYH2tkyxZ4",
+                        "maxAge": 1800,
+                        "path": "/",
+                        "expires": new Date("2022-03-22T21:51:08.000Z"),
+                        "httpOnly": true,
+                        "secure": true,
+                        "sameSite": "Strict"
+                    }
+                }
+            }
+        ];
+        for (const e of setCookieValues) {
+            const cookies = c._parseSetCookieHeaders(e.cookiesStrings);
+            tester.assertEq(cookies, e.expectedCookies, `cookie should match when having ${e.description}`);
+        }
+    });    
 
     tester.test('curl.multiCurl', async (done) => {
         const requests = [

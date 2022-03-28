@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.5.0]
+* feat: allow to pass same header multiple time (`curl.js`)
+* feat: possibility to define how duplicate response headers should be handled (`curl.js`)
+* feat: support for cookies (`curl.js`)
+
 ## [0.4.1]
 * fix: fix semver comparison (`version.js`)
 
