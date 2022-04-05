@@ -7,7 +7,7 @@
 import * as os from 'os';
 import * as std from 'std';
 
-import { utf8ArrayToStr, getLines } from './strings.js';
+import { bytesArrayToStr, getLines } from './strings.js';
 import { wait } from './timers.js';
 
 /**
@@ -569,7 +569,7 @@ class Process {
                     }
 
                     // process data
-                    const content = utf8ArrayToStr(stdoutBuffer, len);
+                    const content = bytesArrayToStr(stdoutBuffer, len);
                     gotStdoutContent = true;
 
                     // call callbacks
@@ -672,7 +672,7 @@ class Process {
                     }
                     
                     // process data
-                    const content = utf8ArrayToStr(stderrBuffer, len);
+                    const content = bytesArrayToStr(stderrBuffer, len);
                     gotStderrContent = true;
                     
                     // call callbacks

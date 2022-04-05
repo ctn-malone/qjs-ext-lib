@@ -48,6 +48,7 @@ class Curl {
      *                                      Will be ignored if {opt.data} was set
      * @param {string} opt.jsonFile file containing data to send as application/json
      *                              Content type will automatically be set to application/json
+     *                              Use '-' for stdin
      *                              Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
      *                              Will be ignored if one of ({opt.data}, {opt.json}) was set
      * @param {string|object} opt.file used to upload a file
@@ -62,6 +63,7 @@ class Curl {
      *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
      *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}) was set
      * @param {string} opt.bodyFile body to send 
+     *                              Use '-' for stdin
      *                              Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
      *                              Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
      * @param {object} opt.params parameters to add as query string
@@ -1024,6 +1026,7 @@ class Curl {
  *                                      Will be ignored if {opt.data} was set
  * @param {string} opt.jsonFile file containing data to send as application/json
  *                              Content type will automatically be set to application/json
+ *                              Use '-' for stdin
  *                              Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
  *                              Will be ignored if one of ({opt.data}, {opt.json}) was set
  * @param {string|object} opt.file used to upload a file
@@ -1038,8 +1041,9 @@ class Curl {
  *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
  *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}) was set
  * @param {string} opt.bodyFile body to send 
- *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
- *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
+ *                              Use '-' for stdin
+ *                              Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
+ *                              Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
  * @param {object} opt.params parameters to add as query string
  * @param {boolean} opt.parseJson if {true}, automatically parse JSON in responses (default = {true})
  * @param {boolean} opt.failOnHttpError if {true}, {run} method will return {false} in case status code is not in [200, 299] (default = {false})

@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.6.0] **WIP**
+* feat: new internal function `strToBytesArray` to convert a `string` to a n `Uint8Array` (`strings.js`)
+* refactor!: renamed internal function `utf8ArrayToStr` to `bytesArrayToStr` (`strings.js`)
+
 ## [0.5.0]
 * feat: allow to pass same header multiple time (`curl.js`)
 * feat: possibility to define how duplicate response headers should be handled (`curl.js`)
