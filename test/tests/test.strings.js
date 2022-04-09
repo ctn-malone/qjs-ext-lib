@@ -5,7 +5,7 @@ import { bytesArrayToStr, strToBytesArray, getLines } from '../../src/strings.js
 
 export default () => {
 
-    tester.test('strings.bytesArrayToStr (without length)', () => {
+    tester.test('strings.bytesArrayToStr (without opt)', () => {
         const filepath = 'data/file1.txt';
         // read file using a buffer
         const buffer = new Uint8Array(1024);
@@ -28,7 +28,7 @@ export default () => {
         }
     });
 
-    tester.test('strings.bytesArrayToStr (with length)', () => {
+    tester.test('strings.bytesArrayToStr (with opt)', () => {
         const filepaths = [
             'data/file1.txt',
             'data/file2.txt'
@@ -39,7 +39,7 @@ export default () => {
             const fd = os.open(filepath);
             const len = os.read(fd, buffer.buffer, 0, buffer.length);
             // call method with the expected length
-            const contentFromBuffer = bytesArrayToStr(buffer, len).trim();
+            const contentFromBuffer = bytesArrayToStr(buffer, {from:0, to:len}).trim();
             // read file using std
             const content = std.loadFile(filepath).trim();
             tester.assert(contentFromBuffer.length == content.length, `converted buffer (${filepath}) should have a length of ${content.length} (${contentFromBuffer.length})`);
@@ -54,9 +54,32 @@ export default () => {
                 }
             }
         }
+        const buffer = new Uint8Array(26);
+        let str = '';
+        for (let i = 0; i < 26; ++i) {
+            const code = 'a'.charCodeAt(0) + i;
+            const char = String.fromCharCode(code);
+            str += char;
+            buffer[i] = code;
+        }
+        let fromIndex = 5;
+        let toIndex = 10;
+        let opt = {from:fromIndex, to:toIndex};
+        let expectedResult = str.substring(fromIndex, toIndex);
+        let contentFromBuffer = bytesArrayToStr(buffer, opt).trim();
+        tester.assert(contentFromBuffer.length == expectedResult.length, `converted buffer with ${JSON.stringify(opt)} should have a length of ${expectedResult.length} (${contentFromBuffer.length})`);
+        tester.assertEq(contentFromBuffer,  expectedResult, `converted buffer with ${JSON.stringify(opt)} should match string (${expectedResult})`);
+        // try with a 'to' > buffer size
+        fromIndex = 5;
+        toIndex = 50;
+        opt = {from:fromIndex, to:toIndex};
+        expectedResult = str.substring(fromIndex, toIndex);
+        contentFromBuffer = bytesArrayToStr(buffer, opt).trim();
+        tester.assert(contentFromBuffer.length == expectedResult.length, `converted buffer with ${JSON.stringify(opt)} should have a length of ${expectedResult.length} (${contentFromBuffer.length})`);
+        tester.assertEq(contentFromBuffer,  expectedResult, `converted buffer with ${JSON.stringify(opt)} should match string (${expectedResult})`);
     });
 
-    tester.test('strings.strToBytesArray', () => {
+    tester.test('strings.strToBytesArray (without opt)', () => {
         const filepath = 'data/file2.txt';
         // read file using a buffer
         const initialBuffer = new Uint8Array(1024);
@@ -75,6 +98,35 @@ export default () => {
         }
         if (convertedBuffer.length == i) {
             tester.assert(true, `converted buffer should match initial buffer`);
+        }
+    });
+
+    tester.test('strings.strToBytesArray (with opt)', () => {
+        const buffer = new Uint8Array(52);
+        let str = '';
+        let i = 0;
+        for (i = 0; i < 26; ++i) {
+            const code = 'a'.charCodeAt(0) + i;
+            const char = String.fromCharCode(code);
+            str += char;
+        }
+        const opt = {bytesArray:buffer, from:26, to:52};
+        const convertedBuffer = strToBytesArray(str, opt);
+        tester.assert(convertedBuffer.length == 26, `converted buffer should have a length of 26 (${convertedBuffer.length})`);
+        for (i = 0; i < 26; ++i) {
+            const code = 'a'.charCodeAt(0) + i;
+            if (convertedBuffer[i] != code) {
+                tester.assert(false, `converted bytes at pos ${i} should have a value of ${code} (${convertedBuffer[i]})`);
+                break;
+            }
+            if (buffer[i + 26] != code) {
+                tester.assert(false, `bytes at pos ${i + 26} should have a value of ${code} (${buffer[i + 26]})`);
+                break;
+            }
+        }
+        if (26 == i) {
+            tester.assert(true, `converted buffer should match expected result`);
+            tester.assert(true, `initial buffer should match expected result`);
         }
     });
 

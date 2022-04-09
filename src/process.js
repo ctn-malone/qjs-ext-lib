@@ -569,7 +569,7 @@ class Process {
                     }
 
                     // process data
-                    const content = bytesArrayToStr(stdoutBuffer, len);
+                    const content = bytesArrayToStr(stdoutBuffer, {from:0, to:len});
                     gotStdoutContent = true;
 
                     // call callbacks
@@ -672,7 +672,7 @@ class Process {
                     }
                     
                     // process data
-                    const content = bytesArrayToStr(stderrBuffer, len);
+                    const content = bytesArrayToStr(stderrBuffer, {from:0, to:len});
                     gotStderrContent = true;
                     
                     // call callbacks

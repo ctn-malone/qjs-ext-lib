@@ -2,7 +2,7 @@
 
 ## [0.6.0] **WIP**
 * feat: new internal function `strToBytesArray` to convert a `string` to a n `Uint8Array` (`strings.js`)
-* refactor!: renamed internal function `utf8ArrayToStr` to `bytesArrayToStr` (`strings.js`)
+* refactor!: renamed internal function `utf8ArrayToStr` to `bytesArrayToStr` and changed prototype (`strings.js`)
 
 ## [0.5.0]
 * feat: allow to pass same header multiple time (`curl.js`)
