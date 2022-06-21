@@ -438,6 +438,9 @@ class Process {
                 endOfStderr = true;
             }
 
+            let stdoutPipe = undefined;
+            let stderrPipe = undefined;
+
             /**
              * Executed after :
              * - both stdout & stderr are closed if no stdout handle was passed to constructor
@@ -450,6 +453,16 @@ class Process {
                     timer = undefined;
                 }
                 const [ret, status] = os.waitpid(this._state.pid);
+
+                /*
+                    close pipes
+                 */
+                if (undefined !== stdoutPipe) {
+                    os.close(stdoutPipe[0]);
+                }
+                if (undefined !== stderrPipe) {
+                    os.close(stderrPipe[0]);
+                }
 
                 /*
                     below code is borrowed from quickjs
@@ -516,7 +529,6 @@ class Process {
             /*
                 process stdout (only if no stdout handle was passed to constructor)
              */
-            let stdoutPipe;
             if (undefined === this._qjsOpt.stdout) {
                 stdoutPipe = os.pipe();
                 if (null === stdoutPipe) {
@@ -616,7 +628,6 @@ class Process {
             /*
                 process stderr
              */
-            let stderrPipe;
             let stderrBuffer;
             if (!this._redirectStderr) {
                 stderrPipe = os.pipe();
