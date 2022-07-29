@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.6.1] **WIP**
+* feat: possibility to pass extra form data when uploading a file (`curl.js`)
+
 ## [0.6.0]
 * feat: new internal function `strToBytesArray` to convert a `string` to a n `Uint8Array` (`strings.js`)
 * refactor!: renamed internal function `utf8ArrayToStr` to `bytesArrayToStr` and changed prototype (`strings.js`)

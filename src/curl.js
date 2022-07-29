@@ -59,6 +59,7 @@ class Curl {
      * @param {string} opt.file.filepath path of the local file (mandatory)
      * @param {string} opt.file.name name of the form parameter (default = {"file"})
      * @param {string} opt.file.filename name of the file (defaults to the name of the local file)
+     * @param {object} opt.file.formData extra form data
      * @param {string} opt.body file containing the body to send
      *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
      *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}) was set
@@ -334,6 +335,7 @@ class Curl {
                 let name = 'file';
                 let filepath;
                 let filename;
+                let formData;
                 // single file path
                 if ('string' == typeof opt.file) {
                     filepath = opt.file;
@@ -347,6 +349,9 @@ class Curl {
                         if (undefined !== opt.file.name && 'string' == typeof opt.file.name) {
                             name = opt.file.name;
                         }
+                        if (undefined !== opt.file.formData && 'object' == typeof opt.file.formData) {
+                            formData = opt.file.formData;
+                        }
                     }
                 }
                 if (undefined !== filepath) {
@@ -356,6 +361,13 @@ class Curl {
                         arg += `;filename=${filename}`;
                     }
                     this._curlArgs.push(arg);
+                    // extra forma data
+                    if (undefined !== formData) {
+                        for (const [key, value] of Object.entries(formData)) {
+                            this._curlArgs.push('-F');
+                            this._curlArgs.push(`${key}=${value}`);
+                        }
+                    }
                 }
             }
             // raw content
@@ -1037,6 +1049,7 @@ class Curl {
  * @param {string} opt.file.filepath path of the local file (mandatory)
  * @param {string} opt.file.name name of the form parameter (default = {"file"})
  * @param {string} opt.file.filename name of the file (defaults to the name of the local file)
+ * @param {object} opt.file.formData extra form data
  * @param {string} opt.body body to send
  *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
  *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}) was set

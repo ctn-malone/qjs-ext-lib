@@ -241,6 +241,23 @@ export default () => {
         tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using ${JSON.stringify(opt)} as 'file' option`);
     });
 
+    tester.test('curl.Curl (send file with extra form data)', () => {
+        let opt = {
+            filepath:'/tmp/file.png',
+            formData: {
+                key1: 'value1',
+                key2: JSON.stringify({a:1, b:2})
+            }
+        };
+        let c = new Curl('http://127.0.0.1', {
+            method: 'post',
+            file: opt
+        });
+        let expectedCmdline = `curl -D /dev/stderr -q -X POST -L -F file=@/tmp/file.png -F key1=value1 -F key2={\"a\":1,\"b\":2} --url http://127.0.0.1`;
+        let cmdline = c.cmdline;
+        tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using ${JSON.stringify(opt)} as 'file' option`);
+    });
+
     tester.test('curl.Curl (send raw body)', () => {
         let c = new Curl('http://127.0.0.1', {
             method: 'post',
