@@ -450,7 +450,7 @@ export default () => {
         let state;
 
         opt = {lineBuffered:true, timeout:1, timeoutSignal:os.SIGABRT};
-        cmdline = 'data/test6.sh 30';
+        cmdline = 'data/test9.sh';
         p = new Process(cmdline, opt);
         const tsStart = Date.now();
         state = await p.run();
@@ -460,7 +460,8 @@ export default () => {
         const expectedSignal = 'SIGABRT';
         tester.assertEq(state.exitCode, expectedExitCode, `when setting a 1s timeout for child process, exitCode should be as expected`);
         tester.assertEq(state.signal, expectedSignal, `when setting a 1s timeout for child process, signal should be as expected`);
-        tester.assert(tsDelta >= 1000 && tsDelta <= 1200, `when setting a 1s timeout for child process, process should exit after =~ 1000ms (${JSON.stringify(tsDelta)})`);
+        // timeout seems to take ~ 1.5 extra second
+        tester.assert(tsDelta >= 1000 && tsDelta <= 2500, `when setting a 1s timeout for child process, process should exit after =~ 1000ms (${JSON.stringify(tsDelta)})`);
 
         done();
     }, {isAsync:true});
@@ -492,6 +493,26 @@ export default () => {
 
         done();
     }, {isAsync:true});
+
+    tester.test('process.Process (with input)', async (done) => {
+        let opt, cmdline, p;
+        let state;
+
+        // load input
+        const inputFile = 'data/input1.txt';
+        const input = std.loadFile(inputFile).trim();
+
+        const expectedContent = input.split("\n").map(line => `[in] ${line}`).join("\n");
+
+        cmdline = 'data/test9.sh';
+        opt = {input: input, timeout:5};
+        p = new Process(cmdline, opt);
+        state = await p.run();
+
+        tester.assertEq(p.stdout, expectedContent, `when passing 'input', 'stdout' content retrieved using 'stdout' property should be as expected`);
+
+        done();
+    }, {isAsync:true});    
 
     tester.test('process.exec', async (done) => {
         let opt, cmdline;

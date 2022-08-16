@@ -7,7 +7,7 @@
 import * as os from 'os';
 import * as std from 'std';
 
-import { bytesArrayToStr, getLines } from './strings.js';
+import { bytesArrayToStr, getLines, strToBytesArray } from './strings.js';
 import { wait } from './timers.js';
 
 /**
@@ -86,6 +86,7 @@ class Process {
      * @param {integer} opt.timeoutSignal signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
      * @param {integer} opt.stdin if defined, sets the stdin handle used by child process (it will be rewind)
      *                            NB: don't share the same handle between multiple instances
+     * @param {string} opt.input content which will be used as input (will be ignored if {stdin} was set)
      * @param {integer} opt.stdout if defined, sets the stdout handle used by child process (it will be rewind)
      *                            NB: - don't share the same handle between multiple instances
      *                                - stdout event handler will be ignored
@@ -186,8 +187,12 @@ class Process {
             gid:opt.gid,
             env:newEnv
         };
+        this._input = undefined;
         if (undefined !== opt.stdin) {
             this._qjsOpt.stdin = opt.stdin;
+        }
+        else if (undefined !== opt.input && 'string' == typeof opt.input) {
+            this._input = opt.input;
         }
         if (undefined !== opt.stdout) {
             this._qjsOpt.stdout = opt.stdout;
@@ -440,6 +445,7 @@ class Process {
 
             let stdoutPipe = undefined;
             let stderrPipe = undefined;
+            let stdinPipe = undefined;
 
             /**
              * Executed after :
@@ -462,6 +468,9 @@ class Process {
                 }
                 if (undefined !== stderrPipe) {
                     os.close(stderrPipe[0]);
+                }
+                if (undefined !== stdinPipe) {
+                    os.close(stdinPipe[1]);
                 }
 
                 /*
@@ -728,9 +737,32 @@ class Process {
             }
 
             /*
+                create input pipe
+             */
+            if (undefined !== this._input) {
+                stdinPipe = os.pipe();
+                if (null === stdinPipe) {
+                    // close stdout pipe (only if no stdout handle was passed to constructor)
+                    if (undefined !== this._qjsOpt.stdout) {
+                        os.setReadHandler(stdoutPipe[0], null);
+                        os.close(stdoutPipe[0]);
+                        os.close(stdoutPipe[1]);
+                    }
+                    if (undefined !== stderrPipe) {
+                        os.close(stderrPipe[0]);
+                        os.close(stderrPipe[1]);
+                    }
+                    throw new InternalError(`Could not create stdin pipe`);
+                }
+            }
+
+            /*
                 create process
              */
             const qjsOpt = Object.assign({}, this._qjsOpt);
+            if (undefined !== stdinPipe) {
+                qjsOpt.stdin = stdinPipe[0];
+            }
             if (undefined !== this._qjsOpt.stdout) {
                 // rewind stdout file descriptor
                 os.seek(this._qjsOpt.stdout, 0, std.SEEK_SET);
@@ -757,6 +789,15 @@ class Process {
             }
             if (undefined !== stderrPipe) {
                 os.close(stderrPipe[1]);
+            }
+
+            /*
+                send input
+             */
+            if (undefined !== stdinPipe) {
+                const bytesArray = strToBytesArray(this._input);
+                os.write(stdinPipe[1], bytesArray.buffer, 0, bytesArray.length);
+                os.close(stdinPipe[1]);
             }
 
             /*
@@ -881,6 +922,7 @@ class Process {
  * @param {integer} opt.timeoutSignal signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
  * @param {integer} opt.stdin if defined, sets the stdin handle used by child process (it will be rewind)
  *                            NB: don't share the same handle between multiple instances
+ * @param {string} opt.input content which will be used as input (will be ignored if {stdin} was set)
  * @param {boolean} opt.ignoreError if {true} promise will resolve to the content of stdout even if process exited with a non zero code
  * @param {integer} opt.bufferSize size (in bytes) of the buffer used to read from process stdout & stderr streams (default = {512})
  *

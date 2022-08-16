@@ -44,19 +44,28 @@ Constructor
   * opt.timeout (*integer*) :  maximum number of seconds before killing child (if `undefined`, no timeout will be configured)
   * opt.timeoutSignal (*integer*) : signal to use when killing the child after timeout (default = `SIGTERM`, ignored if `opt.timeout` is not defined)
   * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by child process (don't share the same *handle* between multiple instances as it will be automatically rewind !)
+  * opt.input (*string*) : content which will be used as input (will be ignored if *stdin* was set)
   * opt.stdout (*integer*) : if defined, sets the *stdout* handle used by child process (don't share the same *handle* between multiple instances as it will be automatically rewind !)
     * *stdout* event handler will be ignored
     * *stderr* redirection will be ignored
  * opt.bufferSize (*integer*) : size (in bytes) of the buffer used to read from child process streams (default = `512`)
  * opt.props (*object*) : custom properties
 
-<u>Example</u>
+<u>Examples</u>
 
 ```js
 const p = new Process('sleep 10s', {
     timeout: 5
 });
 await p.run();
+```
+
+```js
+const p = new Process('md5sum', {
+    input: 'Hello world'
+});
+await p.run();
+console.log(`stdout: ${p.stdout}`);
 ```
 
 ### Process.getSignalName(...)
@@ -389,6 +398,7 @@ Executes a command and return the content of *stdout*
   * opt.timeout (*integer*) :  maximum number of seconds before killing child (if `undefined`, no timeout will be configured)
   * opt.timeoutSignal (*integer*) : signal to use when killing the child after timeout (default = `SIGTERM`, ignored if `opt.timeout` is not defined)
   * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by child process (don't share the same *handle* between multiple instances !)
+  * opt.input (*string*) : content which will be used as input (will be ignored if *stdin* was set)
   * opt.ignoreError (*boolean*) : if `true` promise will resolve to the content of stdout even if process exited with a non zero code
   * opt.bufferSize (*integer*) : size (in bytes) of the buffer used to read from child process streams (default = `512`)
 
@@ -400,7 +410,7 @@ Following extra properties will be added to the exception
 
 * `state` *object* (`ProcessState`) as returned by `Process.state` property
 
-<u>Example</u>
+<u>Examples</u>
 
 ```js
 const stdout = await exec('uptime -p');
@@ -412,6 +422,13 @@ catch (e) {
     console.log(`process failed: ${e.message}`);
     console.log(JSON.stringify(e.state));
 }
+```
+
+```js
+const stdout = await exec('md5sum', {
+    input: 'Hello world'
+});
+console.log(`stdout: ${stdout}`);
 ```
 
 ## waitpid(...)
