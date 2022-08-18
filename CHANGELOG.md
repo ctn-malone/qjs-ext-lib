@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.6.2]
+* fix: fix parsing of incomplete ssh debug lines (`ssh.js`)
+
 ## [0.6.1]
 * feat: possibility to pass extra form data when uploading a file (`curl.js`)
 * feat: possibility to pass input as string when executing a command (`process.js`)

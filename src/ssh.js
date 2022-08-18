@@ -348,7 +348,7 @@ const getDynamicRemotePorts = (content) => {
  * @param {boolean} opt.hasRemotePortForwarding whether or not we have remote port forwarding
  * @param {boolean} opt.hasLocalPortForwarding whether or not we have remote port forwarding
  *
- * @return {object} {"output":string|undefined}
+ * @return {object} {"output":string|undefined,"remotePorts":object[]|undefined,"localPortForwarding":object|undefined,"incompleteDebugLine":string|undefined}
  */
  const parseContent = (content, steps, opt) => {
     /*  
@@ -370,6 +370,9 @@ const getDynamicRemotePorts = (content) => {
         - command was sent
 
      */
+    if (undefined !== opt.incompleteDebugLine) {
+        content = opt.incompleteDebugLine + content;
+    }
     if (-1 == content.indexOf('debug1: ')) {
         // we only have output
         if ((steps.didSetupSession && !opt.hasCommand) || steps.didSendCommand) {
@@ -458,7 +461,6 @@ const getDynamicRemotePorts = (content) => {
         strIndex = content.indexOf('debug1: Sending command');
         // command was sent
         if (-1 != strIndex) {
-    
             steps.didResolveHostname = true;
             steps.didConnect = true;
             steps.didAcceptHostKey = true;
@@ -511,6 +513,13 @@ const getDynamicRemotePorts = (content) => {
     let start = 0;
     while (-1 != (strIndex = content.indexOf('debug1: ', start))) {
         eolIndex = content.indexOf("\n", strIndex);
+        /*
+            debug line is not finished and will be re-processed later
+         */
+        if (-1 == eolIndex) {
+            result.incompleteDebugLine = content.substring(start);
+            break;
+        }
         // debug lines are expected to be complete (ie: ending with "\n")
         str = content.substring(strIndex, eolIndex).trimEnd();
         
@@ -1038,6 +1047,7 @@ class Ssh {
             */
             let stderrIncompleteLine = '';
             let tmpStderr = '';
+            let incompleteDebugLine = undefined;
             this._process.setEventListener('stderr', (obj) => {
                 if (steps.didExit) {
                     if (undefined === signal) {
@@ -1054,8 +1064,10 @@ class Ssh {
                 const parseResult = parseContent(obj.data, steps, {
                     hasLocalPortForwarding:this._portForwarding.local.enabled,
                     hasRemotePortForwarding:this._portForwarding.remote.enabled,
-                    hasCommand:('' != this._cmd)
+                    hasCommand:('' != this._cmd),
+                    incompleteDebugLine: incompleteDebugLine
                 });
+                incompleteDebugLine = parseResult.incompleteDebugLine;
                 // update current local port forwarding
                 if (undefined !== parseResult.localPortForwarding) {
                     currentLocalPortForwarding = parseResult.localPortForwarding;
