@@ -88,9 +88,9 @@ class Process {
      *                            NB: don't share the same handle between multiple instances
      * @param {string} opt.input content which will be used as input (will be ignored if {stdin} was set)
      * @param {integer} opt.stdout if defined, sets the stdout handle used by child process (it will be rewind)
-     *                            NB: - don't share the same handle between multiple instances
-     *                                - stdout event handler will be ignored
-     *                                - stderr redirection will be ignored
+     *                             NB: - don't share the same handle between multiple instances
+     *                                 - stdout event handler will be ignored
+     *                                 - stderr redirection will be ignored
      * @param {integer} opt.bufferSize size (in bytes) of the buffer used to read from process stdout & stderr streams (default = {512})
      * @param {object} opt.props custom properties
      */

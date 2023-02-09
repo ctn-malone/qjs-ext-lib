@@ -30,8 +30,11 @@ class Curl {
      * @param {boolean} opt.followRedirects whether or not HTTP redirects should be followed (default = {true})
      * @param {integer} opt.maxRedirects maximum number of HTTP redirects to follow (by default, use curl default)
      *                                   Will be ignored if {opt.followRedirects} is {false}
+     * @param {integer} opt.stdout if defined, sets the stdout handle used by child process (it will be rewind)
+     *                             NB: - don't share the same handle between multiple instances
      * @param {string|object} opt.outputFile if set, output will be redirected to this file
      *                                       When using a {string}, {opt.outputFile} should be the path of the output file
+     *                                       Will be ignored if {opt.stdout} was set
      * @param {string} opt.outputFile.filepath path of the output file (mandatory)
      * @param {boolean} opt.outputFile.conditionalOutput if {true}, output file will only be written if {opt.outputFile.onCheckCondition}
      *                                                   returns {true} (default = {false})
@@ -192,9 +195,13 @@ class Curl {
             return !curlInstance.failed;
         }
 
-        // output file
+        // output
         this._outputFile = undefined;
-        if (undefined !== opt.outputFile) {
+        this._stdout = undefined;
+        if (undefined !== opt.stdout) {
+            this._stdout = opt.stdout;
+        }
+        else  if (undefined !== opt.outputFile) {
             // we only have filepath
             if ('string' == typeof opt.outputFile) {
                 const value = opt.outputFile.trim();
@@ -215,16 +222,19 @@ class Curl {
                             conditionalOutput:(true === opt.outputFile.conditionalOutput),
                             onCheckCondition:onCheckCondition
                         };
-                        if (undefined !== opt.outputFile.onCheckCondition && 'function' == typeof opt.outputFile.onCheckCondition) {
-                            this._outputFile.onCheckCondition = opt.outputFile.onCheckCondition;
+                        // custom conditional output
+                        if (this._outputFile.conditionalOutput) {
+                            if (undefined !== opt.outputFile.onCheckCondition && 'function' == typeof opt.outputFile.onCheckCondition) {
+                                this._outputFile.onCheckCondition = opt.outputFile.onCheckCondition;
+                            }
                         }
                     }
                 }
             }
-        }
-        if (undefined !== this._outputFile && !this._outputFile.conditionalOutput) {
-            this._curlArgs.push('-o');
-            this._curlArgs.push(this._outputFile.filepath);
+            if (!this._outputFile.conditionalOutput) {
+                this._curlArgs.push('-o');
+                this._curlArgs.push(this._outputFile.filepath);
+            }
         }
 
         // connect timeout
@@ -492,9 +502,12 @@ class Curl {
         if (undefined !== this._stdin) {
             processOpt.stdin = this._stdin;
         }
+        let conditionalOutputTmpFile = undefined;
+        if (undefined !== this._stdout) {
+            processOpt.stdout = this._stdout;
+        }
         // in case of conditional output, pass a temporary file as stdout to process
-        let conditionalOutputTmpFile;
-        if (undefined !== this._outputFile && this._outputFile.conditionalOutput) {
+        else if (undefined !== this._outputFile && this._outputFile.conditionalOutput) {
             conditionalOutputTmpFile = std.tmpfile();
             processOpt.stdout = conditionalOutputTmpFile.fileno();
         }
@@ -523,6 +536,9 @@ class Curl {
             }
             this._promise = undefined;
             this._process = undefined;
+            if (undefined !== conditionalOutputTmpFile) {
+                conditionalOutputTmpFile.close();
+            }
             return false;
         }
         /*
@@ -534,6 +550,9 @@ class Curl {
         // ignore all content until first "HTTP/" (ie: discard beginning of curl progress info)
         const firstHttpPos = stderr.indexOf('HTTP/');
         if (-1 == firstHttpPos) {
+            if (undefined !== conditionalOutputTmpFile) {
+                conditionalOutputTmpFile.close();
+            }
             throw new Error(`Missing status line`);
         }
         const headers = stderr.substring(firstHttpPos).split("\r\n");
@@ -553,10 +572,16 @@ class Curl {
             }
         }
         if (undefined === statusLine) {
+            if (undefined !== conditionalOutputTmpFile) {
+                conditionalOutputTmpFile.close();
+            }
             throw new Error(`Missing status line`);
         }
         const status = this._getStatus(statusLine);
         if (undefined === status) {
+            if (undefined !== conditionalOutputTmpFile) {
+                conditionalOutputTmpFile.close();
+            }
             throw new Error(`Invalid status line (${statusLine})`);
         }
         this._status = status;
@@ -620,34 +645,37 @@ class Curl {
 
         // body
         this._body = this._process.stdout.trim();
-        // only try to parse body if conditional output was not requested
-        if (undefined === conditionalOutputTmpFile) {
-            if ('application/json' == this._contentType && this._parseJson) {
-                try {
-                    const body = JSON.parse(this._body);
-                    this._body = body;
-                }
-                catch (e) {
-                    // invalid JSON, do nothing, keep raw body
+        if (undefined === this._stdout) {
+            // if no output file was used, try to parse body
+            if (undefined === this._outputFile) {
+                if ('application/json' == this._contentType && this._parseJson) {
+                    try {
+                        const body = JSON.parse(this._body);
+                        this._body = body;
+                    }
+                    catch (e) {
+                        // invalid JSON, do nothing, keep raw body
+                    }
                 }
             }
-        }
-
-        // in case of conditional output, check condition
-        if (undefined !== conditionalOutputTmpFile) {
-            const canWrite = this._outputFile.onCheckCondition(this);
-            if (canWrite) {
-                let errObj;
-                const destFile = std.open(this._outputFile.filepath, 'wb', errObj);
-                if (null === destFile) {
-                    throw new Error(`Could not open dest file (${errObj.errno})`);
+            // check condition
+            else if (undefined !== conditionalOutputTmpFile) {
+                const canWrite = this._outputFile.onCheckCondition(this);
+                if (canWrite) {
+                    let errObj;
+                    const destFile = std.open(this._outputFile.filepath, 'wb', errObj);
+                    if (null === destFile) {
+                        conditionalOutputTmpFile.close();
+                        throw new Error(`Could not open dest file (${errObj.errno})`);
+                    }
+                    const buffer = new Uint8Array(CONDITIONAL_OUTPUT_BUFFER_SIZE);
+                    let size;
+                    while (0 != (size = conditionalOutputTmpFile.read(buffer.buffer, 0, CONDITIONAL_OUTPUT_BUFFER_SIZE))) {
+                        destFile.write(buffer.buffer, 0, size);
+                    }
+                    destFile.close();
                 }
-                const buffer = new Uint8Array(CONDITIONAL_OUTPUT_BUFFER_SIZE);
-                let size;
-                while (0 != (size = conditionalOutputTmpFile.read(buffer.buffer, 0, CONDITIONAL_OUTPUT_BUFFER_SIZE))) {
-                    destFile.write(buffer.buffer, 0, size);
-                }
-                destFile.close();
+                conditionalOutputTmpFile.close();
             }
         }
 
@@ -1019,8 +1047,11 @@ class Curl {
  * @param {boolean} opt.followRedirects whether or not HTTP redirects should be followed (default = {true})
  * @param {integer} opt.maxRedirects maximum number of HTTP redirects to follow (by default, use curl default)
  *                                   Will be ignored if {opt.followRedirects} is {false}
+ * @param {integer} opt.stdout if defined, sets the stdout handle used by child process (it will be rewind)
+ *                             NB: - don't share the same handle between multiple instances
  * @param {string|object} opt.outputFile if set, output will be redirected to this file
  *                                       When using a {string}, {opt.outputFile} should be the path of the output file
+ *                                       Will be ignored if {opt.stdout} was set
  * @param {string} opt.outputFile.filepath path of the output file (mandatory)
  * @param {boolean} opt.outputFile.conditionalOutput if {true}, output file will only be written if {opt.outputFile.onCheckCondition}
  *                                                   returns {true} (default = {false})

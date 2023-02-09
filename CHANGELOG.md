@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.6.3]
+* feat: add support for setting *stdout* handle for curl process (`curl.js`)
+
 ## [0.6.2]
 * fix: fix parsing of incomplete ssh debug lines (`ssh.js`)
 
