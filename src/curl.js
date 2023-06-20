@@ -62,6 +62,7 @@ class Curl {
      * @param {string} opt.file.filepath path of the local file (mandatory)
      * @param {string} opt.file.name name of the form parameter (default = {"file"})
      * @param {string} opt.file.filename name of the file (defaults to the name of the local file)
+     * @param {string} opt.file.contentType file content type (will be set by curl automatically if not provided)
      * @param {object} opt.file.formData extra form data
      * @param {string} opt.body file containing the body to send
      *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
@@ -346,6 +347,7 @@ class Curl {
                 let filepath;
                 let filename;
                 let formData;
+                let contentType;
                 // single file path
                 if ('string' == typeof opt.file) {
                     filepath = opt.file;
@@ -362,6 +364,9 @@ class Curl {
                         if (undefined !== opt.file.formData && 'object' == typeof opt.file.formData) {
                             formData = opt.file.formData;
                         }
+                        if (undefined !== opt.file.contentType && 'string' == typeof opt.file.contentType) {
+                            contentType = opt.file.contentType;
+                        }
                     }
                 }
                 if (undefined !== filepath) {
@@ -369,6 +374,9 @@ class Curl {
                     let arg = `${name}=@${filepath}`;
                     if (undefined !== filename) {
                         arg += `;filename=${filename}`;
+                    }
+                    if (undefined !== contentType) {
+                        arg += `;type=${contentType}`;
                     }
                     this._curlArgs.push(arg);
                     // extra forma data
@@ -1080,6 +1088,7 @@ class Curl {
  * @param {string} opt.file.filepath path of the local file (mandatory)
  * @param {string} opt.file.name name of the form parameter (default = {"file"})
  * @param {string} opt.file.filename name of the file (defaults to the name of the local file)
+ * @param {string} opt.file.contentType file content type (will be set by curl automatically if not provided)
  * @param {object} opt.file.formData extra form data
  * @param {string} opt.body body to send
  *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")

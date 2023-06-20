@@ -56,6 +56,7 @@ Constructor
       * **[opt.file.filepath]** (*string*) : path of the local file (mandatory)
       * opt.file.name (*string*) : name of the form parameter (default = `file`)
       * opt.file.filename (*string*) : name of the file (defaults to the name of the local file)
+      * opt.file.contentType (*string*) : file content type (will be set by curl automatically if not provided)
       * opt.file.formData (*object*) : extra form data to send
   * opt.body (*string*) : raw body to send
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
@@ -540,6 +541,7 @@ Perfoms a *curl* request and return the response's body
       * **[opt.file.filepath]** (*string*) : path of the local file (mandatory)
       * opt.file.name (*string*) : name of the form parameter (default = `file`)
       * opt.file.filename (*string*) : name of the file (defaults to the name of the local file)
+      * opt.file.contentType (*string*) : file content type (will be set by curl automatically if not provided)
       * opt.file.formData (*object*) : extra form data to send
   * opt.body (*string*) : raw body to send
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`

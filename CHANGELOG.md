@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.6.4]
+* feat: possibility to define content type when uploading a file (`curl.js`)
+
 ## [0.6.3]
 * feat: add support for setting *stdout* handle for curl process (`curl.js`)
 
