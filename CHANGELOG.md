@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.7.0]
+* feat: wrapper to interact with [pass](https://www.passwordstore.org) (`password-store.js`)
+* feat: function to retrieve home directory (`path.js`)
+
 ## [0.6.4]
 * feat: possibility to define content type when uploading a file (`curl.js`)
 

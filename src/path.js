@@ -1,5 +1,6 @@
 "use strict;"
 
+import * as std from 'std';
 import * as os from 'os';
 
 const getScriptDir = () => {
@@ -29,7 +30,12 @@ const getScriptName = (withoutExt) => {
     return arr.slice(0, -1).join('.');
 }
 
+const getHomeDir = () => {
+    return std.getenv('HOME');
+}
+
 export {
     getScriptDir,
-    getScriptName
+    getScriptName,
+    getHomeDir,
 }

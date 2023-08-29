@@ -325,7 +325,7 @@ console.log(c.url);
 
 Retrieve the response body
 
-**return** *object|string*
+**return** *object|string|undefined*
 
 In case content-type of response is `application/json` and `opt.parseJson` was set to `true`, library will try to parse body and return an *object*.
 In case parsing fails, raw body will be returned as *string*

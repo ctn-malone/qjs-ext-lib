@@ -7,6 +7,7 @@ A set of pure JS extensions for [QuickJS](https://github.com/ctn-malone/quickjs-
 * *ssh* wrapper (for quick-and-dirty remote scripting without [ansible](https://github.com/ansible/ansible)) (see [doc](doc/ssh.md))
 * minimal unit testing library (see [doc](doc/tester.md))
 * semver versions comparison (see [doc](doc/version.md))
+* interact with [pass](https://www.passwordstore.org/) (see [doc](doc/password-store.md))
 
 # Rational
 
