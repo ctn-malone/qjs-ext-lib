@@ -37,7 +37,7 @@ Retrieve a password
 ```js
 const payload = await getPassword('email/gmail1', {json: true});
 if (!payload) {
-    console.error('Password does not exist');
+    console.log('Password does not exist');
     std.exit(1);
 }
 const  { username, password } = payload;
