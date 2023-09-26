@@ -61,10 +61,14 @@ Constructor
   * opt.body (*string*) : raw body to send
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`) was set
-  * opt.bodyFile (*string*) : file containing the raw body to send
+  * opt.bodyFile (*string|object*) : file containing the raw body to send
     * use `-` for *stdin* 
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`, `opt.body`) was set
+    * when using a *string*, `opt.bodyFile` should be the path of the file containing the body
+    * when using an *object*
+      * **[opt.bodyFile.filepath]** (*string*) : path of the local file (mandatory)
+      * opt.bodyFile.binary (*boolean*) : if `true`, disable extra processing on the file (ie: use `--data-binary`) (default = `false`)
   * opt.params (*object*) : parameters to add as query string
   * opt.normalizeHeaders (*boolean*) : if `true`, header names in response will be converted to lower case (default = `true`)
   * opt.parseJson (*boolean*) : if `true`, automatically parse JSON in responses (default = `true`)
@@ -546,10 +550,14 @@ Perfoms a *curl* request and return the response's body
   * opt.body (*string*) : raw body to send
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`) was set
-  * opt.bodyFile (*string*) : file containing the raw body to send
+  * opt.bodyFile (*string|object*) : file containing the raw body to send
     * use `-` for *stdin* 
     * will be ignored unless `opt.method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
     * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`, `opt.body`) was set
+    * when using a *string*, `opt.bodyFile` should be the path of the file containing the body
+    * when using an *object*
+      * **[opt.bodyFile.filepath]** (*string*) : path of the local file (mandatory)
+      * opt.bodyFile.binary (*boolean*) : if `true`, disable extra processing on the file (ie: use `--data-binary`) (default = `false`)
   * opt.params (*object*) : parameters to add as query string
   * opt.parseJson (*boolean*) : if `true`, automatically parse JSON in responses (default = `true`)
   * opt.failOnHttpError (*boolean*) : if `true`, `run` method will return `false` in case status code is not in `[200, 299]` (default = `false`)

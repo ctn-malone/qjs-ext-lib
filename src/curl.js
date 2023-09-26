@@ -64,13 +64,16 @@ class Curl {
      * @param {string} opt.file.filename name of the file (defaults to the name of the local file)
      * @param {string} opt.file.contentType file content type (will be set by curl automatically if not provided)
      * @param {object} opt.file.formData extra form data
-     * @param {string} opt.body file containing the body to send
+     * @param {string} opt.body body to send
      *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
      *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}) was set
-     * @param {string} opt.bodyFile body to send 
-     *                              Use '-' for stdin
-     *                              Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
-     *                              Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
+     * @param {string|object} opt.bodyFile file containing the body to send
+     *                                     Use '-' for stdin
+     *                                     Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
+     *                                     Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
+     *                                     When using a {string}, {opt.bodyFile} should be the path of the file containing the body
+     * @param {string} opt.bodyFile.filepath path of the local file (mandatory)
+     * @param {boolean} opt.bodyFile.binary if {true}, disable extra processing on the file (--data-binary) (default = {false})
      * @param {object} opt.params parameters to add as query string
      * @param {boolean} opt.normalizeHeaders if {true}, header names in response will be converted to lower case (default = {true})
      * @param {boolean} opt.returnHeadersAs indicates how response headers should be returned
@@ -396,8 +399,29 @@ class Curl {
             }
             // raw content from file
             else if (undefined !== opt.bodyFile) {
-                this._curlArgs.push('-d');
-                this._curlArgs.push(`@${opt.bodyFile}`);
+                let filepath;
+                let binary = false;
+                // single file path
+                if ('string' == typeof opt.bodyFile) {
+                    filepath = opt.bodyFile;
+                }
+                else if ('object' == typeof opt.bodyFile) {
+                    if (undefined !== opt.bodyFile.filepath && 'string' == typeof opt.bodyFile.filepath) {
+                        filepath = opt.bodyFile.filepath;
+                    }
+                    if (true === opt.bodyFile.binary) {
+                        binary = true;
+                    }
+                }
+                if (undefined !== filepath) {
+                    if (!binary) {
+                        this._curlArgs.push('-d');
+                    }
+                    else {
+                        this._curlArgs.push('--data-binary');
+                    }
+                }
+                this._curlArgs.push(`@${filepath}`);
             }
         }
         // url & query string
@@ -1093,10 +1117,13 @@ class Curl {
  * @param {string} opt.body body to send
  *                          Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
  *                          Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}) was set
- * @param {string} opt.bodyFile body to send 
- *                              Use '-' for stdin
- *                              Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
- *                              Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
+ * @param {string|object} opt.bodyFile file containing the body to send
+ *                                     Use '-' for stdin
+ *                                     Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
+ *                                     Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
+ *                                     When using a {string}, {opt.bodyFile} should be the path of the file containing the body
+ * @param {string} opt.bodyFile.filepath path of the local file (mandatory)
+ * @param {boolean} opt.bodyFile.binary if {true}, disable extra processing on the file (--data-binary) (default = {false})
  * @param {object} opt.params parameters to add as query string
  * @param {boolean} opt.parseJson if {true}, automatically parse JSON in responses (default = {true})
  * @param {boolean} opt.failOnHttpError if {true}, {run} method will return {false} in case status code is not in [200, 299] (default = {false})

@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.7.1]
+* feat: possibility disable extra processing (ie: use `--data-binary`) when passing body from file (`curl.js`)
+
 ## [0.7.0]
 * feat: wrapper to interact with [pass](https://www.passwordstore.org) (`password-store.js`)
 * feat: function to retrieve home directory (`path.js`)

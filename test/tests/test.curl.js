@@ -276,14 +276,32 @@ export default () => {
         tester.assertEq(cmdline, expectedCmdline, `cmdline should not contain any data when using a non-string as raw body`);
     });
 
-    tester.test('curl.Curl (send raw body from file)', () => {
+    tester.test(`curl.Curl (send raw body from file)`, () => {
         let c = new Curl('http://127.0.0.1', {
             method: 'post',
             bodyFile:'body.txt'
         });
         let expectedCmdline = `curl -D /dev/stderr -q -X POST -L -d @body.txt --url http://127.0.0.1`;
         let cmdline = c.cmdline;
-        tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using a file to define raw body`);
+        tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using a string as 'bodyFile' option`);
+
+        let opt = {filepath:'body.txt'};
+        c = new Curl('http://127.0.0.1', {
+            method: 'post',
+            bodyFile:opt
+        });
+        expectedCmdline = `curl -D /dev/stderr -q -X POST -L -d @body.txt --url http://127.0.0.1`;
+        cmdline = c.cmdline;
+        tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using ${JSON.stringify(opt)} as 'bodyFile' option`);
+
+        opt = {filepath:'body.txt', binary: true};
+        c = new Curl('http://127.0.0.1', {
+            method: 'post',
+            bodyFile:opt
+        });
+        expectedCmdline = `curl -D /dev/stderr -q -X POST -L --data-binary @body.txt --url http://127.0.0.1`;
+        cmdline = c.cmdline;
+        tester.assertEq(cmdline, expectedCmdline, `cmdline should match when using ${JSON.stringify(opt)} as 'bodyFile' option`);
     });
 
     tester.test('curl.Curl (send query parameters)', () => {
