@@ -509,7 +509,7 @@ const tester = {
         }
 
         const _isAsync = (true === opt.isAsync);
-        
+
         // whether or not test should be skipped
         let skipFn = () => { return false };
         if (undefined !== opt.skip) {
@@ -644,7 +644,7 @@ const tester = {
                     // nothing to do
                 }
                 reportHandler('begin', currentTest, {skip:skip});
-                await pendingTests[i].fn(skip);
+                await tests[i].fn(skip);
                 reportHandler('end', currentTest);
 
                 // update counters
