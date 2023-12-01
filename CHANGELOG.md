@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.7.2]
+* fix: correctly handle a `200 OK` which is interleaved with curl progress (`curl.js`)
+
 ## [0.7.1]
 * feat: possibility disable extra processing (ie: use `--data-binary`) when passing body from file (`curl.js`)
 

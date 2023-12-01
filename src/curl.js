@@ -579,15 +579,15 @@ class Curl {
 
         const stderr = this._process.stderr.trim();
 
-        // ignore all content until first "HTTP/" (ie: discard beginning of curl progress info)
-        const firstHttpPos = stderr.indexOf('HTTP/');
-        if (-1 == firstHttpPos) {
+        // ignore all content until last "HTTP/" (ie: discard beginning of curl progress info and any informational status lines)
+        const lastHttpPos = stderr.lastIndexOf('HTTP/');
+        if (-1 == lastHttpPos) {
             if (undefined !== conditionalOutputTmpFile) {
                 conditionalOutputTmpFile.close();
             }
             throw new Error(`Missing status line`);
         }
-        const headers = stderr.substring(firstHttpPos).split("\r\n");
+        const headers = stderr.substring(lastHttpPos).split("\r\n");
         
         // remove last entry (end of curl progress info)
         headers.pop();
@@ -852,7 +852,8 @@ class Curl {
         if (undefined === this._status) {
             return true;
         }
-        return (this._status.code < 200 || this._status.code > 299);
+        const failed = (this._status.code < 200 || this._status.code > 299);
+        return failed;
     }
 
     /**
