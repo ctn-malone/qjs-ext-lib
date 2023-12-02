@@ -13,6 +13,38 @@ A set of pure JS extensions for [QuickJS](https://github.com/ctn-malone/quickjs-
 
 I'm focused on building static binaries targeting linux command line. This library is an intent at providing just enough to make creating static adhoc scripts easier on linux
 
+# Nix
+
+In order to get a shell with the static interpreter (`qjs.sh`) and compiler (`qjsc.sh`), as well as this library, run following command
+
+```
+nix develop github:ctn-malone/qjs-ext-lib
+```
+
+Inside the Nix shell, any `.js` file from the library can be imported from an `ext` directory
+
+```js
+import { curlRequest } from 'ext/curl.js';
+
+/*
+    Perform a POST request to https://jsonplaceholder.typicode.com/posts and print response payload
+ */
+
+const main = async () => {
+    const body = await curlRequest('https://jsonplaceholder.typicode.com/posts', {
+        method:'post',
+        json: {
+            title: 'foo',
+            body: 'bar',
+            userId: 1
+        }
+    });
+    console.log(JSON.stringify(body, null, 4));
+}
+
+main();
+```
+
 # Examples
 
 ## Execute external processes

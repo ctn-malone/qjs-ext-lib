@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.7.3] WIP
+* fix: match error for test function with tag (`tester.js`)
+  - Thanks https://github.com/ryougiii
+
 ## [0.7.2]
 * fix: correctly handle a `200 OK` which is interleaved with curl progress (`curl.js`)
 
