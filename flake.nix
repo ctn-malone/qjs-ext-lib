@@ -6,7 +6,7 @@
       url = "github:nixos/nixpkgs?rev=057f9aecfb71c4437d2b27d3323df7f93c010b7e";
     };
 
-    quickjs-static.url = "github:ctn-malone/quickjs-cross-compiler?rev=11fcdd0876617d14a525160352fb90a14b834b84";
+    quickjs-static.url = "github:ctn-malone/quickjs-cross-compiler?rev=d2886aec4a26d15e17ffb2f8723a75ddccee0f65";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
