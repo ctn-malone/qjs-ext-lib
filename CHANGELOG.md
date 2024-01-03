@@ -1,8 +1,9 @@
 # Change Log
 
-## [0.7.3] WIP
+## [0.8.0]
 * fix: match error for test function with tag (`tester.js`)
   - Thanks https://github.com/ryougiii
+* feat: possibility to execute a process synchronously (`process.js`)
 
 ## [0.7.2]
 * fix: correctly handle a `200 OK` which is interleaved with curl progress (`curl.js`)

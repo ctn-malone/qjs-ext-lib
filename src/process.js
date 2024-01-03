@@ -34,6 +34,14 @@ const parseArgs = (command) => {
 }
 
 /**
+ * @typedef {Object} ProcessState
+ * @property {number} pid
+ * @property {number} exitCode - exit code of the process
+ * @property {boolean} [didTimeout] - whether or not process was killed after timeout
+ * @property {string} [signalName] - signal name (only defined if process was terminated using a signal)
+ */
+
+/**
  * Convert signal value to name
  *
  * @param {string} signal
@@ -370,7 +378,7 @@ class Process {
     /**
      * Execute the command line
      *
-     * @return {Promise} promise which will resolve to an object (see example below)
+     * @return {Promise<ProcessState>} promise which will resolve to an object (see example below)
      */
     /*
         Example output
@@ -901,7 +909,7 @@ class Process {
 }
 
 /**
- * Run a command and return stdout
+ * Run a command and return its stdout
  *
  * @param {string[]|string} cmdline command line to execute. If a {string} is passed, it will be splitted into a {string[]}
  * @param {object} opt options
@@ -926,9 +934,9 @@ class Process {
  * @param {boolean} opt.ignoreError if {true} promise will resolve to the content of stdout even if process exited with a non zero code
  * @param {integer} opt.bufferSize size (in bytes) of the buffer used to read from process stdout & stderr streams (default = {512})
  *
- * @return {Promise} promise which will resolve to the content of stdout in case process exited with zero or {opt.ignoreError} is {true}
- *                   and will an throw an {Error} with the content of stderr and following extra extra properties :
- *                     - {state} (as returned by {run})
+ * @return {Promise<string>} promise which will resolve to the content of stdout in case process exited with zero or {opt.ignoreError} is {true}
+ * @throws {Error} content of stderr as the message and following extra properties :
+ *                 - {state} (as returned by {run})
  */
 const exec = async (cmdline, opt) => {
     const options = Object.assign({}, opt);
@@ -950,6 +958,383 @@ const exec = async (cmdline, opt) => {
     }
     const err = new Error(message);
     err.state = state;
+    throw err;
+}
+
+class ProcessSync {
+
+    /**
+     * Constructor
+     *
+     * @param {string[]|string} cmdline command line to execute. If a {string} is passed, it will be splitted into a {string[]}
+     * @param {object} opt options
+     * @param {boolean} opt.usePath if {true}, the file is searched in the PATH environment variable (default = {true})
+     * @param {string} opt.cwd set the working directory of the new process
+     * @param {integer} opt.uid if defined, process uid will be set using setuid
+     * @param {integer} opt.gid if defined, process gid will be set using setgid
+     * @param {object} opt.env define child process environment (if not defined, use the environment of parent process)
+     * @param {boolean} opt.replaceEnv if {true}, ignore parent environment when setting child environment (default = {true})
+     * @param {boolean} opt.useShell if {true}, run command using '/bin/sh -c' (default = {false})
+     * @param {string} opt.shell full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
+     * @param {boolean} opt.passStderr if {true} stderr will not be intercepted (default = {true})
+     * @param {boolean} opt.redirectStderr if {true} stderr will be redirected to stdout (default = {false}) (ignored if {opt.passStderr} is {true})
+     * @param {boolean} opt.trim if {true} stdout & stderr content will be trimmed (default = {true}) (does not apply to stdout & stderr event handlers)
+     * @param {boolean} opt.skipBlankLines if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
+     * @param {integer} opt.stdin if defined, sets the stdin handle used by child process (it will be rewind)
+     *                            NB: don't share the same handle between multiple instances
+     * @param {string} opt.input content which will be used as input (will be ignored if {stdin} was set)
+     * @param {object} opt.props custom properties
+     */
+    constructor(cmdline, opt) {
+        if (undefined === opt) {
+            opt = {};
+        }
+
+        /*
+            command
+         */
+        this._cmdline = '';
+        if (Array.isArray(cmdline)) {
+            if (0 != cmdline.length) {
+                this._cmdline = cmdline.join(' ');
+                this._args = [...cmdline];
+            }
+        }
+        // consider it is a string
+        else if ('string' == typeof cmdline) {
+            this._cmdline = cmdline.trim();
+            this._args = parseArgs(this._cmdline);
+        }
+        if ('' == this._cmdline) {
+            throw new TypeError(`Argument 'cmdline' cannot be empty`);
+        }
+
+        /*
+            state
+         */
+        this._run = false;
+        this._exitCode = 0;
+
+        /*
+            output
+         */
+        this._passStderr = (false !== opt.passStderr);
+        this._redirectStderr = (!this._passStderr && true === opt.redirectStderr);
+        this._output = {
+            stdout:'',
+            stderr:''
+        };
+        // by default trim content
+        this._trim = (false !== opt.trim);
+        // by default do not skip empty lines
+        this._skipBlankLines = (true === opt.skipBlankLines);
+
+        // environment
+        let newEnv;
+        if (undefined !== opt.env) {
+            // initialize with current environment
+            if (false === opt.replaceEnv) {
+                newEnv = std.getenviron();
+            }
+            else {
+                newEnv = {};
+            }
+            // update with the environment passed in opt
+            for (const [key, value] of Object.entries(opt.env)) {
+                newEnv[key] = value;
+            }
+        }
+
+        /*
+            options
+         */
+        // qjs options
+        this._qjsOpt = {
+            block:true,
+            // by default use PATH
+            usePath:(false !== opt.usePath),
+            cwd:opt.cwd,
+            uid:opt.uid,
+            gid:opt.gid,
+            env:newEnv
+        };
+        this._input = undefined;
+        if (undefined !== opt.stdin) {
+            this._qjsOpt.stdin = opt.stdin;
+        }
+        else if (undefined !== opt.input && 'string' == typeof opt.input) {
+            this._input = opt.input;
+        }
+        // by default don't use shell
+        this._useShell = {flag:false, shell:DEFAULT_SHELL};
+        if (true === opt.useShell) {
+            this._useShell.flag = true;
+            if (undefined !== opt.shell) {
+                this._useShell.shell = opt.shell;
+            }
+        }
+
+        this._props = opt.props;
+        if (undefined === this._props || 'object' != typeof this._props) {
+            this._props = {};
+        }
+    }
+
+    /**
+     * Convert signal value to name
+     *
+     * @param {string} signal
+     *
+     * @return {string}
+     */
+    static getSignalName(signal) {
+        return getSignalName(signal);
+    }
+
+    /**
+     * Retrieve full cmd line
+     *
+     * @return {string}
+     */
+    get cmdline() {
+        return this._cmdline;
+    }
+
+    /**
+     * Retrieve full stdout content
+     *
+     * @return {string}
+     */
+    get stdout() {
+        return this._output.stdout;
+    }
+
+    /**
+     * Retrieve full stderr content
+     *
+     * @return {string}
+     */
+    get stderr() {
+        return this._output.stderr;
+    }
+
+    /**
+     * Retrieve process exit code
+     *
+     * @return {number}
+     */
+    get exitCode() {
+        return this._exitCode;
+    }
+
+    /**
+     * Indicate whether or not execution succeeded
+     *
+     * @return {boolean} {true} if process was started and execution succeeded, {false} otherwise
+     */
+    get success() {
+        if (!this._run) {
+            return false;
+        }
+        return (0 == this._exitCode);
+    }
+
+    /**
+     * Retrieve custom properties passed in constructor
+     * 
+     * @return {object}
+     */
+    get props() {
+        return this._props;
+    }
+
+
+    /**
+     * Execute the command line
+     *
+     * @return {boolean}
+     */
+    run() {
+        this._reset();
+
+        let args;
+        // use shell
+        if (this._useShell.flag) {
+            // use cmdline as a single argument since we're using shell
+            args = [this._useShell.shell, '-c', this._cmdline];
+        }
+        else {
+            args = [...this._args];
+        }
+
+        /*
+            create stdout file
+         */
+        const stdoutFile = std.tmpfile();
+        if (null === stdoutFile) {
+            throw new InternalError('Could not create temporary stdout file');
+        }
+
+        /*
+            create stderr file
+         */
+        let stderrFile = undefined;
+        if (!this._passStderr && !this._redirectStderr) {
+            stderrFile = std.tmpfile();
+            if (null === stderrFile) {
+                // close stdout file
+                stdoutFile.close();
+                throw new InternalError(`Could not create temporary stderr file`);
+            }
+        }
+
+        /*
+            create input
+         */
+        let stdinFile = undefined;
+        let stdinFd = undefined;
+        if (undefined !== this._input) {
+            stdinFile = std.tmpfile();
+            if (null === stdinFile) {
+                stdoutFile.close();
+                if (undefined !== stderrFile) {
+                    stderrFile.close();
+                }
+                throw new InternalError('Could not create temporary input file');
+            }
+            stdinFile.puts(this._input);
+            stdinFile.flush();
+            stdinFd = stdinFile.fileno();
+        }
+        if (undefined !== stdinFd) {
+            // rewind stdin file descriptor
+            os.seek(stdinFd, 0, std.SEEK_SET);
+        }
+
+        /*
+            create process
+         */
+        const qjsOpt = Object.assign({}, this._qjsOpt);
+        if (undefined !== stdinFd) {
+            qjsOpt.stdin = stdinFd;
+        }
+        qjsOpt.stdout = stdoutFile.fileno();
+
+        if (!this._passStderr) {
+            qjsOpt.stderr = qjsOpt.stdout;
+            if (undefined !== stderrFile) {
+                qjsOpt.stderr = stderrFile.fileno();
+            }    
+        }
+        this._exitCode = os.exec(args, qjsOpt);
+        this._run = true;
+
+        // read stdout
+        stdoutFile.flush();
+        stdoutFile.seek(0, std.SEEK_SET);
+        this._output.stdout = stdoutFile.readAsString();
+        stdoutFile.close();
+        if ('' != this._output.stdout) {
+            // remove empty lines
+            if (this._skipBlankLines) {
+                this._output.stdout = this._output.stdout.replace(/^\s*\n/gm, '');
+            }
+            // trim
+            if (this._trim) {
+                this._output.stdout = this._output.stdout.trim();
+            }
+        }
+
+        // read stderr
+        if (undefined !== stderrFile) {
+            stderrFile.flush();
+            os.seek(stderrFile.fileno(), 0, std.SEEK_SET);        
+            this._output.stderr = stderrFile.readAsString();
+            stderrFile.close();
+            if ('' != this._output.stderr) {
+                // remove empty lines
+                if (this._skipBlankLines) {
+                    this._output.stderr = this._output.stderr.replace(/^\s*\n/gm, '');
+                }
+                // trim
+                if (this._trim) {
+                    this._output.stderr = this._output.stderr.trim();
+                }
+            }
+        }
+
+        // command was not found => check if we need to generate a custom message
+        if (127 == this._exitCode) {
+            const content = 'Command not found';
+            // check stderr
+            if (undefined !== this._stderrFile) {
+                // we didn't receive any content on stderr => use custom message
+                if ('' == this._output.stderr) {
+                    this._output.stderr = content;
+                }
+            }
+        }
+
+        return (0 === this._exitCode);
+    }
+
+    /**
+     * Reset internal state. Called at the beginning of {run} method
+     */
+    _reset() {
+        this._exitCode = 0;
+        this._run = false;
+        this._output = {
+            stdout:'',
+            stderr:''
+        };
+    }
+}
+
+/**
+ * Run a command synchronously and return its stdout
+ *
+ * @param {string[]|string} cmdline command line to execute. If a {string} is passed, it will be splitted into a {string[]}
+ * @param {object} opt options
+ * @param {boolean} opt.usePath if {true}, the file is searched in the PATH environment variable (default = {true})
+ * @param {string} opt.cwd set the working directory of the new process
+ * @param {integer} opt.uid if defined, process uid will be set using setuid
+ * @param {integer} opt.gid if defined, process gid will be set using setgid
+ * @param {object} opt.env define child process environment (if not defined, use the environment of parent process)
+ * @param {boolean} opt.replaceEnv if {true}, ignore parent environment when setting child environment (default = {true})
+ * @param {boolean} opt.useShell if {true}, run command using '/bin/sh -c' (default = {false})
+ * @param {string} opt.shell full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
+ * @param {boolean} opt.passStderr if {true} stderr will not be intercepted (default = {true})
+ * @param {boolean} opt.redirectStderr if {true} stderr will be redirected to stdout (default = {false}) (ignored if {opt.passStderr} is {true})
+ * @param {boolean} opt.trim if {true} stdout & stderr content will be trimmed (default = {true}) (does not apply to stdout & stderr event handlers)
+ * @param {boolean} opt.skipBlankLines if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
+ * @param {integer} opt.stdin if defined, sets the stdin handle used by child process (it will be rewind)
+ *                            NB: don't share the same handle between multiple instances
+ * @param {string} opt.input content which will be used as input (will be ignored if {stdin} was set)
+ * @param {boolean} opt.ignoreError if {true} promise will resolve to the content of stdout even if process exited with a non zero code
+ *
+ * @return {string} content of stdout in case process exited with zero or {opt.ignoreError} is {true}
+ * 
+ * @throws {Error} content of stderr as the message and following extra properties :
+ *                 - {exitCode} (exit code of the process)
+ */
+const execSync = (cmdline, opt) => {
+    const options = Object.assign({}, opt);
+    const ignoreError = (true === options.ignoreError);
+    delete options.ignoreError;
+    const p = new ProcessSync(cmdline, options);
+    if (p.run()) {
+        return p.stdout;
+    }
+    if (ignoreError) {
+        return p.stdout;
+    }
+    let message = p.stderr;
+    if ('' == message && 127 == p.exitCode) {
+        message = 'Command not found';
+    }
+    const err = new Error(message);
+    err.exitCode = p.exitCode;
     throw err;
 }
 
@@ -976,5 +1361,7 @@ export default exec;
 export {
     Process,
     exec,
-    waitpid
+    waitpid,
+    ProcessSync,
+    execSync,
 };

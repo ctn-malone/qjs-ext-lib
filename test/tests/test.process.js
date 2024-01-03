@@ -1,7 +1,7 @@
 import * as os from 'os';
 import * as std from 'std';
 import { tester } from '../../src/tester.js';
-import { Process, exec, waitpid } from '../../src/process.js';
+import { Process, exec, waitpid, ProcessSync, execSync } from '../../src/process.js';
 
 export default () => {
 
@@ -341,7 +341,8 @@ export default () => {
         cmdline = 'a=1 ; echo $a';
         p = new Process(cmdline, opt);
         state = await p.run();
-        tester.assert(0 != state.exitCode, `when executing ${JSON.stringify(cmdline)} without shell, process should fail (${JSON.stringify(state)})`);
+        tester.assert(0 != state.exitCode, `when executing ${JSON.stringify(cmdline)} without shell, exit code should be != 0 (${JSON.stringify(state)})`);
+        tester.assert(!p.success, `when executing ${JSON.stringify(cmdline)} without shell, .success should be false (${JSON.stringify(state)})`);
 
         /*
             process should not fail
@@ -350,7 +351,8 @@ export default () => {
         cmdline = 'a=1 ; echo $a';
         p = new Process(cmdline, opt);
         state = await p.run();
-        tester.assert(0 == state.exitCode, `when executing ${JSON.stringify(cmdline)} with shell, process should not fail (${JSON.stringify(state)})`);
+        tester.assert(0 == state.exitCode, `when executing ${JSON.stringify(cmdline)} with shell, exit code should be 0 (${JSON.stringify(state)})`);
+        tester.assert(p.success, `when executing ${JSON.stringify(cmdline)} with shell, .success should be true (${JSON.stringify(state)})`);
         expectedContent = "1\n";
         tester.assertEq(p.stdout, expectedContent, `when executing ${JSON.stringify(cmdline)} with shell, 'stdout' content retrieved using 'stdout' property should be as expected`);
         done();
@@ -573,4 +575,293 @@ export default () => {
         done();
     }, {isAsync:true});
 
+    tester.test('process.ProcessSync (props)', () => {
+        const props = {cmd:'date'};
+        const p = new ProcessSync('date', {
+            props:props
+        });
+        tester.assertEq(p.props, props, `{props} should match`);
+    });
+
+    tester.test('process.ProcessSync (without stderr redirect)', () => {
+        const opt = {passStderr: false, trim:false};
+        const cmdline = 'data/test1.sh 10';
+        let expectedContent;
+        const p = new ProcessSync(cmdline, opt);
+        const success = p.run();
+
+        tester.assert(success, `result should be true`);
+        tester.assert(p.success, `.success should be true`);
+
+        expectedContent = `2\n4\n6\n8\n10\n`;
+        tester.assertEq(p.stdout, expectedContent, `'stdout' content retrieved using 'stdout' property should be as expected`);
+
+        expectedContent = `1\n3\n5\n7\n9\n`;
+        tester.assertEq(p.stderr, expectedContent, `'stderr' content retrieved using 'stderr' property should be as expected`);
+    });
+
+    tester.test('process.ProcessSync (with stderr redirected to stdout)', () => {
+        const opt = {passStderr: false, trim:false, redirectStderr: true};
+        const cmdline = 'data/test1.sh 10';
+        const p = new ProcessSync(cmdline, opt);
+        let expectedContent;
+        p.run();
+
+        expectedContent = `1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n`;
+        tester.assertEq(p.stdout, expectedContent, `'stdout' content retrieved using 'stdout' property should be as expected`);
+    });
+
+    tester.test('process.ProcessSync (trimming)', () => {
+        let opt, cmdline, p;
+        let expectedContent;
+
+        /*
+            without trimming
+         */
+        opt = {passStderr: false, trim:false};
+        cmdline = 'data/test3.sh 10';
+        p = new ProcessSync(cmdline, opt);
+        p.run();
+
+        expectedContent = `\n\n   2\n4\n6\n8\n10\n\n\n   `;
+        tester.assertEq(p.stdout, expectedContent, `without trimming 'stdout' content retrieved using 'stdout' property should be as expected`);
+        expectedContent = `\n\n   1\n3\n5\n7\n9\n\n\n   `;
+        tester.assertEq(p.stderr, expectedContent, `without trimming 'stderr' content retrieved using 'stderr' property should be as expected`);
+
+        /*
+            with trimming
+         */
+        opt = {passStderr: false, trim:true};
+        cmdline = 'data/test3.sh 10';
+        p = new ProcessSync(cmdline, opt);
+        p.run();
+
+        expectedContent = `2\n4\n6\n8\n10`;
+        tester.assertEq(p.stdout, expectedContent, `with trimming 'stdout' content retrieved using 'stdout' property should be as expected`);
+        expectedContent = `1\n3\n5\n7\n9`;
+        tester.assertEq(p.stderr, expectedContent, `with trimming 'stderr' content retrieved using 'stderr' property should be as expected`);
+    });
+
+    tester.test('process.ProcessSync (skip blank lines)', () => {
+        let opt, cmdline, p;
+        let expectedContent;
+
+        /*
+            without skipping blank lines
+         */
+        opt = {passStderr: false, trim:false, skipBlankLines:false};
+        cmdline = 'data/test4.sh 10';
+        p = new ProcessSync(cmdline, opt);
+        p.run();
+
+        expectedContent = `2\n\n4\n\n6\n\n8\n\n10\n\n`;
+        tester.assertEq(p.stdout, expectedContent, `without skipping blank lines 'stdout' content retrieved using 'stdout' property should be as expected`);
+        expectedContent = `1\n\n3\n\n5\n\n7\n\n9\n\n`;
+        tester.assertEq(p.stderr, expectedContent, `without skipping blank lines 'stderr' content retrieved using 'stderr' property should be as expected`);
+
+        /*
+            when skipping blank lines
+         */
+        opt = {passStderr: false, trim:false, skipBlankLines:true};
+        cmdline = 'data/test4.sh 10';
+        p = new ProcessSync(cmdline, opt);
+        p.run();
+
+        expectedContent = `2\n4\n6\n8\n10\n`;
+        tester.assertEq(p.stdout, expectedContent, `when skipping blank lines 'stdout' content retrieved using 'stdout' property should be as expected`);
+        expectedContent = `1\n3\n5\n7\n9\n`;
+        tester.assertEq(p.stderr, expectedContent, `when skipping blank lines 'stderr' content retrieved using 'stderr' property should be as expected`);
+    });
+
+    tester.test('process.ProcessSync (env)', () => {
+        let opt, cmdline, p;
+        let expectedContent;
+        let newEnv;
+
+        /*
+            variables should not be defined
+         */
+        opt = {passStderr: false, trim:false};
+        cmdline = 'data/test5.sh';
+        std.unsetenv('DUMMY_VAR1');
+        std.unsetenv('DUMMY_VAR2');
+        p = new ProcessSync(cmdline, opt);
+        p.run();
+        expectedContent = `DUMMY_VAR1=\nDUMMY_VAR2=\n`;
+        tester.assertEq(p.stdout, expectedContent, `without defining variables in parent, 'stdout' content retrieved using 'stdout' property should be as expected`);
+
+        /*
+            variable DUMMY_VAR1 should be defined
+         */
+        opt = {passStderr: false, trim:false};
+        cmdline = 'data/test5.sh';
+        std.unsetenv('DUMMY_VAR1');
+        std.unsetenv('DUMMY_VAR2');
+        std.setenv('DUMMY_VAR1', '1');
+        p = new ProcessSync(cmdline, opt);
+        p.run();
+        expectedContent = `DUMMY_VAR1=1\nDUMMY_VAR2=\n`;
+        tester.assertEq(p.stdout, expectedContent, `when defining DUMMY_VAR1 in parent, 'stdout' content retrieved using 'stdout' property should be as expected`);
+
+        /*
+            variable DUMMY_VAR2 should be defined, but not variable DUMMY_VAR1 when child env is replaced
+         */
+        newEnv = {'DUMMY_VAR2':'2'};
+        opt = {passStderr: false, trim:false, replaceEnv:true, env:newEnv};
+        cmdline = 'data/test5.sh';
+        std.unsetenv('DUMMY_VAR1');
+        std.unsetenv('DUMMY_VAR2');
+        std.setenv('DUMMY_VAR1', '1');
+        p = new ProcessSync(cmdline, opt);
+        p.run();
+        expectedContent = `DUMMY_VAR1=\nDUMMY_VAR2=2\n`;
+        tester.assertEq(p.stdout, expectedContent, `when replacing child env with ${JSON.stringify(newEnv)}, 'stdout' content retrieved using 'stdout' property should be as expected`);
+
+        /*
+            both variables should be defined when child env is updated instead of being replaced
+         */
+        newEnv = {'DUMMY_VAR2':'2'};
+        opt = {passStderr: false, trim:false, replaceEnv:false, env:newEnv};
+        cmdline = 'data/test5.sh';
+        std.unsetenv('DUMMY_VAR1');
+        std.unsetenv('DUMMY_VAR2');
+        std.setenv('DUMMY_VAR1', '1');
+        p = new ProcessSync(cmdline, opt);
+        p.run();
+        expectedContent = `DUMMY_VAR1=1\nDUMMY_VAR2=2\n`;
+        tester.assertEq(p.stdout, expectedContent, `when updating child env with ${JSON.stringify(newEnv)}, 'stdout' content retrieved using 'stdout' property should be as expected`);
+    });
+
+    tester.test('process.ProcessSync (use shell)', () => {
+        let opt, cmdline, p;
+        let expectedContent;
+        let result;
+
+        /*
+            process should fail
+         */
+        opt = {passStderr: false, trim:false, useShell:false};
+        cmdline = 'a=1 ; echo $a';
+        p = new ProcessSync(cmdline, opt);
+        result = p.run();
+        tester.assert(!result, `when executing ${JSON.stringify(cmdline)} without shell, process should fail (exitCode = ${p.exitCode})`);
+        tester.assert(!p.success, `when executing ${JSON.stringify(cmdline)} without shell, .success should be false (exitCode = ${p.exitCode})`);
+        tester.assert(0 != p.exitCode, `when executing ${JSON.stringify(cmdline)} without shell, exit code should be != 0 (exitCode = ${p.exitCode})`);
+
+        /*
+            process should not fail
+         */
+        opt = {passStderr: false, trim:false, useShell:true};
+        cmdline = 'a=1 ; echo $a';
+        p = new ProcessSync(cmdline, opt);
+        p.run();
+        tester.assert(0 == p.exitCode, `when executing ${JSON.stringify(cmdline)} with shell, exit code should be 0 (exitCode =${p.exitCode})`);
+        tester.assert(p.success, `when executing ${JSON.stringify(cmdline)} with shell, .success should be true (exitCode =${p.exitCode})`);
+        expectedContent = "1\n";
+        tester.assertEq(p.stdout, expectedContent, `when executing ${JSON.stringify(cmdline)} with shell, 'stdout' content retrieved using 'stdout' property should be as expected`);
+    });
+
+    tester.test('process.ProcessSync (use path)', () => {
+        let opt, cmdline, p;
+
+        /*
+            process should fail
+         */
+        opt = {passStderr: false, trim:false, usePath:false};
+        cmdline = 'script_which_does_not_exist_in_path.sh';
+        p = new ProcessSync(cmdline, opt);
+        p.run();
+        tester.assert(0 != p.exitCode, `when executing ${JSON.stringify(cmdline)} without using PATH, process should fail (${p.exitCode})`);
+
+        /*
+            process should not fail
+         */
+        opt = {passStderr: false, trim:false, usePath:true};
+        cmdline = 'script_which_does_not_exist_in_path.sh';
+        const path = std.getenv('PATH')
+        std.setenv('PATH', `data:${path}`);
+        p = new ProcessSync(cmdline, opt);
+        p.run();
+        std.setenv('PATH', `${path}`);
+        tester.assert(0 == p.exitCode, `when executing ${JSON.stringify(cmdline)} using PATH, process should not fail (${p.exitCode})`);
+    });
+
+    tester.test('process.ProcessSync (stdin redirect)', () => {
+        let opt, cmdline, p;
+
+        // load input
+        const inputFile = 'data/input1.txt';
+        const input = std.loadFile(inputFile).trim();
+        const tmpFile = std.tmpfile();
+        tmpFile.puts(input);
+        tmpFile.flush();
+        // rewind
+        tmpFile.seek(0);
+
+        const expectedContent = input.split("\n").map(line => `[in] ${line}`).join("\n");
+
+        cmdline = 'data/test9.sh';
+        opt = {passStderr: false, stdin:tmpFile.fileno()};
+        p = new ProcessSync(cmdline, opt);
+        p.run();
+
+        // tmp file can now be closed
+        tmpFile.close();
+
+        tester.assertEq(p.stdout, expectedContent, `when redirecting 'stdin', 'stdout' content retrieved using 'stdout' property should be as expected`);
+    });
+
+    tester.test('process.ProcessSync (with input)', () => {
+        let opt, cmdline, p;
+
+        // load input
+        const inputFile = 'data/input1.txt';
+        const input = std.loadFile(inputFile).trim();
+
+        const expectedContent = input.split("\n").map(line => `[in] ${line}`).join("\n");
+
+        cmdline = 'data/test9.sh';
+        opt = {passStderr: false, input: input};
+        p = new ProcessSync(cmdline, opt);
+        p.run();
+
+        tester.assertEq(p.stdout, expectedContent, `when passing 'input', 'stdout' content retrieved using 'stdout' property should be as expected`);
+    });
+
+    tester.test('process.execSync', () => {
+        let opt, cmdline;
+        let expectedContent, content;
+
+        /*
+            process did not fail
+         */
+        opt = {passStderr:false, trim:true};
+        cmdline = 'data/test1.sh 10';
+        content = execSync(cmdline, opt);
+        expectedContent = `2\n4\n6\n8\n10`;
+        tester.assertEq(content, expectedContent, `if child did not fail, result should be as expected`);
+
+        /*
+            process failed
+         */
+        opt = {passStderr:false, trim:true};
+        cmdline = 'data/test1.sh 10 2';
+        try {
+            execSync(cmdline, opt);
+        }
+        catch (e) {
+            expectedContent = `1\n3\n5\n7\n9`;
+            content = e.message;
+            tester.assertEq(content, expectedContent, `if child failed, exception message should be as expected`);
+        }
+
+        /*
+            process failed but error was ignored
+         */
+        opt = {passStderr:false, trim:true, ignoreError:true};
+        cmdline = 'data/test1.sh 10 2';
+        content = execSync(cmdline, opt);
+        expectedContent = `2\n4\n6\n8\n10`;
+        tester.assertEq(content, expectedContent, `if child failed but {opt.ignoreError} is {true}, result should be as expected`);
+    });
 }
