@@ -13,9 +13,9 @@ import { wait } from './timers.js';
 /**
  * Parse a command line into an array of arguments
  *
- * @param {string} command line
+ * @param {string} command - command line to parse
  *
- * @return {string[} arguments
+ * @return {string[]} arguments
  */
 const parseArgs = (command) => {
     // NB: regexp will fail in case an orphan quote or double quote exists
@@ -44,9 +44,9 @@ const parseArgs = (command) => {
 /**
  * Convert signal value to name
  *
- * @param {string} signal
+ * @param {number} signal - signal number
  *
- * @return {string}
+ * @return {string|undefined}
  */
 const getSignalName = (signal) => {
     // use values defined in 'include/bits/signal.h' (musl lib)
@@ -75,32 +75,32 @@ class Process {
     /**
      * Constructor
      *
-     * @param {string[]|string} cmdline command line to execute. If a {string} is passed, it will be splitted into a {string[]}
-     * @param {object} opt options
-     * @param {boolean} opt.usePath if {true}, the file is searched in the PATH environment variable (default = {true})
-     * @param {string} opt.cwd set the working directory of the new process
-     * @param {integer} opt.uid if defined, process uid will be set using setuid
-     * @param {integer} opt.gid if defined, process gid will be set using setgid
-     * @param {object} opt.env define child process environment (if not defined, use the environment of parent process)
-     * @param {boolean} opt.replaceEnv if {true}, ignore parent environment when setting child environment (default = {true})
-     * @param {boolean} opt.useShell if {true}, run command using '/bin/sh -c' (default = {false})
-     * @param {string} opt.shell full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
-     * @param {boolean} opt.newSession if {true} setsid will be used (ie: child will not receive SIGINT sent to parent) (default = {false})
-     * @param {boolean} opt.redirectStderr if {true} stderr will be redirected to stdout (default = {false})
-     * @param {boolean} opt.lineBuffered if {true} call stdout & stderr event listeners only after a line is complete (default = {false})
-     * @param {boolean} opt.trim if {true} stdout & stderr content will be trimmed (default = {true}) (does not apply to stdout & stderr event handlers)
-     * @param {boolean} opt.skipBlankLines if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
-     * @param {integer} opt.timeout maximum number of seconds before killing child (if {undefined}, no timeout will be configured)
-     * @param {integer} opt.timeoutSignal signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
-     * @param {integer} opt.stdin if defined, sets the stdin handle used by child process (it will be rewind)
-     *                            NB: don't share the same handle between multiple instances
-     * @param {string} opt.input content which will be used as input (will be ignored if {stdin} was set)
-     * @param {integer} opt.stdout if defined, sets the stdout handle used by child process (it will be rewind)
-     *                             NB: - don't share the same handle between multiple instances
-     *                                 - stdout event handler will be ignored
-     *                                 - stderr redirection will be ignored
-     * @param {integer} opt.bufferSize size (in bytes) of the buffer used to read from process stdout & stderr streams (default = {512})
-     * @param {object} opt.props custom properties
+     * @param {string[]|string} cmdline - command line to execute. If a {string} is passed, it will be splitted into a {string[]}
+     * @param {object} [opt] - options
+     * @param {boolean} [opt.usePath=true] -  if {true}, the file is searched in the PATH environment variable (default = {true})
+     * @param {string} [opt.cwd] - set the working directory of the new process
+     * @param {number} [opt.uid] - if defined, process uid will be set using setuid
+     * @param {number} [opt.gid] - if defined, process gid will be set using setgid
+     * @param {object} [opt.env] - define child process environment (if not defined, use the environment of parent process)
+     * @param {boolean} [opt.replaceEnv=true] - if {true}, ignore parent environment when setting child environment (default = {true})
+     * @param {boolean} [opt.useShell=false] - if {true}, run command using '/bin/sh -c' (default = {false})
+     * @param {string} [opt.shell="/bin/sh"] - full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
+     * @param {boolean} [opt.newSession=false] - if {true} setsid will be used (ie: child will not receive SIGINT sent to parent) (default = {false})
+     * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false})
+     * @param {boolean} [opt.lineBuffered=false] - if {true} call stdout & stderr event listeners only after a line is complete (default = {false})
+     * @param {boolean} [opt.trim=true] - if {true} stdout & stderr content will be trimmed (default = {true}) (does not apply to stdout & stderr event handlers)
+     * @param {boolean} [opt.skipBlankLines=false] - if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
+     * @param {number} [opt.timeout] - maximum number of seconds before killing child (if {undefined}, no timeout will be configured)
+     * @param {number} [opt.timeoutSignal=os.SIGTERM] - signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
+     * @param {number} [opt.stdin] - if defined, sets the stdin handle used by child process (it will be rewind)
+     *                                NB: don't share the same handle between multiple instances
+     * @param {string} [opt.input] - content which will be used as input (will be ignored if {stdin} was set)
+     * @param {number} [opt.stdout] - if defined, sets the stdout handle used by child process (it will be rewind)
+     *                                 NB: - don't share the same handle between multiple instances
+     *                                     - stdout event handler will be ignored
+     *                                     - stderr redirection will be ignored
+     * @param {number} [opt.bufferSize=512] - size (in bytes) of the buffer used to read from process stdout & stderr streams (default = {512})
+     * @param {object} [opt.props] - custom properties
      */
     constructor(cmdline, opt) {
         if (undefined === opt) {
@@ -254,9 +254,9 @@ class Process {
     /**
      * Convert signal value to name
      *
-     * @param {string} signal
+     * @param {number} signal - signal number
      *
-     * @return {string}
+     * @return {string|undefined}
      */
     static getSignalName(signal) {
         return getSignalName(signal);
@@ -275,7 +275,7 @@ class Process {
      * Retrieve full stdout content
      * Will always be empty if a 'stdout' listener was defined
      *
-     * @return {integer}
+     * @return {number}
      */
     get stdout() {
         return this._output.stdout;
@@ -285,7 +285,7 @@ class Process {
      * Retrieve full stderr content
      * Will always be empty if a 'stderr' listener was defined
      *
-     * @return {integer}
+     * @return {number}
      */
     get stderr() {
         return this._output.stderr;
@@ -333,7 +333,7 @@ class Process {
     /**
      * Retrieve process pid
      *
-     * @return {integer}
+     * @return {number}
      */
     get pid() {
         return this._state.pid;
@@ -352,8 +352,8 @@ class Process {
      * Define event handler
      * Any previously defined handler will be replaced
      *
-     * @param {string} eventType (stdout|stderr|pause|resume|exit)
-     * @param {function} cb (use {undefined} to disable handler)
+     * @param {string} eventType - (stdout|stderr|pause|resume|exit)
+     * @param {function|undefined} cb - (use {undefined} to disable handler)
      */
     setEventListener(eventType, cb) {
         switch (eventType) {
@@ -718,7 +718,7 @@ class Process {
                             /*
                                 check first line in case we're sending a previously
                                 incomplete line, to set correct timestamp
-                            */
+                             */
                             if (0 == i) {
                                 if ('' != stderrIncompleteLine.data) {
                                     this._cb.stderr({
@@ -873,7 +873,7 @@ class Process {
     /**
      * Kill the child process
      *
-     * @param {integer} signal (default = SIGTERM)
+     * @param {number} [signal=os.SIGTERM] - signal number to use (default = SIGTERM)
      */
     kill(signal = os.SIGTERM) {
         // do nothing if process is not running
@@ -911,28 +911,28 @@ class Process {
 /**
  * Run a command and return its stdout
  *
- * @param {string[]|string} cmdline command line to execute. If a {string} is passed, it will be splitted into a {string[]}
- * @param {object} opt options
- * @param {boolean} opt.usePath if {true}, the file is searched in the PATH environment variable (default = {true})
- * @param {string} opt.cwd set the working directory of the new process
- * @param {integer} opt.uid if defined, process uid will be set using setuid
- * @param {integer} opt.gid if defined, process gid will be set using setgid
- * @param {object} opt.env define child process environment (if not defined, use the environment of parent process)
- * @param {boolean} opt.replaceEnv if {true}, ignore parent environment when setting child environment (default = {true})
- * @param {boolean} opt.useShell if {true}, run command using '/bin/sh -c' (default = {false})
- * @param {string} opt.shell full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
- * @param {boolean} opt.newSession if {true} setsid will be used (ie: child will not receive SIGINT sent to parent) (default = {false})
- * @param {boolean} opt.redirectStderr if {true} stderr will be redirected to stdout (default = {false})
- * @param {boolean} opt.lineBuffered if {true} call stdout & stderr event listeners only after a line is complete (default = {false})
- * @param {boolean} opt.trim if {true} stdout & stderr content will be trimmed (default = {true})
- * @param {boolean} opt.skipBlankLines if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
- * @param {integer} opt.timeout maximum number of seconds before killing child (if {undefined}, no timeout will be configured)
- * @param {integer} opt.timeoutSignal signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
- * @param {integer} opt.stdin if defined, sets the stdin handle used by child process (it will be rewind)
- *                            NB: don't share the same handle between multiple instances
- * @param {string} opt.input content which will be used as input (will be ignored if {stdin} was set)
- * @param {boolean} opt.ignoreError if {true} promise will resolve to the content of stdout even if process exited with a non zero code
- * @param {integer} opt.bufferSize size (in bytes) of the buffer used to read from process stdout & stderr streams (default = {512})
+ * @param {string[]|string} cmdline - command line to execute. If a {string} is passed, it will be splitted into a {string[]}
+ * @param {object} [opt] - options
+ * @param {boolean} [opt.usePath=true] - if {true}, the file is searched in the PATH environment variable (default = {true})
+ * @param {string} [opt.cwd] - set the working directory of the new process
+ * @param {number} [opt.uid] - if defined, process uid will be set using setuid
+ * @param {number} [opt.gid] - if defined, process gid will be set using setgid
+ * @param {object} [opt.env] - define child process environment (if not defined, use the environment of parent process)
+ * @param {boolean} [opt.replaceEnv=true] - if {true}, ignore parent environment when setting child environment (default = {true})
+ * @param {boolean} [opt.useShell=false] - if {true}, run command using '/bin/sh -c' (default = {false})
+ * @param {string} [opt.shell="/bin/sh"] - full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
+ * @param {boolean} [opt.newSession=false] - if {true} setsid will be used (ie: child will not receive SIGINT sent to parent) (default = {false})
+ * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false})
+ * @param {boolean} [opt.lineBuffered=false] - if {true} call stdout & stderr event listeners only after a line is complete (default = {false})
+ * @param {boolean} [opt.trim=true] - if {true} stdout & stderr content will be trimmed (default = {true})
+ * @param {boolean} [opt.skipBlankLines=false] - if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
+ * @param {number} [opt.timeout] - maximum number of seconds before killing child (if {undefined}, no timeout will be configured)
+ * @param {number} [opt.timeoutSignal=os.SIGTERM] - signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
+ * @param {number} [opt.stdin] - if defined, sets the stdin handle used by child process (it will be rewind)
+ *                                NB: don't share the same handle between multiple instances
+ * @param {string} [opt.input] - content which will be used as input (will be ignored if {stdin} was set)
+ * @param {boolean} [opt.ignoreError=false] - if {true} promise will resolve to the content of stdout even if process exited with a non zero code (default = {false})
+ * @param {number} [opt.bufferSize=512] - size (in bytes) of the buffer used to read from process stdout & stderr streams (default = {512})
  *
  * @return {Promise<string>} promise which will resolve to the content of stdout in case process exited with zero or {opt.ignoreError} is {true}
  * @throws {Error} content of stderr as the message and following extra properties :
@@ -966,24 +966,24 @@ class ProcessSync {
     /**
      * Constructor
      *
-     * @param {string[]|string} cmdline command line to execute. If a {string} is passed, it will be splitted into a {string[]}
-     * @param {object} opt options
-     * @param {boolean} opt.usePath if {true}, the file is searched in the PATH environment variable (default = {true})
-     * @param {string} opt.cwd set the working directory of the new process
-     * @param {integer} opt.uid if defined, process uid will be set using setuid
-     * @param {integer} opt.gid if defined, process gid will be set using setgid
-     * @param {object} opt.env define child process environment (if not defined, use the environment of parent process)
-     * @param {boolean} opt.replaceEnv if {true}, ignore parent environment when setting child environment (default = {true})
-     * @param {boolean} opt.useShell if {true}, run command using '/bin/sh -c' (default = {false})
-     * @param {string} opt.shell full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
-     * @param {boolean} opt.passStderr if {true} stderr will not be intercepted (default = {true})
-     * @param {boolean} opt.redirectStderr if {true} stderr will be redirected to stdout (default = {false}) (ignored if {opt.passStderr} is {true})
-     * @param {boolean} opt.trim if {true} stdout & stderr content will be trimmed (default = {true}) (does not apply to stdout & stderr event handlers)
-     * @param {boolean} opt.skipBlankLines if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
-     * @param {integer} opt.stdin if defined, sets the stdin handle used by child process (it will be rewind)
-     *                            NB: don't share the same handle between multiple instances
-     * @param {string} opt.input content which will be used as input (will be ignored if {stdin} was set)
-     * @param {object} opt.props custom properties
+     * @param {string[]|string} cmdline - command line to execute. If a {string} is passed, it will be splitted into a {string[]}
+     * @param {object} [opt] - options
+     * @param {boolean} [opt.usePath=true] - if {true}, the file is searched in the PATH environment variable (default = {true})
+     * @param {string} [opt.cwd] - set the working directory of the new process
+     * @param {number} [opt.uid] - if defined, process uid will be set using setuid
+     * @param {number} [opt.gid] - if defined, process gid will be set using setgid
+     * @param {object} [opt.env] - define child process environment (if not defined, use the environment of parent process)
+     * @param {boolean} [opt.replaceEnv=true] - if {true}, ignore parent environment when setting child environment (default = {true})
+     * @param {boolean} [opt.useShell=false] - if {true}, run command using '/bin/sh -c' (default = {false})
+     * @param {string} [opt.shell="/bin/sh"] - full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
+     * @param {boolean} [opt.passStderr=true] - if {true} stderr will not be intercepted (default = {true})
+     * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false}) (ignored if {opt.passStderr} is {true})
+     * @param {boolean} [opt.trim=true] - if {true} stdout & stderr content will be trimmed (default = {true}) (does not apply to stdout & stderr event handlers)
+     * @param {boolean} [opt.skipBlankLines=false] - if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
+     * @param {number} [opt.stdin] - if defined, sets the stdin handle used by child process (it will be rewind)
+     *                                NB: don't share the same handle between multiple instances
+     * @param {string} [opt.input] - content which will be used as input (will be ignored if {stdin} was set)
+     * @param {object} [opt.props] - custom properties
      */
     constructor(cmdline, opt) {
         if (undefined === opt) {
@@ -1083,9 +1083,9 @@ class ProcessSync {
     /**
      * Convert signal value to name
      *
-     * @param {string} signal
+     * @param {number} signal - signal number
      *
-     * @return {string}
+     * @return {string|undefined}
      */
     static getSignalName(signal) {
         return getSignalName(signal);
@@ -1294,24 +1294,24 @@ class ProcessSync {
 /**
  * Run a command synchronously and return its stdout
  *
- * @param {string[]|string} cmdline command line to execute. If a {string} is passed, it will be splitted into a {string[]}
- * @param {object} opt options
- * @param {boolean} opt.usePath if {true}, the file is searched in the PATH environment variable (default = {true})
- * @param {string} opt.cwd set the working directory of the new process
- * @param {integer} opt.uid if defined, process uid will be set using setuid
- * @param {integer} opt.gid if defined, process gid will be set using setgid
- * @param {object} opt.env define child process environment (if not defined, use the environment of parent process)
- * @param {boolean} opt.replaceEnv if {true}, ignore parent environment when setting child environment (default = {true})
- * @param {boolean} opt.useShell if {true}, run command using '/bin/sh -c' (default = {false})
- * @param {string} opt.shell full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
- * @param {boolean} opt.passStderr if {true} stderr will not be intercepted (default = {true})
- * @param {boolean} opt.redirectStderr if {true} stderr will be redirected to stdout (default = {false}) (ignored if {opt.passStderr} is {true})
- * @param {boolean} opt.trim if {true} stdout & stderr content will be trimmed (default = {true}) (does not apply to stdout & stderr event handlers)
- * @param {boolean} opt.skipBlankLines if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
- * @param {integer} opt.stdin if defined, sets the stdin handle used by child process (it will be rewind)
- *                            NB: don't share the same handle between multiple instances
- * @param {string} opt.input content which will be used as input (will be ignored if {stdin} was set)
- * @param {boolean} opt.ignoreError if {true} promise will resolve to the content of stdout even if process exited with a non zero code
+ * @param {string[]|string} cmdline - command line to execute. If a {string} is passed, it will be splitted into a {string[]}
+ * @param {object} [opt] - options
+ * @param {boolean} [opt.usePath=true] - if {true}, the file is searched in the PATH environment variable (default = {true})
+ * @param {string} [opt.cwd] - set the working directory of the new process
+ * @param {number} [opt.uid] - if defined, process uid will be set using setuid
+ * @param {number} [opt.gid] - if defined, process gid will be set using setgid
+ * @param {object} [opt.env] - define child process environment (if not defined, use the environment of parent process)
+ * @param {boolean} [opt.replaceEnv=true] - if {true}, ignore parent environment when setting child environment (default = {true})
+ * @param {boolean} [opt.useShell=false] - if {true}, run command using '/bin/sh -c' (default = {false})
+ * @param {string} [opt.shell="/bin/sh"] - full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
+ * @param {boolean} [opt.passStderr=true] - if {true} stderr will not be intercepted (default = {true})
+ * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false}) (ignored if {opt.passStderr} is {true})
+ * @param {boolean} [opt.trim=true] - if {true} stdout & stderr content will be trimmed (default = {true}) (does not apply to stdout & stderr event handlers)
+ * @param {boolean} [opt.skipBlankLines=false] - if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
+ * @param {number} [opt.stdin] - if defined, sets the stdin handle used by child process (it will be rewind)
+ *                                NB: don't share the same handle between multiple instances
+ * @param {string} [opt.input] - content which will be used as input (will be ignored if {stdin} was set)
+ * @param {boolean} [opt.ignoreError=false] - if {true} promise will resolve to the content of stdout even if process exited with a non zero code (default = {false})
  *
  * @return {string} content of stdout in case process exited with zero or {opt.ignoreError} is {true}
  * 
@@ -1342,8 +1342,8 @@ const execSync = (cmdline, opt) => {
  * Wait asynchronously until a given process is terminated
  * NB: method will resolve if EPERM is returned by os
  *
- * @param {integer} pid process pid
- * @param {integer} pollDelay  delay in ms between polling
+ * @param {number} pid - process pid
+ * @param {number} [pollDelay=250] - delay in ms between polling
  *
  * @return {Promise} promise which will resolve once the process is gone
  */
