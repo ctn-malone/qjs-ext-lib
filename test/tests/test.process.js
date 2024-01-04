@@ -6,15 +6,15 @@ import { Process, exec, waitpid, ProcessSync, execSync } from '../../src/process
 export default () => {
 
     tester.test('process.Process (props)', () => {
-        const props = {cmd:'date'};
+        const props = {cmd: 'date'};
         const p = new Process('date', {
-            props:props
+            props: props
         });
         tester.assertEq(p.props, props, `{props} should match`);
     });
 
     tester.test('process.Process with stdout/stderr handlers', async (done) => {
-        const opt = {trim:false};
+        const opt = {trim: false};
         const cmdline = 'data/test1.sh 10';
         const p = new Process(cmdline, opt);
         const stdoutLines = [];
@@ -47,10 +47,10 @@ export default () => {
         tester.assertEq(p.stderr, '', `'stderr' content retrieved using 'stderr' property should be empty (${JSON.stringify(p.stderr)})`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (with stdout handler only)', async (done) => {
-        const opt = {trim:false};
+        const opt = {trim: false};
         const cmdline = 'data/test1.sh 10';
         const p = new Process(cmdline, opt);
         const stdoutLines = [];
@@ -69,10 +69,10 @@ export default () => {
         tester.assertEq(p.stderr, expectedContent, `'stderr' content retrieved using 'stderr' property should be as expected`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (with stderr handler only)', async (done) => {
-        const opt = {trim:false};
+        const opt = {trim: false};
         const cmdline = 'data/test1.sh 10';
         const p = new Process(cmdline, opt);
         const stderrLines = [];
@@ -91,10 +91,10 @@ export default () => {
         tester.assertEq(p.stderr, '', `'stderr' content retrieved using 'stderr' property should be empty`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (without stdout/stderr handlers)', async (done) => {
-        const opt = {trim:false};
+        const opt = {trim: false};
         const cmdline = 'data/test1.sh 10';
         let expectedContent;
         const p = new Process(cmdline, opt);
@@ -107,10 +107,10 @@ export default () => {
         tester.assertEq(p.stderr, expectedContent, `'stderr' content retrieved using 'stderr' property should be as expected`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (with stderr redirected to stdout)', async (done) => {
-        const opt = {trim:false, redirectStderr: true};
+        const opt = {trim: false, redirectStderr: true};
         const cmdline = 'data/test1.sh 10';
         const p = new Process(cmdline, opt);
         let expectedContent;
@@ -120,7 +120,7 @@ export default () => {
         tester.assertEq(p.stdout, expectedContent, `'stdout' content retrieved using 'stdout' property should be as expected`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (line buffering)', async (done) => {
         let opt, cmdline, p;
@@ -130,7 +130,7 @@ export default () => {
         /*
             without line buffering
          */
-        opt = {trim:false, lineBuffered:false};
+        opt = {trim: false, lineBuffered: false};
         cmdline = 'data/test2.sh 10';
         p = new Process(cmdline, opt);
         stdoutLines = [];
@@ -156,7 +156,7 @@ export default () => {
         /*
             with line buffering
          */
-        opt = {trim:false, lineBuffered:true};
+        opt = {trim: false, lineBuffered: true};
         cmdline = 'data/test2.sh 10';
         p = new Process(cmdline, opt);
         stdoutLines = [];
@@ -180,7 +180,7 @@ export default () => {
         tester.assert(1 == stderrLines.length, `with line buffering, 'stderr' handler should have been called only once (${stderrLines.length})`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (trimming)', async (done) => {
         let opt, cmdline, p;
@@ -189,7 +189,7 @@ export default () => {
         /*
             without trimming
          */
-        opt = {trim:false};
+        opt = {trim: false};
         cmdline = 'data/test3.sh 10';
         p = new Process(cmdline, opt);
         await p.run();
@@ -202,7 +202,7 @@ export default () => {
         /*
             with trimming
          */
-        opt = {trim:true};
+        opt = {trim: true};
         cmdline = 'data/test3.sh 10';
         p = new Process(cmdline, opt);
         await p.run();
@@ -213,7 +213,7 @@ export default () => {
         tester.assertEq(p.stderr, expectedContent, `with trimming 'stderr' content retrieved using 'stderr' property should be as expected`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (skip blank lines)', async (done) => {
         let opt, cmdline, p;
@@ -222,7 +222,7 @@ export default () => {
         /*
             without skipping blank lines
          */
-        opt = {trim:false,skipBlankLines:false};
+        opt = {trim: false,skipBlankLines: false};
         cmdline = 'data/test4.sh 10';
         p = new Process(cmdline, opt);
         await p.run();
@@ -235,7 +235,7 @@ export default () => {
         /*
             when skipping blank lines
          */
-        opt = {trim:false,skipBlankLines:true};
+        opt = {trim: false,skipBlankLines: true};
         cmdline = 'data/test4.sh 10';
         p = new Process(cmdline, opt);
         await p.run();
@@ -247,12 +247,12 @@ export default () => {
 
         done();
 
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (custom stdout)', async (done) => {
         const tmpFile = std.tmpfile();
         // redirect stderr will be ignored
-        const opt = {trim:false, redirectStderr: true, stdout: tmpFile.fileno()};
+        const opt = {trim: false, redirectStderr: true, stdout: tmpFile.fileno()};
         const cmdline = 'data/test1.sh 10';
         const p = new Process(cmdline, opt);
         let expectedContent;
@@ -266,7 +266,22 @@ export default () => {
         tester.assertEq(p.stderr, expectedContent, `when using custom 'stdout' handle, content retrieved using 'stderr' property should be as expected`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
+
+    tester.test('process.Process ({passStderr: true})', async (done) => {
+        const opt = {passStderr: true, useShell: true};
+        const cmdline = 'echo 1>&2';
+        const p = new Process(cmdline, opt);
+        let stderrEventCalled = false;
+        p.setEventListener('stderr', (obj) => {
+            stderrEventCalled = true;
+        });
+        await p.run();
+
+        tester.assert(!stderrEventCalled, `'stderr' event should not be called when 'passStderr' is true`);
+
+        done();
+    }, {isAsync: true});
 
     tester.test('process.Process (env)', async (done) => {
         let opt, cmdline, p;
@@ -276,7 +291,7 @@ export default () => {
         /*
             variables should not be defined
          */
-        opt = {trim:false};
+        opt = {trim: false};
         cmdline = 'data/test5.sh';
         std.unsetenv('DUMMY_VAR1');
         std.unsetenv('DUMMY_VAR2');
@@ -288,7 +303,7 @@ export default () => {
         /*
             variable DUMMY_VAR1 should be defined
          */
-        opt = {trim:false};
+        opt = {trim: false};
         cmdline = 'data/test5.sh';
         std.unsetenv('DUMMY_VAR1');
         std.unsetenv('DUMMY_VAR2');
@@ -301,8 +316,8 @@ export default () => {
         /*
             variable DUMMY_VAR2 should be defined, but not variable DUMMY_VAR1 when child env is replaced
          */
-        newEnv = {'DUMMY_VAR2':'2'};
-        opt = {trim:false, replaceEnv:true, env:newEnv};
+        newEnv = {'DUMMY_VAR2': '2'};
+        opt = {trim: false, replaceEnv: true, env: newEnv};
         cmdline = 'data/test5.sh';
         std.unsetenv('DUMMY_VAR1');
         std.unsetenv('DUMMY_VAR2');
@@ -315,8 +330,8 @@ export default () => {
         /*
             both variables should be defined when child env is updated instead of being replaced
          */
-        newEnv = {'DUMMY_VAR2':'2'};
-        opt = {trim:false, replaceEnv:false, env:newEnv};
+        newEnv = {'DUMMY_VAR2': '2'};
+        opt = {trim: false, replaceEnv: false, env: newEnv};
         cmdline = 'data/test5.sh';
         std.unsetenv('DUMMY_VAR1');
         std.unsetenv('DUMMY_VAR2');
@@ -327,7 +342,7 @@ export default () => {
         tester.assertEq(p.stdout, expectedContent, `when updating child env with ${JSON.stringify(newEnv)}, 'stdout' content retrieved using 'stdout' property should be as expected`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (use shell)', async (done) => {
         let opt, cmdline, p;
@@ -337,7 +352,7 @@ export default () => {
         /*
             process should fail
          */
-        opt = {trim:false, useShell:false};
+        opt = {trim: false, useShell: false};
         cmdline = 'a=1 ; echo $a';
         p = new Process(cmdline, opt);
         state = await p.run();
@@ -347,7 +362,7 @@ export default () => {
         /*
             process should not fail
          */
-        opt = {trim:false, useShell:true};
+        opt = {trim: false, useShell: true};
         cmdline = 'a=1 ; echo $a';
         p = new Process(cmdline, opt);
         state = await p.run();
@@ -357,7 +372,7 @@ export default () => {
         tester.assertEq(p.stdout, expectedContent, `when executing ${JSON.stringify(cmdline)} with shell, 'stdout' content retrieved using 'stdout' property should be as expected`);
         done();
 
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (use path)', async (done) => {
         let opt, cmdline, p;
@@ -366,7 +381,7 @@ export default () => {
         /*
             process should fail
          */
-        opt = {trim:false, usePath:false};
+        opt = {trim: false, usePath: false};
         cmdline = 'script_which_does_not_exist_in_path.sh';
         p = new Process(cmdline, opt);
         state = await p.run();
@@ -375,7 +390,7 @@ export default () => {
         /*
             process should not fail
          */
-        opt = {trim:false, usePath:true};
+        opt = {trim: false, usePath: true};
         cmdline = 'script_which_does_not_exist_in_path.sh';
         const path = std.getenv('PATH')
         std.setenv('PATH', `data:${path}`);
@@ -385,14 +400,14 @@ export default () => {
         tester.assert(0 == state.exitCode, `when executing ${JSON.stringify(cmdline)} using PATH, process should not fail (${JSON.stringify(state)})`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (pause/resume)', async (done) => {
         let opt, cmdline, p;
         let stdoutLines = [];
         let content, finalContent;
 
-        opt = {lineBuffered:true};
+        opt = {lineBuffered: true};
         cmdline = 'data/test6.sh 10';
         p = new Process(cmdline, opt);
         finalContent = '12345678910';
@@ -423,13 +438,13 @@ export default () => {
         tester.assertEq(content, finalContent, `after child termination, 'stdout' content should be as expected`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (kill)', async (done) => {
         let opt, cmdline, p;
         let state;
 
-        opt = {lineBuffered:true};
+        opt = {lineBuffered: true};
         cmdline = 'data/test6.sh 30';
         p = new Process(cmdline, opt);
         /*
@@ -445,13 +460,13 @@ export default () => {
         tester.assertEq(state.signal, expectedSignal, `when killing child process, signal should be as expected`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (timeout)', async (done) => {
         let opt, cmdline, p;
         let state;
 
-        opt = {lineBuffered:true, timeout:1, timeoutSignal:os.SIGABRT};
+        opt = {lineBuffered: true, timeout: 1, timeoutSignal: os.SIGABRT};
         cmdline = 'data/test9.sh';
         p = new Process(cmdline, opt);
         const tsStart = Date.now();
@@ -466,7 +481,7 @@ export default () => {
         tester.assert(tsDelta >= 1000 && tsDelta <= 2500, `when setting a 1s timeout for child process, process should exit after =~ 1000ms (${JSON.stringify(tsDelta)})`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (stdin redirect)', async (done) => {
         let opt, cmdline, p;
@@ -484,7 +499,7 @@ export default () => {
         const expectedContent = input.split("\n").map(line => `[in] ${line}`).join("\n");
 
         cmdline = 'data/test9.sh';
-        opt = {stdin:tmpFile.fileno(), timeout:5};
+        opt = {stdin: tmpFile.fileno(), timeout: 5};
         p = new Process(cmdline, opt);
         state = await p.run();
 
@@ -494,7 +509,7 @@ export default () => {
         tester.assertEq(p.stdout, expectedContent, `when redirecting 'stdin', 'stdout' content retrieved using 'stdout' property should be as expected`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.Process (with input)', async (done) => {
         let opt, cmdline, p;
@@ -507,14 +522,14 @@ export default () => {
         const expectedContent = input.split("\n").map(line => `[in] ${line}`).join("\n");
 
         cmdline = 'data/test9.sh';
-        opt = {input: input, timeout:5};
+        opt = {input: input, timeout: 5};
         p = new Process(cmdline, opt);
         state = await p.run();
 
         tester.assertEq(p.stdout, expectedContent, `when passing 'input', 'stdout' content retrieved using 'stdout' property should be as expected`);
 
         done();
-    }, {isAsync:true});    
+    }, {isAsync: true});    
 
     tester.test('process.exec', async (done) => {
         let opt, cmdline;
@@ -523,7 +538,7 @@ export default () => {
         /*
             process did not fail
          */
-        opt = {trim:true};
+        opt = {trim: true};
         cmdline = 'data/test1.sh 10';
         content = await exec(cmdline, opt);
         expectedContent = `2\n4\n6\n8\n10`;
@@ -532,7 +547,7 @@ export default () => {
         /*
             process failed
          */
-        opt = {trim:true};
+        opt = {trim: true};
         cmdline = 'data/test1.sh 10 2';
         try {
             await exec(cmdline, opt);
@@ -546,20 +561,20 @@ export default () => {
         /*
             process failed but error was ignored
          */
-        opt = {trim:true, ignoreError:true};
+        opt = {trim: true, ignoreError: true};
         cmdline = 'data/test1.sh 10 2';
         content = await exec(cmdline, opt);
         expectedContent = `2\n4\n6\n8\n10`;
         tester.assertEq(content, expectedContent, `if child failed but {opt.ignoreError} is {true}, result should be as expected`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.waitpid', async (done) => {
         let opt, cmdline, p;
         let expectedContent;
 
-        opt = {trim:true};
+        opt = {trim: true};
         cmdline = 'data/test6.sh 5';
         p = new Process(cmdline, opt);
         p.run();
@@ -573,18 +588,18 @@ export default () => {
         tester.assert(!p.running, `process should not be running anymore`);
 
         done();
-    }, {isAsync:true});
+    }, {isAsync: true});
 
     tester.test('process.ProcessSync (props)', () => {
-        const props = {cmd:'date'};
+        const props = {cmd: 'date'};
         const p = new ProcessSync('date', {
-            props:props
+            props: props
         });
         tester.assertEq(p.props, props, `{props} should match`);
     });
 
     tester.test('process.ProcessSync (without stderr redirect)', () => {
-        const opt = {passStderr: false, trim:false};
+        const opt = {passStderr: false, trim: false};
         const cmdline = 'data/test1.sh 10';
         let expectedContent;
         const p = new ProcessSync(cmdline, opt);
@@ -601,7 +616,7 @@ export default () => {
     });
 
     tester.test('process.ProcessSync (with stderr redirected to stdout)', () => {
-        const opt = {passStderr: false, trim:false, redirectStderr: true};
+        const opt = {passStderr: false, trim: false, redirectStderr: true};
         const cmdline = 'data/test1.sh 10';
         const p = new ProcessSync(cmdline, opt);
         let expectedContent;
@@ -618,7 +633,7 @@ export default () => {
         /*
             without trimming
          */
-        opt = {passStderr: false, trim:false};
+        opt = {passStderr: false, trim: false};
         cmdline = 'data/test3.sh 10';
         p = new ProcessSync(cmdline, opt);
         p.run();
@@ -631,7 +646,7 @@ export default () => {
         /*
             with trimming
          */
-        opt = {passStderr: false, trim:true};
+        opt = {passStderr: false, trim: true};
         cmdline = 'data/test3.sh 10';
         p = new ProcessSync(cmdline, opt);
         p.run();
@@ -649,7 +664,7 @@ export default () => {
         /*
             without skipping blank lines
          */
-        opt = {passStderr: false, trim:false, skipBlankLines:false};
+        opt = {passStderr: false, trim: false, skipBlankLines: false};
         cmdline = 'data/test4.sh 10';
         p = new ProcessSync(cmdline, opt);
         p.run();
@@ -662,7 +677,7 @@ export default () => {
         /*
             when skipping blank lines
          */
-        opt = {passStderr: false, trim:false, skipBlankLines:true};
+        opt = {passStderr: false, trim: false, skipBlankLines: true};
         cmdline = 'data/test4.sh 10';
         p = new ProcessSync(cmdline, opt);
         p.run();
@@ -681,7 +696,7 @@ export default () => {
         /*
             variables should not be defined
          */
-        opt = {passStderr: false, trim:false};
+        opt = {passStderr: false, trim: false};
         cmdline = 'data/test5.sh';
         std.unsetenv('DUMMY_VAR1');
         std.unsetenv('DUMMY_VAR2');
@@ -693,7 +708,7 @@ export default () => {
         /*
             variable DUMMY_VAR1 should be defined
          */
-        opt = {passStderr: false, trim:false};
+        opt = {passStderr: false, trim: false};
         cmdline = 'data/test5.sh';
         std.unsetenv('DUMMY_VAR1');
         std.unsetenv('DUMMY_VAR2');
@@ -706,8 +721,8 @@ export default () => {
         /*
             variable DUMMY_VAR2 should be defined, but not variable DUMMY_VAR1 when child env is replaced
          */
-        newEnv = {'DUMMY_VAR2':'2'};
-        opt = {passStderr: false, trim:false, replaceEnv:true, env:newEnv};
+        newEnv = {'DUMMY_VAR2': '2'};
+        opt = {passStderr: false, trim: false, replaceEnv: true, env: newEnv};
         cmdline = 'data/test5.sh';
         std.unsetenv('DUMMY_VAR1');
         std.unsetenv('DUMMY_VAR2');
@@ -720,8 +735,8 @@ export default () => {
         /*
             both variables should be defined when child env is updated instead of being replaced
          */
-        newEnv = {'DUMMY_VAR2':'2'};
-        opt = {passStderr: false, trim:false, replaceEnv:false, env:newEnv};
+        newEnv = {'DUMMY_VAR2': '2'};
+        opt = {passStderr: false, trim: false, replaceEnv: false, env: newEnv};
         cmdline = 'data/test5.sh';
         std.unsetenv('DUMMY_VAR1');
         std.unsetenv('DUMMY_VAR2');
@@ -740,7 +755,7 @@ export default () => {
         /*
             process should fail
          */
-        opt = {passStderr: false, trim:false, useShell:false};
+        opt = {passStderr: false, trim: false, useShell: false};
         cmdline = 'a=1 ; echo $a';
         p = new ProcessSync(cmdline, opt);
         result = p.run();
@@ -751,7 +766,7 @@ export default () => {
         /*
             process should not fail
          */
-        opt = {passStderr: false, trim:false, useShell:true};
+        opt = {passStderr: false, trim: false, useShell: true};
         cmdline = 'a=1 ; echo $a';
         p = new ProcessSync(cmdline, opt);
         p.run();
@@ -767,7 +782,7 @@ export default () => {
         /*
             process should fail
          */
-        opt = {passStderr: false, trim:false, usePath:false};
+        opt = {passStderr: false, trim: false, usePath: false};
         cmdline = 'script_which_does_not_exist_in_path.sh';
         p = new ProcessSync(cmdline, opt);
         p.run();
@@ -776,7 +791,7 @@ export default () => {
         /*
             process should not fail
          */
-        opt = {passStderr: false, trim:false, usePath:true};
+        opt = {passStderr: false, trim: false, usePath: true};
         cmdline = 'script_which_does_not_exist_in_path.sh';
         const path = std.getenv('PATH')
         std.setenv('PATH', `data:${path}`);
@@ -801,7 +816,7 @@ export default () => {
         const expectedContent = input.split("\n").map(line => `[in] ${line}`).join("\n");
 
         cmdline = 'data/test9.sh';
-        opt = {passStderr: false, stdin:tmpFile.fileno()};
+        opt = {passStderr: false, stdin: tmpFile.fileno()};
         p = new ProcessSync(cmdline, opt);
         p.run();
 
@@ -835,7 +850,7 @@ export default () => {
         /*
             process did not fail
          */
-        opt = {passStderr:false, trim:true};
+        opt = {passStderr: false, trim: true};
         cmdline = 'data/test1.sh 10';
         content = execSync(cmdline, opt);
         expectedContent = `2\n4\n6\n8\n10`;
@@ -844,7 +859,7 @@ export default () => {
         /*
             process failed
          */
-        opt = {passStderr:false, trim:true};
+        opt = {passStderr: false, trim: true};
         cmdline = 'data/test1.sh 10 2';
         try {
             execSync(cmdline, opt);
@@ -858,7 +873,7 @@ export default () => {
         /*
             process failed but error was ignored
          */
-        opt = {passStderr:false, trim:true, ignoreError:true};
+        opt = {passStderr: false, trim: true, ignoreError: true};
         cmdline = 'data/test1.sh 10 2';
         content = execSync(cmdline, opt);
         expectedContent = `2\n4\n6\n8\n10`;

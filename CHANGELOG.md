@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.8.1]
+* feat: support `passStderr` options for asynchronous processes (`process.js`)
+
 ## [0.8.0]
 * fix: match error for test function with tag (`tester.js`)
   - Thanks https://github.com/ryougiii

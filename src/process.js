@@ -50,6 +50,9 @@ const parseArgs = (command) => {
  */
 const getSignalName = (signal) => {
     // use values defined in 'include/bits/signal.h' (musl lib)
+    if (signal < 0) {
+        signal = -signal;
+    }
     switch (signal) {
         case 1:
             return 'SIGHUP';
@@ -86,7 +89,8 @@ class Process {
      * @param {boolean} [opt.useShell=false] - if {true}, run command using '/bin/sh -c' (default = {false})
      * @param {string} [opt.shell="/bin/sh"] - full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
      * @param {boolean} [opt.newSession=false] - if {true} setsid will be used (ie: child will not receive SIGINT sent to parent) (default = {false})
-     * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false})
+     * @param {boolean} [opt.passStderr=false] - if {true} stderr will not be intercepted (default = {false}) (ignored if {opt.stdout} is set)
+     * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false}) (ignored if {opt.passStderr} is {true})
      * @param {boolean} [opt.lineBuffered=false] - if {true} call stdout & stderr event listeners only after a line is complete (default = {false})
      * @param {boolean} [opt.trim=true] - if {true} stdout & stderr content will be trimmed (default = {true}) (does not apply to stdout & stderr event handlers)
      * @param {boolean} [opt.skipBlankLines=false] - if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
@@ -94,11 +98,12 @@ class Process {
      * @param {number} [opt.timeoutSignal=os.SIGTERM] - signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
      * @param {number} [opt.stdin] - if defined, sets the stdin handle used by child process (it will be rewind)
      *                                NB: don't share the same handle between multiple instances
-     * @param {string} [opt.input] - content which will be used as input (will be ignored if {stdin} was set)
+     * @param {string} [opt.input] - content which will be used as input (will be ignored if {stdin} is set)
      * @param {number} [opt.stdout] - if defined, sets the stdout handle used by child process (it will be rewind)
-     *                                 NB: - don't share the same handle between multiple instances
-     *                                     - stdout event handler will be ignored
-     *                                     - stderr redirection will be ignored
+     *                                NB: - don't share the same handle between multiple instances
+     *                                    - stdout event handler will be ignored
+     *                                    - stderr redirection will be ignored
+     *                                    - {passStderr} will be ignored
      * @param {number} [opt.bufferSize=512] - size (in bytes) of the buffer used to read from process stdout & stderr streams (default = {512})
      * @param {object} [opt.props] - custom properties
      */
@@ -133,9 +138,9 @@ class Process {
         this._didStop = false;
         this._promise = undefined;
         this._state = {
-            pid:0,
-            exitCode:0,
-            didTimeout:false
+            pid: 0,
+            exitCode: 0,
+            didTimeout: false
         };
         // whether or not process was paused
         this._paused = false;
@@ -144,20 +149,21 @@ class Process {
             callbacks
          */
         this._cb = {
-            stdout:undefined,
-            stderr:undefined,
-            exit:undefined,
-            pause:undefined,
-            resume:undefined
+            stdout: undefined,
+            stderr: undefined,
+            exit: undefined,
+            pause: undefined,
+            resume: undefined
         };
 
         /*
             output
          */
-        this._redirectStderr = (true === opt.redirectStderr);
+        this._passStderr = (true === opt.passStderr);
+        this._redirectStderr = (!this._passStderr && true === opt.redirectStderr);
         this._output = {
-            stdout:'',
-            stderr:''
+            stdout: '',
+            stderr: ''
         };
         // by default don't buffer lines
         this._lineBuffered = (true === opt.lineBuffered);
@@ -187,13 +193,13 @@ class Process {
          */
         // qjs options
         this._qjsOpt = {
-            block:false,
+            block: false,
             // by default use PATH
-            usePath:(false !== opt.usePath),
-            cwd:opt.cwd,
-            uid:opt.uid,
-            gid:opt.gid,
-            env:newEnv
+            usePath: (false !== opt.usePath),
+            cwd: opt.cwd,
+            uid: opt.uid,
+            gid: opt.gid,
+            env: newEnv
         };
         this._input = undefined;
         if (undefined !== opt.stdin) {
@@ -204,11 +210,17 @@ class Process {
         }
         if (undefined !== opt.stdout) {
             this._qjsOpt.stdout = opt.stdout;
+            /*
+              If stdout was set, we need to rely on stderr
+              to detect the end of the child process
+             */
             // disable stderr redirection
             this._redirectStderr = false;
+            // disable passStderr
+            this._passStderr = false;
         }
         // by default don't use shell
-        this._useShell = {flag:false, shell:DEFAULT_SHELL};
+        this._useShell = {flag: false, shell: DEFAULT_SHELL};
         if (true === opt.useShell) {
             this._useShell.flag = true;
             if (undefined !== opt.shell) {
@@ -222,9 +234,9 @@ class Process {
         }
         // by default don't use timeout
         this._timeout = {
-            enabled:false,
-            delay:0,
-            signal:os.SIGTERM
+            enabled: false,
+            delay: 0,
+            signal: os.SIGTERM
         };
         if (undefined !== opt.timeout) {
             const value = parseInt(opt.timeout);
@@ -447,7 +459,7 @@ class Process {
             // whether or not we reach end of streams
             let endOfStdout = false;
             let endOfStderr = false;
-            if (this._redirectStderr) {
+            if (this._redirectStderr || this._passStderr) {
                 endOfStderr = true;
             }
 
@@ -498,14 +510,14 @@ class Process {
                 if (127 == this._state.exitCode) {
                     const content = 'Command not found';
                     // check stderr
-                    if (!this._redirectStderr) {
+                    if (!this._redirectStderr && !this._passStderr) {
                         // we didn't receive any content on stderr => use custom message
                         if (!gotStderrContent) {
                             if (undefined !== this._cb.stderr) {
                                 this._cb.stderr({
-                                    pid:this._state.pid,
-                                    data:content,
-                                    timestamp:Date.now()
+                                    pid: this._state.pid,
+                                    data: content,
+                                    timestamp: Date.now()
                                 });
                             }
                             else {
@@ -519,9 +531,9 @@ class Process {
                         if (!gotStdoutContent) {
                             if (undefined !== this._cb.stdout) {
                                 this._cb.stdout({
-                                    pid:this._state.pid,
-                                    data:content,
-                                    timestamp:Date.now()
+                                    pid: this._state.pid,
+                                    data: content,
+                                    timestamp: Date.now()
                                 });
                             }
                             else {
@@ -553,8 +565,8 @@ class Process {
                 }
                 const stdoutBuffer = new Uint8Array(this._bufferSize);
                 let stdoutIncompleteLine = {
-                    data:'',
-                    timestamp:Date.now()
+                    data: '',
+                    timestamp: Date.now()
                 };
                 os.setReadHandler(stdoutPipe[0], () => {
                     if (0 === this._state.pid) {
@@ -572,9 +584,9 @@ class Process {
                         if (undefined !== this._cb.stdout) {
                             if (this._lineBuffered && '' != stdoutIncompleteLine.data) {
                                 this._cb.stdout({
-                                    pid:this._state.pid,
-                                    data:stdoutIncompleteLine.data,
-                                    timestamp:stdoutIncompleteLine.timestamp
+                                    pid: this._state.pid,
+                                    data: stdoutIncompleteLine.data,
+                                    timestamp: stdoutIncompleteLine.timestamp
                                 });
                             }
                         }
@@ -598,16 +610,16 @@ class Process {
                     }
 
                     // process data
-                    const content = bytesArrayToStr(stdoutBuffer, {from:0, to:len});
+                    const content = bytesArrayToStr(stdoutBuffer, {from: 0, to: len});
                     gotStdoutContent = true;
 
                     // call callbacks
                     if (undefined !== this._cb.stdout) {
                         if (!this._lineBuffered) {
                             this._cb.stdout({
-                                pid:this._state.pid,
-                                data:content,
-                                timestamp:timestamp
+                                pid: this._state.pid,
+                                data: content,
+                                timestamp: timestamp
                             });
                             return;
                         }
@@ -620,17 +632,17 @@ class Process {
                             if (0 == i) {
                                 if ('' != stdoutIncompleteLine.data) {
                                     this._cb.stdout({
-                                        pid:this._state.pid,
-                                        data:str,
-                                        timestamp:stdoutIncompleteLine.timestamp
+                                        pid: this._state.pid,
+                                        data: str,
+                                        timestamp: stdoutIncompleteLine.timestamp
                                     });
                                     return;
                                 }
                             }
                             this._cb.stdout({
-                                pid:this._state.pid,
-                                data:str,
-                                timestamp:timestamp
+                                pid: this._state.pid,
+                                data: str,
+                                timestamp: timestamp
                             });
                         });
                         stdoutIncompleteLine.data = result.incompleteLine;
@@ -646,7 +658,7 @@ class Process {
                 process stderr
              */
             let stderrBuffer;
-            if (!this._redirectStderr) {
+            if (!this._redirectStderr && !this._passStderr) {
                 stderrPipe = os.pipe();
                 if (null === stderrPipe) {
                     // close stdout pipe (only if no stdout handle was passed to constructor)
@@ -659,8 +671,8 @@ class Process {
                 }
                 stderrBuffer = new Uint8Array(this._bufferSize);
                 let stderrIncompleteLine = {
-                    data:'',
-                    timestamp:Date.now()
+                    data: '',
+                    timestamp: Date.now()
                 };
                 os.setReadHandler(stderrPipe[0], () => {
                     const timestamp = Date.now();
@@ -674,9 +686,9 @@ class Process {
                         if (undefined !== this._cb.stderr) {
                             if (this._lineBuffered && '' != stderrIncompleteLine.data) {
                                 this._cb.stderr({
-                                    pid:this._state.pid,
-                                    data:stderrIncompleteLine.data,
-                                    timestamp:stderrIncompleteLine.timestamp
+                                    pid: this._state.pid,
+                                    data: stderrIncompleteLine.data,
+                                    timestamp: stderrIncompleteLine.timestamp
                                 });
                             }
                         }
@@ -700,16 +712,16 @@ class Process {
                     }
                     
                     // process data
-                    const content = bytesArrayToStr(stderrBuffer, {from:0, to:len});
+                    const content = bytesArrayToStr(stderrBuffer, {from: 0, to: len});
                     gotStderrContent = true;
                     
                     // call callbacks
                     if (undefined !== this._cb.stderr) {
                         if (!this._lineBuffered) {
                             this._cb.stderr({
-                                pid:this._state.pid,
-                                data:content,
-                                timestamp:timestamp
+                                pid: this._state.pid,
+                                data: content,
+                                timestamp: timestamp
                             });
                             return;
                         }
@@ -722,17 +734,17 @@ class Process {
                             if (0 == i) {
                                 if ('' != stderrIncompleteLine.data) {
                                     this._cb.stderr({
-                                        pid:this._state.pid,
-                                        data:str,
-                                        timestamp:stderrIncompleteLine.timestamp
+                                        pid: this._state.pid,
+                                        data: str,
+                                        timestamp: stderrIncompleteLine.timestamp
                                     });
                                     return;
                                 }
                             }
                             this._cb.stderr({
-                                pid:this._state.pid,
-                                data:str,
-                                timestamp:stderrIncompleteLine.timestamp
+                                pid: this._state.pid,
+                                data: str,
+                                timestamp: stderrIncompleteLine.timestamp
                             });
                         });
                         stderrIncompleteLine.data = result.incompleteLine;
@@ -778,7 +790,9 @@ class Process {
             else {
                 qjsOpt.stdout = stdoutPipe[1];
             }
-            qjsOpt.stderr = qjsOpt.stdout;
+            if (!this._passStderr) {
+                qjsOpt.stderr = qjsOpt.stdout;
+            }
             if (undefined !== stderrPipe) {
                 qjsOpt.stderr = stderrPipe[1];
             }
@@ -826,7 +840,7 @@ class Process {
      * Wait until process is terminated
      * Will throw an error if process was not started
      *
-     * @return {Promise} same promise as the one returned by {run} method
+     * @return {Promise<ProcessState>} same promise as the one returned by {run} method
      */
     wait() {
         if (undefined === this._promise) {
@@ -848,7 +862,7 @@ class Process {
         this._paused = true;
         if (undefined !== this._cb.pause) {
             this._cb.pause({
-                pid:this._state.pid
+                pid: this._state.pid
             });
         }
     }
@@ -865,7 +879,7 @@ class Process {
         this._paused = false;
         if (undefined !== this._cb.resume) {
             this._cb.resume({
-                pid:this._state.pid
+                pid: this._state.pid
             });
         }
     }
@@ -896,13 +910,13 @@ class Process {
         this._didStop = false;
         this._promise = undefined;
         this._state = {
-            pid:0,
-            exitCode:0,
-            didTimeout:false
+            pid: 0,
+            exitCode: 0,
+            didTimeout: false
         };
         this._output = {
-            stdout:'',
-            stderr:''
+            stdout: '',
+            stderr: ''
         };
     }
 
@@ -922,7 +936,8 @@ class Process {
  * @param {boolean} [opt.useShell=false] - if {true}, run command using '/bin/sh -c' (default = {false})
  * @param {string} [opt.shell="/bin/sh"] - full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
  * @param {boolean} [opt.newSession=false] - if {true} setsid will be used (ie: child will not receive SIGINT sent to parent) (default = {false})
- * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false})
+ * @param {boolean} [opt.passStderr=false] - if {true} stderr will not be intercepted (default = {false})
+ * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false}) (ignored if {opt.passStderr} is {true})
  * @param {boolean} [opt.lineBuffered=false] - if {true} call stdout & stderr event listeners only after a line is complete (default = {false})
  * @param {boolean} [opt.trim=true] - if {true} stdout & stderr content will be trimmed (default = {true})
  * @param {boolean} [opt.skipBlankLines=false] - if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
@@ -930,7 +945,7 @@ class Process {
  * @param {number} [opt.timeoutSignal=os.SIGTERM] - signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
  * @param {number} [opt.stdin] - if defined, sets the stdin handle used by child process (it will be rewind)
  *                                NB: don't share the same handle between multiple instances
- * @param {string} [opt.input] - content which will be used as input (will be ignored if {stdin} was set)
+ * @param {string} [opt.input] - content which will be used as input (will be ignored if {stdin} is set)
  * @param {boolean} [opt.ignoreError=false] - if {true} promise will resolve to the content of stdout even if process exited with a non zero code (default = {false})
  * @param {number} [opt.bufferSize=512] - size (in bytes) of the buffer used to read from process stdout & stderr streams (default = {512})
  *
@@ -982,7 +997,7 @@ class ProcessSync {
      * @param {boolean} [opt.skipBlankLines=false] - if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
      * @param {number} [opt.stdin] - if defined, sets the stdin handle used by child process (it will be rewind)
      *                                NB: don't share the same handle between multiple instances
-     * @param {string} [opt.input] - content which will be used as input (will be ignored if {stdin} was set)
+     * @param {string} [opt.input] - content which will be used as input (will be ignored if {stdin} is set)
      * @param {object} [opt.props] - custom properties
      */
     constructor(cmdline, opt) {
@@ -1021,8 +1036,8 @@ class ProcessSync {
         this._passStderr = (false !== opt.passStderr);
         this._redirectStderr = (!this._passStderr && true === opt.redirectStderr);
         this._output = {
-            stdout:'',
-            stderr:''
+            stdout: '',
+            stderr: ''
         };
         // by default trim content
         this._trim = (false !== opt.trim);
@@ -1050,13 +1065,13 @@ class ProcessSync {
          */
         // qjs options
         this._qjsOpt = {
-            block:true,
+            block: true,
             // by default use PATH
-            usePath:(false !== opt.usePath),
-            cwd:opt.cwd,
-            uid:opt.uid,
-            gid:opt.gid,
-            env:newEnv
+            usePath: (false !== opt.usePath),
+            cwd: opt.cwd,
+            uid: opt.uid,
+            gid: opt.gid,
+            env: newEnv
         };
         this._input = undefined;
         if (undefined !== opt.stdin) {
@@ -1066,7 +1081,7 @@ class ProcessSync {
             this._input = opt.input;
         }
         // by default don't use shell
-        this._useShell = {flag:false, shell:DEFAULT_SHELL};
+        this._useShell = {flag: false, shell: DEFAULT_SHELL};
         if (true === opt.useShell) {
             this._useShell.flag = true;
             if (undefined !== opt.shell) {
@@ -1285,8 +1300,8 @@ class ProcessSync {
         this._exitCode = 0;
         this._run = false;
         this._output = {
-            stdout:'',
-            stderr:''
+            stdout: '',
+            stderr: ''
         };
     }
 }
@@ -1310,7 +1325,7 @@ class ProcessSync {
  * @param {boolean} [opt.skipBlankLines=false] - if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
  * @param {number} [opt.stdin] - if defined, sets the stdin handle used by child process (it will be rewind)
  *                                NB: don't share the same handle between multiple instances
- * @param {string} [opt.input] - content which will be used as input (will be ignored if {stdin} was set)
+ * @param {string} [opt.input] - content which will be used as input (will be ignored if {stdin} is set)
  * @param {boolean} [opt.ignoreError=false] - if {true} promise will resolve to the content of stdout even if process exited with a non zero code (default = {false})
  *
  * @return {string} content of stdout in case process exited with zero or {opt.ignoreError} is {true}
