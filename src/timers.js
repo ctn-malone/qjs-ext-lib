@@ -1,9 +1,12 @@
-"use strict;"
+/** @format */
+// @ts-check
+'use strict;';
 
 /*
-    setInterval / clearInterval implementation
+  setInterval / clearInterval implementation
  */
 
+// @ts-ignore
 import * as os from 'os';
 
 const timers = new Map();
@@ -11,63 +14,60 @@ const timers = new Map();
 /**
  * Async wait function
  *
- * @param {integer} delay delay in ms
+ * @param {number} delay - delay in ms
  *
- * @return {Promise}
+ * @returns {Promise<void>}
  */
 const wait = (delay) => {
-    return new Promise((resolve) => {
-        os.setTimeout(() => {
-            return resolve();
-        }, delay);
-    });
-}
+  return new Promise((resolve) => {
+    // @ts-ignore
+    os.setTimeout(() => {
+      return resolve();
+    }, delay);
+  });
+};
 
 /**
  * setInterval function
  *
  * @param {function} cb
- * @param {integer} interval interval in ms
+ * @param {number} interval - interval in ms
  *
- * @return {object} timer handle
+ * @returns {object} timer handle
  */
 const setInterval = (cb, interval) => {
-    const timer = {};
-    const state = {enabled:true};
-    timers.set(timer, state);
-    const fn = () => {
-        os.setTimeout(() => {
-            if (!state.enabled) {
-                return;
-            }
-            cb();
-            fn();
-        }, interval);
-    }
-    fn();
-    return timer;
-}
+  const timer = {};
+  const state = { enabled: true };
+  timers.set(timer, state);
+  const fn = () => {
+    // @ts-ignore
+    os.setTimeout(() => {
+      if (!state.enabled) {
+        return;
+      }
+      cb();
+      fn();
+    }, interval);
+  };
+  fn();
+  return timer;
+};
 
 /**
  * clearInterval function
  *
- * @param {object} timer handle
- * @param {boolean} interval interval in ms
+ * @param {object} timer - timer
  *
- * @return {boolean} {true} if timer was found, {false} otherwise
+ * @returns {boolean} {true} if timer was found, {false} otherwise
  */
 const clearInterval = (timer) => {
-    const state = timers.get(timer);
-    if (undefined === state) {
-        return false;
-    }
-    state.enabled = false;
-    timers.delete(timer);
-    return true;
-}
+  const state = timers.get(timer);
+  if (undefined === state) {
+    return false;
+  }
+  state.enabled = false;
+  timers.delete(timer);
+  return true;
+};
 
-export {
-    wait,
-    setInterval,
-    clearInterval
-}
+export { wait, setInterval, clearInterval };

@@ -569,7 +569,6 @@ Perfoms a *curl* request and return the response's body
   * opt.jwt (*string*) : *JWT* token to use (with or without *JWT* prefix)
     * provided as an alternative for services which require `JWT xxxx`  instead of `Bearer xxx` in `Authorization` header
     * will be ignored if one of (`opt.basicAuth`, `opt.bearerToken`) was set
-  * opt.context (*any*) : user define context (can be used to identify curl request later by client code)
   * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by curl process (don't share the same *handle* between multiple instances !)
   * opt.ignoreError (*boolean*):  if `true` promise will resolve to the response's body even if curl failed or HTTP failed
 

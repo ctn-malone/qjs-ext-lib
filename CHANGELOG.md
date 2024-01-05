@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.8.2] **WIP**
+* refactor: improve *JSDoc* support
+
 ## [0.8.1]
 * feat: support `passStderr` options for asynchronous processes (`process.js`)
 
