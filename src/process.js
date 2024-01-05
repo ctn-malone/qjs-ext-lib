@@ -121,8 +121,12 @@ class Process {
     /*
       command
      */
+    /** @private */
     this._cmdline = '';
-    /** @type {string[] | undefined} */
+    /** 
+     * @private
+     * @type {string[] | undefined}
+     */
     this._args = undefined;
     if (Array.isArray(cmdline)) {
       if (0 != cmdline.length) {
@@ -142,21 +146,29 @@ class Process {
     /*
       pid & state
      */
+    /** @private */
     this._didStart = false;
+    /** @private */
     this._didStop = false;
+    /** @private */
     this._promise = undefined;
+    /** @private */
     this._state = {
       pid: 0,
       exitCode: 0,
       didTimeout: false,
     };
     // whether or not process was paused
+    /** @private */
     this._paused = false;
 
     /*
       callbacks
      */
-    /** @type {Record<string, Function|undefined>} */
+    /** 
+     * @private
+     * @type {Record<string, Function|undefined>}
+     */
     this._cb = {
       stdout: undefined,
       stderr: undefined,
@@ -168,17 +180,23 @@ class Process {
     /*
       output
      */
+    /** @private */
     this._passStderr = true === opt.passStderr;
+    /** @private */
     this._redirectStderr = !this._passStderr && true === opt.redirectStderr;
+    /** @private */
     this._output = {
       stdout: '',
       stderr: '',
     };
     // by default don't buffer lines
+    /** @private */
     this._lineBuffered = true === opt.lineBuffered;
     // by default trim buffered content
+    /** @private */
     this._trim = false !== opt.trim;
     // by default do not skip empty lines
+    /** @private */
     this._skipBlankLines = true === opt.skipBlankLines;
 
     // environment
@@ -200,6 +218,7 @@ class Process {
       options
      */
     // qjs options
+    /** @private */
     this._qjsOpt = {
       block: false,
       // by default use PATH
@@ -209,6 +228,7 @@ class Process {
       gid: opt.gid,
       env: newEnv,
     };
+    /** @private */
     this._input = undefined;
     if (undefined !== opt.stdin) {
       this._qjsOpt.stdin = opt.stdin;
@@ -227,6 +247,7 @@ class Process {
       this._passStderr = false;
     }
     // by default don't use shell
+    /** @private */
     this._useShell = { flag: false, shell: DEFAULT_SHELL };
     if (true === opt.useShell) {
       this._useShell.flag = true;
@@ -235,11 +256,13 @@ class Process {
       }
     }
     // by default don't use a new session
+    /** @private */
     this._newSession = true === opt.newSession;
     if (true === opt.newSession) {
       this._newSession = true;
     }
     // by default don't use timeout
+    /** @private */
     this._timeout = {
       enabled: false,
       delay: 0,
@@ -258,11 +281,13 @@ class Process {
       }
     }
 
+    /** @private */
     this._props = opt.props;
     if (undefined === this._props || 'object' != typeof this._props) {
       this._props = {};
     }
 
+    /** @private */
     this._bufferSize = DEFAULT_BUFFER_SIZE;
     if (undefined !== opt.bufferSize) {
       const value =
@@ -977,6 +1002,8 @@ class Process {
 
   /**
    * Reset internal state. Called at the beginning of {run} method
+   * 
+   * @private
    */
   _reset() {
     this._paused = false;

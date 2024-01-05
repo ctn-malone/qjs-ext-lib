@@ -123,9 +123,11 @@ class Curl {
       opt = {};
     }
 
+    /** @private */
     this._url = url;
 
     // curl arguments
+    /** @private */
     this._curlArgs = [
       'curl',
       '-D',
@@ -187,6 +189,7 @@ class Curl {
     }
 
     // http method
+    /** @private */
     this._method = 'GET';
     if (undefined !== opt.method) {
       const method = opt.method.toUpperCase();
@@ -232,8 +235,12 @@ class Curl {
     };
 
     // output
-    /** @type {object|undefined} */
+    /**
+     * @private
+     * @type {object|undefined}
+     */
     this._outputFile = undefined;
+    /** @private */
     this._stdout = undefined;
     if (undefined !== opt.stdout) {
       this._stdout = opt.stdout;
@@ -513,11 +520,13 @@ class Curl {
     this._curlArgs.push(finalUrl);
 
     // by default normalize response headers (convert to lowercase)
+    /** @private */
     this._normalizeHeaders = true;
     if (false === opt.normalizeHeaders) {
       this._normalizeHeaders = false;
     }
     // by default ignore duplicate headers
+    /** @private */
     this._returnHeadersAs = 'string';
     if (undefined !== opt.returnHeadersAs) {
       switch (opt.returnHeadersAs) {
@@ -529,51 +538,73 @@ class Curl {
     }
 
     // by default automatically parse json responses
+    /** @private */
     this._parseJson = true;
     if (false === opt.parseJson) {
       this._parseJson = false;
     }
 
     // by default don't fail on http error
+    /** @private */
     this._failOnHttpError = false;
     if (true === opt.failOnHttpError) {
       this._failOnHttpError = true;
     }
 
     // use to ensure a single process is running
-    /** @type {Promise<import('./process.js').ProcessState>|undefined} */
+    /** 
+     * @private
+     * @type {Promise<import('./process.js').ProcessState>|undefined}
+     */
     this._promise = undefined;
-    /** @type {Process|undefined} */
+    /** 
+     * @private
+     * @type {Process|undefined}
+     */
     this._process = undefined;
 
     // duration is ms
+    /** @private */
     this._duration = 0;
 
     // will be filled with the error returned by curl in case of failure
+    /** @private */
     this._curlError = undefined;
 
     // whether or not there was a timeout
+    /** @private */
     this._didTimeout = false;
     // whether or not request is being cancelled
+    /** @private */
     this._isBeingCancelled = false;
     // the signal used to cancel the process
+    /** @private */
     this._cancelSignal = undefined;
 
     // whether or not request was cancelled
+    /** @private */
     this._wasCancelled = false;
 
+    /** @private */
     this._context = opt.context;
 
+    /** @private */
     this._didFail = false;
 
     // response
+    /** @private */
     this._responseHeaders = undefined;
+    /** @private */
     this._responseCookies = undefined;
+    /** @private */
     this._contentType = undefined;
+    /** @private */
     this._body = undefined;
+    /** @private */
     this._status = undefined;
 
     // stdin
+    /** @private */
     this._stdin = undefined;
     if (undefined !== opt.stdin) {
       this._stdin = opt.stdin;
@@ -820,6 +851,8 @@ class Curl {
   /**
    * Parse status line
    *
+   * @private
+   * 
    * @param {string} statusLine
    *
    * @returns {CurlStatus|undefined} {"code":integer, "text":string}
@@ -847,6 +880,8 @@ class Curl {
   /**
    * Parses an array of set-cookie headers values
    *
+   * @private
+   * 
    * @param {string|string[]} values - array of set-cookie headers values
    *
    * @returns {object} cookies
@@ -1125,6 +1160,8 @@ class Curl {
 
   /**
    * Reset internal state. Called at the beginning of {run} method
+   * 
+   * @private
    */
   _reset() {
     this._promise = undefined;
