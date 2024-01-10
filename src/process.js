@@ -1109,7 +1109,13 @@ class ProcessSync {
     /*
       command
      */
+    /** @private */
     this._cmdline = '';
+    /** 
+     * @private
+     * @type {string[] | undefined}
+     */
+    this._args = [];
     if (Array.isArray(cmdline)) {
       if (0 != cmdline.length) {
         this._cmdline = cmdline.join(' ');
@@ -1128,21 +1134,28 @@ class ProcessSync {
     /*
       state
      */
+    /** @private */
     this._run = false;
+    /** @private */
     this._exitCode = 0;
 
     /*
       output
      */
+    /** @private */
     this._passStderr = false !== opt.passStderr;
+    /** @private */
     this._redirectStderr = !this._passStderr && true === opt.redirectStderr;
+    /** @private */
     this._output = {
       stdout: '',
       stderr: '',
     };
     // by default trim content
+    /** @private */
     this._trim = false !== opt.trim;
     // by default do not skip empty lines
+    /** @private */
     this._skipBlankLines = true === opt.skipBlankLines;
 
     // environment
@@ -1164,6 +1177,7 @@ class ProcessSync {
       options
      */
     // qjs options
+    /** @private */
     this._qjsOpt = {
       block: true,
       // by default use PATH
@@ -1173,6 +1187,7 @@ class ProcessSync {
       gid: opt.gid,
       env: newEnv,
     };
+    /** @private */
     this._input = undefined;
     if (undefined !== opt.stdin) {
       this._qjsOpt.stdin = opt.stdin;
@@ -1180,6 +1195,7 @@ class ProcessSync {
       this._input = opt.input;
     }
     // by default don't use shell
+    /** @private */
     this._useShell = { flag: false, shell: DEFAULT_SHELL };
     if (true === opt.useShell) {
       this._useShell.flag = true;
@@ -1188,6 +1204,7 @@ class ProcessSync {
       }
     }
 
+    /** @private */
     this._props = opt.props;
     if (undefined === this._props || 'object' != typeof this._props) {
       this._props = {};
@@ -1398,6 +1415,8 @@ class ProcessSync {
 
   /**
    * Reset internal state. Called at the beginning of {run} method
+   *
+   * @private
    */
   _reset() {
     this._exitCode = 0;
