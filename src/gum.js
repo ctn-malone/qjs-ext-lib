@@ -286,7 +286,7 @@ export const chooseItemFromList = (list, opt) => {
     }
   }
   if (opt.cursor) {
-    cmdline.push('--cursor', opt.cursor);
+    cmdline.push(`--cursor=${opt.cursor}`);
   }
   if (opt.height) {
     cmdline.push('--height', opt.height.toString());
@@ -361,7 +361,7 @@ export const chooseItemsFromList = (list, opt) => {
     }
   }
   if (opt.cursor) {
-    cmdline.push('--cursor', opt.cursor);
+    cmdline.push(`--cursor=${opt.cursor}`);
   }
   if (opt.height) {
     cmdline.push('--height', opt.height.toString());
@@ -375,13 +375,13 @@ export const chooseItemsFromList = (list, opt) => {
     cmdline.push(`--ordered=${opt.ordered ? 'yes' : 'no'}`);
   }
   if (opt.cursorPrefix) {
-    cmdline.push('--cursor-prefix', opt.cursorPrefix);
+    cmdline.push(`--cursor-prefix=${opt.cursorPrefix}`);
   }
   if (opt.selectedPrefix) {
-    cmdline.push('--selected-prefix', opt.selectedPrefix);
+    cmdline.push(`--selected-prefix=${opt.selectedPrefix}`);
   }
   if (opt.unselectedPrefix) {
-    cmdline.push('--unselected-prefix', opt.unselectedPrefix);
+    cmdline.push(`--unselected-prefix=${opt.unselectedPrefix}`);
   }
 
   addCustomArguments(cmdline, opt.custom?.args, ['limit', 'no-limit']);
@@ -1060,7 +1060,7 @@ export const chooseFile = (opt) => {
   opt = opt || {};
   const cmdline = ['gum', 'file'];
   if (opt.cursor !== undefined) {
-    cmdline.push('--cursor', opt.cursor);
+    cmdline.push(`--cursor=${opt.cursor}`);
   }
   if (opt.all) {
     cmdline.push('--all');
