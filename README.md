@@ -129,6 +129,39 @@ main();
 
 See more [examples](examples/ssh)
 
+## Build CLI tools
+
+```js
+import * as gum from 'ext/gum.js';
+
+while (true) {
+  const expectedNumber = (Math.floor(Math.random() * 5) + 1).toString();
+  const item = gum.chooseItemFromList(
+    [1, 2, 3, 4, 5].map((e) => e.toString()),
+    {
+      header: 'Please try to guess my number',
+      cursor: '-> ',
+    }
+  );
+  if (!item) {
+    break;
+  }
+  let message =
+    item.value === expectedNumber.toString()
+      ? gum.style('Correct !', { foreground: '#00ff00' })
+      : gum.style('Wrong !', { foreground: '#ff0000' });
+  console.log(
+    `${message} The number was ${gum.style(expectedNumber, { bold: true })}`
+  );
+  if (!gum.confirm({ prompt: 'Do you want to play again ?' })) {
+    break;
+  }
+}
+console.log('Goodbye !');
+```
+
+See more [examples](examples/gum)
+
 # Run unit tests
 
 Run `run.js` under `test` directory
