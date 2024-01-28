@@ -160,6 +160,8 @@ while (true) {
 console.log('Goodbye !');
 ```
 
+![Example](img/gum-readme.gif)
+
 See more [examples](examples/gum)
 
 # Run unit tests
