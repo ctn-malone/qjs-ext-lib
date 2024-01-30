@@ -1,7 +1,9 @@
 # Change Log
 
-## [0.8.2] **WIP**
+## [0.9.0]
 * refactor: improve *JSDoc* support
+* feat: add support for [gum](https://github.com/charmbracelet/gum) binary
+  - Thanks https://github.com/nicolasduteil
 
 ## [0.8.1]
 * feat: support `passStderr` options for asynchronous processes (`process.js`)
