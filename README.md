@@ -8,6 +8,7 @@ A set of pure JS extensions for [QuickJS](https://github.com/ctn-malone/quickjs-
 * minimal unit testing library (see [doc](doc/tester.md))
 * semver versions comparison (see [doc](doc/version.md))
 * interact with [pass](https://www.passwordstore.org/) (see [doc](doc/password-store.md))
+* build glamorous shell scripts using [gum](https://github.com/charmbracelet/gum) (see [doc](doc/gum.md))
 
 # Rational
 
@@ -127,6 +128,41 @@ main();
 ```
 
 See more [examples](examples/ssh)
+
+## Build CLI tools
+
+```js
+import * as gum from 'ext/gum.js';
+
+while (true) {
+  const expectedNumber = (Math.floor(Math.random() * 5) + 1).toString();
+  const item = gum.chooseItemFromList(
+    [1, 2, 3, 4, 5].map((e) => e.toString()),
+    {
+      header: 'Please try to guess my number',
+      cursor: '-> ',
+    }
+  );
+  if (!item) {
+    break;
+  }
+  let message =
+    item.value === expectedNumber.toString()
+      ? gum.style('Correct !', { foreground: '#00ff00' })
+      : gum.style('Wrong !', { foreground: '#ff0000' });
+  console.log(
+    `${message} The number was ${gum.style(expectedNumber, { bold: true })}`
+  );
+  if (!gum.confirm({ prompt: 'Do you want to play again ?' })) {
+    break;
+  }
+}
+console.log('Goodbye !');
+```
+
+![Example](img/gum-readme.gif)
+
+See more [examples](examples/gum)
 
 # Run unit tests
 
