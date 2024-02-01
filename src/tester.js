@@ -537,10 +537,16 @@ const tester = {
   },
 
   /**
+   * @callback TestCallback
+   *
+   * @param {Function} done - Promise resolver
+   */
+
+  /**
    * Register a test
    *
    * @param {string} testName - test name
-   * @param {Function} fn - test function
+   * @param {TestCallback} fn - test function
    * @param {object} [opt] - options
    * @param {boolean} [opt.isAsync] - whether or not test is async (default = {false})
    * @param {string[]|string} [opt.tags] - tags to assign to this test
@@ -597,6 +603,7 @@ const tester = {
         /** @type {Promise<void>} */
         const p = new Promise((resolve) => {
           try {
+            // @ts-ignore
             fn();
           } catch (e) {
             handleException(currentTest, e);

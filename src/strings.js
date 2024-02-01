@@ -2,6 +2,12 @@
 // @ts-check
 'use strict;';
 
+// @ts-ignore
+import * as std from 'std';
+// @ts-ignore
+import * as os from 'os';
+
+import { Process, ensureProcessResult, exec } from './process.js';
 /*
   String helpers. Mostly for internal use
  */
@@ -211,7 +217,7 @@ const strToBytesArray = (str, opt) => {
  * Split a string into multiple lines
  *
  * @param {string} content - new content to split
- * @param {string} incompleteLine - previous incomplete line
+ * @param {string} [incompleteLine] - previous incomplete line
  * @param {boolean} [skipBlankLines=false] - if {true} empty lines will be ignored (default = {false})
  *
  * @returns {GetLinesOutput} {lines:string[], incompleteLine:string}
@@ -250,4 +256,100 @@ const getLines = (content, incompleteLine, skipBlankLines = false) => {
   return result;
 };
 
-export { bytesArrayToStr, strToBytesArray, getLines };
+/**
+ * Encode a plain string to a base64 string
+ *
+ * @param {string} plainStr
+ *
+ * @return {Promise<string>}
+ */
+const base64EncodeStr = async (plainStr) => {
+  return exec(['base64', '-w', '0'], {
+    input: plainStr,
+  });
+};
+
+/**
+ * Encode a Uint8Array to a base64 string
+ *
+ * @param {Uint8Array} bytesArray
+ *
+ * @return {Promise<string>}
+ */
+const base64EncodeBytesArray = async (bytesArray) => {
+  const outputFile = std.tmpfile();
+  const inputFile = std.tmpfile();
+  inputFile.write(bytesArray.buffer, 0, bytesArray.length);
+  inputFile.flush();
+
+  const process = new Process(['base64', '-w', '0'], {
+    stdin: inputFile.fileno(),
+    stdout: outputFile.fileno(),
+  })
+  await process.run();
+  inputFile.close();
+  if (!process.success) {
+    outputFile.close();
+    ensureProcessResult(process);
+  }
+
+  outputFile.flush();
+  outputFile.seek(0, std.SEEK_SET);
+  const output = outputFile.readAsString();
+  outputFile.close();
+  return output;
+};
+
+/**
+ * Decode a base64 string to a plain string
+ *
+ * @param {string} base64Str
+ *
+ * @return {Promise<string>}
+ */
+const base64DecodeStr = async (base64Str) => {
+  return exec(['base64', '-d', '-'], {
+    input: base64Str,
+    trim: false,
+  });
+};
+
+/**
+ * Decode a base64 string to a Uint8Array
+ *
+ * @param {string} base64Str
+ *
+ * @return {Promise<Uint8Array>}
+ */
+const base64DecodeBytesArray = async (base64Str) => {
+  const outputFile = std.tmpfile();
+
+  const process = new Process(['base64', '-d', '-'], {
+    input: base64Str,
+    stdout: outputFile.fileno(),
+  });
+  await process.run();
+  if (!process.success) {
+    outputFile.close();
+    ensureProcessResult(process);
+  }
+
+  outputFile.flush();
+  outputFile.seek(0, std.SEEK_END);
+  const fileSize = outputFile.tell();
+  outputFile.seek(0, std.SEEK_SET);
+  const bytesArray = new Uint8Array(fileSize);
+  outputFile.read(bytesArray.buffer, 0, fileSize);
+  outputFile.close();
+  return bytesArray;
+};
+
+export {
+  bytesArrayToStr,
+  strToBytesArray,
+  getLines,
+  base64EncodeStr,
+  base64EncodeBytesArray,
+  base64DecodeStr,
+  base64DecodeBytesArray,
+};

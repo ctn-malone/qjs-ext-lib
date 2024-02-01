@@ -376,7 +376,7 @@ os.setTimeout(() => {
 
 ## exec(...)
 
-`.exec(cmdline, opt)`
+`exec(cmdline, opt)`
 
 Executes a command and return the content of *stdout*
 
@@ -433,7 +433,7 @@ console.log(`stdout: ${stdout}`);
 
 ## waitpid(...)
 
-`.waitpid(pid, pollDelay)`
+`waitpid(pid, pollDelay)`
 
 Wait asynchronously until a given process is terminated
 
@@ -614,7 +614,7 @@ console.log(JSON.stringify(p.props));
 
 ## execSync(...)
 
-`.execSync(cmdline, opt)`
+`execSync(cmdline, opt)`
 
 Executes a command synchronously and return the content of *stdout*
 
@@ -663,4 +663,29 @@ const stdout = execSync('md5sum', {
     input: 'Hello world'
 });
 console.log(`stdout: ${stdout}`);
+```
+
+## ensureProcessResult(...)
+
+`ensureProcessResult(process)`
+
+Ensures a process executed successfully (ie: exit code == 0) and throws an error if not
+
+* **[process]** (*Process|ProcessSync*) : process to check result for
+
+In case child process failed, an exception will be triggered, using the content of *stderr* as message
+
+Following extra properties will be added to the exception
+
+- If process is a `Process`
+  * `state` *object* (`ProcessState`) as returned by `Process.state` property
+
+- If process is a `ProcessSync`
+  * `exitCode` *integer*
+
+```js
+const process = new Process('ls -invalid');
+await process.run();
+// will throw an error
+ensureProcessResult(process);
 ```

@@ -123,7 +123,7 @@ class Process {
      */
     /** @private */
     this._cmdline = '';
-    /** 
+    /**
      * @private
      * @type {string[] | undefined}
      */
@@ -165,7 +165,7 @@ class Process {
     /*
       callbacks
      */
-    /** 
+    /**
      * @private
      * @type {Record<string, Function|undefined>}
      */
@@ -1002,7 +1002,7 @@ class Process {
 
   /**
    * Reset internal state. Called at the beginning of {run} method
-   * 
+   *
    * @private
    */
   _reset() {
@@ -1061,21 +1061,11 @@ const exec = async (cmdline, opt) => {
   // @ts-ignore
   delete options.stdout;
   const p = new Process(cmdline, options);
-  const state = await p.run();
-  if (0 == state.exitCode) {
-    return p.stdout;
+  await p.run();
+  if (!ignoreError) {
+    ensureProcessResult(p);
   }
-  if (ignoreError) {
-    return p.stdout;
-  }
-  let message = p.stderr;
-  if ('' == message && 127 == state.exitCode) {
-    message = 'Command not found';
-  }
-  /** @type {any} */
-  const err = new Error(message);
-  err.state = state;
-  throw err;
+  return p.stdout;
 };
 
 class ProcessSync {
@@ -1111,7 +1101,7 @@ class ProcessSync {
      */
     /** @private */
     this._cmdline = '';
-    /** 
+    /**
      * @private
      * @type {string[] | undefined}
      */
@@ -1460,20 +1450,11 @@ const execSync = (cmdline, opt) => {
   const ignoreError = true === options.ignoreError;
   delete options.ignoreError;
   const p = new ProcessSync(cmdline, options);
-  if (p.run()) {
-    return p.stdout;
+  p.run();
+  if (!ignoreError) {
+    ensureProcessResult(p);
   }
-  if (ignoreError) {
-    return p.stdout;
-  }
-  let message = p.stderr;
-  if ('' == message && 127 == p.exitCode) {
-    message = 'Command not found';
-  }
-  /** @type {any} */
-  const err = new Error(message);
-  err.exitCode = p.exitCode;
-  throw err;
+  return p.stdout;
 };
 
 /**
@@ -1495,6 +1476,40 @@ const waitpid = async (pid, pollDelay = 250) => {
   }
 };
 
+/**
+ * Ensures a process executed successfully (ie: exit code == 0) and throws an error if not
+ *
+ * @param {Process|ProcessSync} process - process to check result for
+ *
+ * @throws {Error}
+ */
+const ensureProcessResult = (process) => {
+  if (process instanceof Process) {
+    const state = process.state;
+    if (0 !== state.exitCode) {
+      let message = process.stderr;
+      if ('' == message && 127 == state.exitCode) {
+        message = 'Command not found';
+      }
+      /** @type {any} */
+      const err = new Error(message);
+      err.state = state;
+      throw err;
+    }
+  } else if (process instanceof ProcessSync) {
+    if (0 !== process.exitCode) {
+      let message = process.stderr;
+      if ('' == message && 127 == process.exitCode) {
+        message = 'Command not found';
+      }
+      /** @type {any} */
+      const err = new Error(message);
+      err.exitCode = process.exitCode;
+      throw err;
+    }
+  }
+};
+
 export default exec;
 
-export { Process, exec, waitpid, ProcessSync, execSync };
+export { Process, exec, waitpid, ProcessSync, execSync, ensureProcessResult };
