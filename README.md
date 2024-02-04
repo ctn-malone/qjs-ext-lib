@@ -27,13 +27,13 @@ Following commands can also be used to run `qjs.sh` or `qjsc.sh` using `nix run`
 - run `qjs.sh`
 
 ```
-nix run github:ctn-malone/quickjs-cross-compiler
+nix run github:ctn-malone/qjs-ext-lib#qjs
 ```
 
 - run `qjsc.sh`
 
 ```
-nix run github:ctn-malone/quickjs-cross-compiler#qjsc
+nix run github:ctn-malone/qjs-ext-lib#qjsc
 ```
 
 Inside the Nix shell, any `.js` file from the library can be imported from an `ext` directory
