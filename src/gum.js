@@ -139,7 +139,7 @@ export const getVersion = () => {
   if (!p.run()) {
     return undefined;
   }
-  const matches = p.stdout.match(/v(\d+\.\d+\.\d+)/);
+  const matches = p.stdout.match(/v?(\d+\.\d+(?:\.\d+)*)/);
   if (!matches) {
     return undefined;
   }
