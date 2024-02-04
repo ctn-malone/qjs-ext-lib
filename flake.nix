@@ -1,12 +1,12 @@
 {
-  description = "QuickJs Extensions Library";
+  description = "QuickJS Extensions Library";
 
   inputs = {
     nixpkgs = {
-      url = "github:nixos/nixpkgs?rev=057f9aecfb71c4437d2b27d3323df7f93c010b7e";
+      url = "github:nixos/nixpkgs/nixos-unstable";
     };
 
-    quickjs-static.url = "github:ctn-malone/quickjs-cross-compiler?rev=d2886aec4a26d15e17ffb2f8723a75ddccee0f65";
+    quickjs-static.url = "github:ctn-malone/quickjs-cross-compiler?rev=5f6239ff669c0992d7db2d9f3781f25ac5bf2c14";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -14,38 +14,60 @@
     flake-utils.lib.eachSystem [ "x86_64-linux" "armv7l-linux" "aarch64-linux" ] (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        highlight = text: "\\x1b[1;38;5;212m${text}\\x1b[0m";
       in
       {
 
         packages.qjs-ext-lib = pkgs.stdenv.mkDerivation {
           name = "qjs-ext-lib";
 
-          src = ./src;
+          src = ./.;
 
           configurePhase = false;
           buildPhase = false;
           installPhase = ''
-            mkdir -p $out/ext
-            cp -R $src/* $out/ext
+            mkdir -p $out/bin/ext
+            cp -R $src/src/* $out/bin/ext
+            cp $src/shell/qel-*.sh $out/bin
+            cp -R ${quickjs-static.packages.${system}.quickjs-static}/bin/* $out/bin
           '';
         };
 
         defaultPackage = self.packages.${system}.qjs-ext-lib;
 
+        apps = {
+          # interpreter
+          default = {
+            type = "app";
+            program = "${self.packages.${system}.qjs-ext-lib}/bin/qjs.sh";
+          };
+
+          qjs = self.apps.${system}.default;
+
+          # compiler
+          qjsc = {
+            type = "app";
+            program = "${self.packages.${system}.qjs-ext-lib}/bin/qjsc.sh";
+          };
+        };
+
+        # dev shell with extra runtime dependencies
         devShell = pkgs.mkShell {
           name = "qjs-ext-lib";
 
           buildInputs = [
+            # to compress compiled binaries
             pkgs.upx
             pkgs.curl
-            quickjs-static.packages.${system}.quickjs-static
+            # to build interactive CLIs
+            pkgs.gum
             self.packages.${system}.qjs-ext-lib
           ];
 
           shellHook = ''
-            export QJS_LIB_DIR=${self.packages.${system}.qjs-ext-lib}
-            echo "To compile a JS file, use qjsc.sh -o <binary> <source>" 1>&2
-            echo "To run a JS file, use qjs.sh <source>" 1>&2
+            echo -e "To compile a JS file, use ${highlight "qjsc.sh -o <binary> <source>"}" 1>&2
+            echo -e "To run a JS file, use ${highlight "qjs.sh <source>"}" 1>&2
+            echo -e "To create a symlink to the lib directory (and improve completion/typing in your IDE), use ${highlight "qel-symlink.sh"}" 1>&2
           '';
         };
       }

@@ -22,6 +22,20 @@ In order to get a shell with the static interpreter (`qjs.sh`) and compiler (`qj
 nix develop github:ctn-malone/qjs-ext-lib
 ```
 
+Following commands can also be used to run `qjs.sh` or `qjsc.sh` using `nix run`
+
+- run `qjs.sh`
+
+```
+nix run github:ctn-malone/quickjs-cross-compiler
+```
+
+- run `qjsc.sh`
+
+```
+nix run github:ctn-malone/quickjs-cross-compiler#qjsc
+```
+
 Inside the Nix shell, any `.js` file from the library can be imported from an `ext` directory
 
 ```js
