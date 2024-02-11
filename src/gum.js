@@ -978,7 +978,10 @@ export const chooseRowFromTable = (columns, rows, opt) => {
 
 const CONFIRM_DEFAULT_PROMPT = 'Are you sure?';
 
-/** @enum {string} */
+/** 
+ * @readonly
+ * @enum {string} 
+ */
 export const ConfirmAnswer = {
   YES: 'yes',
   NO: 'no',
