@@ -70,6 +70,7 @@ Constructor
       * **[opt.bodyFile.filepath]** (*string*) : path of the local file (mandatory)
       * opt.bodyFile.binary (*boolean*) : if `true`, disable extra processing on the file (ie: use `--data-binary`) (default = `false`)
   * opt.params (*object*) : parameters to add as query string
+  * opt.useBracketsForParams (*boolean*) - if `true`, use `param[]=value1&param[]=value2` if a query string parameter is defined multiple times (default = `true`)
   * opt.normalizeHeaders (*boolean*) : if `true`, header names in response will be converted to lower case (default = `true`)
   * opt.parseJson (*boolean*) : if `true`, automatically parse JSON in responses (default = `true`)
   * opt.failOnHttpError (*boolean*) : if `true`, `run` method will return `false` in case status code is not in `[200, 299]` (default = `false`)
@@ -559,6 +560,7 @@ Perfoms a *curl* request and return the response's body
       * **[opt.bodyFile.filepath]** (*string*) : path of the local file (mandatory)
       * opt.bodyFile.binary (*boolean*) : if `true`, disable extra processing on the file (ie: use `--data-binary`) (default = `false`)
   * opt.params (*object*) : parameters to add as query string
+  * opt.useBracketsForParams (*boolean*) - if `true`, use `param[]=value1&param[]=value2` if a query string parameter is defined multiple times (default = `true`)
   * opt.parseJson (*boolean*) : if `true`, automatically parse JSON in responses (default = `true`)
   * opt.failOnHttpError (*boolean*) : if `true`, `run` method will return `false` in case status code is not in `[200, 299]` (default = `false`)
   * opt.basicAuth (*object*) : basic HTTP authentication 

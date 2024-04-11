@@ -104,6 +104,7 @@ class Curl {
    *                                                 Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
    *                                                 When using a {string}, {opt.bodyFile} should be the path of the file containing the body
    * @param {object} [opt.params] - parameters to add as query string
+   * @param {boolean} [opt.useBracketsForParams=true] - if {true}, use "param[]=value1&param[]=value2" if a query string parameter is defined multiple times (default = {true})
    * @param {boolean} [opt.normalizeHeaders=true] - if {true}, header names in response will be converted to lower case (default = {true})
    * @param {string} [opt.returnHeadersAs="string"] - indicates how response headers should be returned
    *                                                   + "string" (default) : if an header appears multiple times, only the first value will be kept
@@ -495,6 +496,7 @@ class Curl {
     }
     // url & query string
     let finalUrl = url;
+    const useBracketsForParams = false !== opt.useBracketsForParams;
     if (undefined !== opt.params && 'object' == typeof opt.params) {
       let qs = '';
       for (const [key, value] of Object.entries(opt.params)) {
@@ -503,7 +505,9 @@ class Curl {
             if ('' != qs) {
               qs += '&';
             }
-            qs += `${key}[]=${encodeURIComponent(value[i])}`;
+            qs += `${key}${
+              useBracketsForParams ? '[]' : ''
+            }=${encodeURIComponent(value[i])}`;
           }
         } else {
           if ('' != qs) {
@@ -552,12 +556,12 @@ class Curl {
     }
 
     // use to ensure a single process is running
-    /** 
+    /**
      * @private
      * @type {Promise<import('./process.js').ProcessState>|undefined}
      */
     this._promise = undefined;
-    /** 
+    /**
      * @private
      * @type {Process|undefined}
      */
@@ -636,13 +640,17 @@ class Curl {
     if (undefined !== this._stdout) {
       processOpt.stdout = this._stdout;
     }
-    // in case of conditional output, pass a temporary file as stdout to process
-    else if (
-      undefined !== this._outputFile &&
-      this._outputFile.conditionalOutput
-    ) {
-      conditionalOutputTmpFile = std.tmpfile();
-      processOpt.stdout = conditionalOutputTmpFile.fileno();
+    // output file
+    else if (undefined !== this._outputFile) {
+      // in case of conditional output, pass a temporary file as stdout to process
+      if (this._outputFile.conditionalOutput) {
+        conditionalOutputTmpFile = std.tmpfile();
+        processOpt.stdout = conditionalOutputTmpFile.fileno();
+      }
+    }
+    // by default, disable streaming to improve performances
+    else {
+      processOpt.streamStdout = false;
     }
 
     this._process = new Process(cmdline, processOpt);
@@ -852,7 +860,7 @@ class Curl {
    * Parse status line
    *
    * @private
-   * 
+   *
    * @param {string} statusLine
    *
    * @returns {CurlStatus|undefined} {"code":integer, "text":string}
@@ -881,7 +889,7 @@ class Curl {
    * Parses an array of set-cookie headers values
    *
    * @private
-   * 
+   *
    * @param {string|string[]} values - array of set-cookie headers values
    *
    * @returns {object} cookies
@@ -1160,7 +1168,7 @@ class Curl {
 
   /**
    * Reset internal state. Called at the beginning of {run} method
-   * 
+   *
    * @private
    */
   _reset() {
@@ -1226,6 +1234,7 @@ class Curl {
  *                                                 Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
  *                                                 When using a {string}, {opt.bodyFile} should be the path of the file containing the body
  * @param {object} [opt.params] - parameters to add as query string
+ * @param {boolean} [opt.useBracketsForParams=true] - if {true}, use "param[]=value1&param[]=value2" if a query string parameter is defined multiple times (default = {true})
  * @param {boolean} [opt.parseJson=true] - if {true}, automatically parse JSON in responses (default = {true})
  * @param {boolean} [opt.failOnHttpError=false] - if {true}, {run} method will return {false} in case status code is not in [200, 299] (default = {false})
  * @param {object} [opt.basicAuth] - basic HTTP authentication {"username":"string", "password":"string"}
