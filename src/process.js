@@ -95,8 +95,10 @@ class Process {
    * @param {boolean} [opt.useShell=false] - if {true}, run command using '/bin/sh -c' (default = {false})
    * @param {string} [opt.shell="/bin/sh"] - full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
    * @param {boolean} [opt.newSession=false] - if {true} setsid will be used (ie: child will not receive SIGINT sent to parent) (default = {false})
-   * @param {boolean} [opt.passStderr=false] - if {true} stderr will not be intercepted (default = {false}) (ignored if {opt.stdout} is set)
-   * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false}) (ignored if {opt.passStderr} is {true})
+   * @param {boolean} [opt.passStderr=false] - if {true} stderr will not be intercepted (default = {false})
+   *                                           Ignored if {opt.stdout} is set or {opt.streamStdout} is {false}
+   * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false})
+   *                                               Ignored if {opt.passStderr} is {true}, {opt.stdout} is set or {opt.streamStdout} is {false}
    * @param {boolean} [opt.lineBuffered=false] - if {true} call stdout & stderr event listeners only after a line is complete (default = {false})
    * @param {boolean} [opt.trim=true] - if {true} stdout & stderr content will be trimmed (default = {true}) (does not apply to stdout & stderr event handlers)
    * @param {boolean} [opt.skipBlankLines=false] - if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
@@ -109,7 +111,12 @@ class Process {
    *                                NB: - don't share the same handle between multiple instances
    *                                    - stdout event handler will be ignored
    *                                    - stderr redirection will be ignored
-   *                                    - {passStderr} will be ignored
+   *                                    - {opt.passStderr} will be ignored
+   * @param {boolean} [opt.streamStdout=true] - whether or not streaming should be enabled (default = {true}, ignored if {opt.stdout} is set)
+   *                                            NB: when set to {false}
+   *                                              - stdout event handler will be ignored
+   *                                              - stderr redirection will be ignored
+   *                                              - {opt.passStderr} will be ignored
    * @param {number} [opt.bufferSize=512] - size (in bytes) of the buffer used to read from process stdout & stderr streams (default = {512})
    * @param {object} [opt.props] - custom properties
    */
@@ -235,12 +242,25 @@ class Process {
     } else if (undefined !== opt.input && 'string' == typeof opt.input) {
       this._input = opt.input;
     }
+    /** @private */
+    this._stdoutFile = undefined;
+    if (opt.streamStdout === false) {
+      this._stdoutFile = std.tmpfile();
+      if (null === this._stdoutFile) {
+        // @ts-ignore
+        throw new InternalError('Could not create temporary stdout file');
+      }
+    }
     if (undefined !== opt.stdout) {
       this._qjsOpt.stdout = opt.stdout;
-      /*
-        If stdout was set, we need to rely on stderr
-        to detect the end of the child process
-       */
+    } else if (opt.streamStdout === false) {
+      this._qjsOpt.stdout = this._stdoutFile.fileno();
+    }
+    /*
+      If stdout was set, we need to rely on stderr
+      to detect the end of the child process
+     */
+    if (this._qjsOpt.stdout) {
       // disable stderr redirection
       this._redirectStderr = false;
       // disable passStderr
@@ -531,6 +551,24 @@ class Process {
         if (undefined !== stdinPipe) {
           // @ts-ignore
           os.close(stdinPipe[1]);
+        }
+
+        if (this._stdoutFile) {
+          // read stdout
+          this._stdoutFile.flush();
+          this._stdoutFile.seek(0, std.SEEK_SET);
+          this._output.stdout = this._stdoutFile.readAsString();
+          this._stdoutFile.close();
+          if ('' != this._output.stdout) {
+            // remove empty lines
+            if (this._skipBlankLines) {
+              this._output.stdout = this._output.stdout.replace(/^\s*\n/gm, '');
+            }
+            // trim
+            if (this._trim) {
+              this._output.stdout = this._output.stdout.trim();
+            }
+          }
         }
 
         /*
@@ -1036,8 +1074,13 @@ class Process {
  * @param {boolean} [opt.useShell=false] - if {true}, run command using '/bin/sh -c' (default = {false})
  * @param {string} [opt.shell="/bin/sh"] - full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
  * @param {boolean} [opt.newSession=false] - if {true} setsid will be used (ie: child will not receive SIGINT sent to parent) (default = {false})
- * @param {boolean} [opt.passStderr=false] - if {true} stderr will not be intercepted (default = {false})
- * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false}) (ignored if {opt.passStderr} is {true})
+ * @param {boolean} [opt.passStderr=false] - if {true} stderr will not be intercepted (default = {false}) (ignored if {opt.streamStdout} is {false})
+ * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false})
+ *                                               Ignored if {opt.passStderr} is {true} or {opt.streamStdout} is {false}
+ * @param {boolean} [opt.streamStdout=true] - whether or not streaming should be enabled (default = {true})
+ *                                            NB: when set to {false}
+ *                                              - stderr redirection will be ignored
+ *                                              - {opt.passStderr} will be ignored
  * @param {boolean} [opt.lineBuffered=false] - if {true} call stdout & stderr event listeners only after a line is complete (default = {false})
  * @param {boolean} [opt.trim=true] - if {true} stdout & stderr content will be trimmed (default = {true})
  * @param {boolean} [opt.skipBlankLines=false] - if {true} empty lines will be ignored in both stdout & stderr content (default = {false})

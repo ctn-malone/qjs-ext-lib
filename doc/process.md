@@ -37,7 +37,13 @@ Constructor
   * opt.useShell (*boolean*) : if `true`, run command using `/bin/sh -c` (default = `false`)
   * opt.shell (*string*) : full path to shell (default = `/bin/sh`, ignored if `opt.useShell` is `false`)
   * opt.newSession (*boolean*) : if `true` `setsid` will be used (ie: child will not receive `SIGINT` sent to parent) (default = `false`)
+  * opt.passStderr (*boolean*) : if `true` stderr will not be intercepted (default = `false`)
+    - ignored if `opt.stdout` is set
+    - ignored if `opt.streamStdout` is `false`
   * opt.redirectStderr (*boolean*) : if `true` *stderr* will be redirected to *stdout* (default = `false`)
+    - ignored if `opt.stdout` is set
+    - ignored if `opt.streamStdout` is `false`
+    - ignored if `opt.passStderr` is `true`
   * opt.lineBuffered (*boolean*) : if `true` call *stdout* & *stderr* event listeners only after a line is complete (default = `false`)
   * opt.trim (*boolean*) : if `true` *stdout* & *stderr* content will be trimmed (default = `true`) (does not apply to *stdout* & *stderr* event listeners)
   * opt.skipBlankLines (*boolean*) : if `true` empty lines will be ignored in both *stdout* & *stderr* content (default = `false`)
@@ -46,8 +52,15 @@ Constructor
   * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by child process (don't share the same *handle* between multiple instances as it will be automatically rewind !)
   * opt.input (*string*) : content which will be used as input (will be ignored if *stdin* was set)
   * opt.stdout (*integer*) : if defined, sets the *stdout* handle used by child process (don't share the same *handle* between multiple instances as it will be automatically rewind !)
-    * *stdout* event handler will be ignored
-    * *stderr* redirection will be ignored
+    - *stdout* event handler will be ignored
+    - *stderr* redirection will be ignored
+    - `opt.passStderr` will be ignored
+  * opt.streamStdout (*boolean*) : whether or not streaming should be enabled (default = `true`)
+    - ignored if `opt.stdout` is set
+    - if `true`
+      * stdout event handler will be ignored
+      * stderr redirection will be ignored
+      * `opt.passStderr` will be ignored
  * opt.bufferSize (*integer*) : size (in bytes) of the buffer used to read from child process streams (default = `512`)
  * opt.props (*object*) : custom properties
 
@@ -391,7 +404,11 @@ Executes a command and return the content of *stdout*
   * opt.useShell (*boolean*) : if `true`, run command using `/bin/sh -c` (default = `false`)
   * opt.shell (*string*) : full path to shell (default = `/bin/sh`, ignored if `opt.useShell` is `false`)
   * opt.newSession (*boolean*) : if `true` `setsid` will be used (ie: child will not receive `SIGINT` sent to parent) (default = `false`)
+  * opt.passStderr (*boolean*) : if `true` stderr will not be intercepted (default = `false`)
+    - ignored if `opt.streamStdout` is `false`
   * opt.redirectStderr (*boolean*) : if `true` *stderr* will be redirected to *stdout* (default = `false`)
+    - ignored if `opt.streamStdout` is `false`
+    - ignored if `opt.passStderr` is `true`
   * opt.lineBuffered (*boolean*) : if `true` call *stdout* & *stderr* event listeners only after a line is complete (default = `false`)
   * opt.trim (*boolean*) : if `true` *stdout* & *stderr* content will be trimmed (default = `true`) (does not apply to *stdout* & *stderr* event listeners)
   * opt.skipBlankLines (*boolean*) : if `true` empty lines will be ignored in both *stdout* & *stderr* content (default = `false`)
@@ -399,6 +416,11 @@ Executes a command and return the content of *stdout*
   * opt.timeoutSignal (*integer*) : signal to use when killing the child after timeout (default = `SIGTERM`, ignored if `opt.timeout` is not defined)
   * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by child process (don't share the same *handle* between multiple instances !)
   * opt.input (*string*) : content which will be used as input (will be ignored if *stdin* was set)
+  * opt.streamStdout (*boolean*) : whether or not streaming should be enabled (default = `true`)
+    - if `true`
+      * stdout event handler will be ignored
+      * stderr redirection will be ignored
+      * `opt.passStderr` will be ignored
   * opt.ignoreError (*boolean*) : if `true` promise will resolve to the content of stdout even if process exited with a non zero code
   * opt.bufferSize (*integer*) : size (in bytes) of the buffer used to read from child process streams (default = `512`)
 
