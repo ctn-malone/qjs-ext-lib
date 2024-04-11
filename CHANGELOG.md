@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.9.1]
+* feat: possibility to disable `stdout` streaming when executing a process (`process.js`)
+* feat: possiblity to disable `[]` in query string when same parameter is defined multiple times (`curl.js`)
+* refactor: disable `stdout` streaming by default (`curl.js`), to improve performances on large payload
+
 ## [0.9.0]
 * refactor: improve *JSDoc* support
 * feat: add support for [gum](https://github.com/charmbracelet/gum) binary
