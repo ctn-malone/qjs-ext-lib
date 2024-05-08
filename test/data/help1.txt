@@ -1,6 +1,6 @@
 Example help header
 
-Usage: test [OPTION] ...
+Usage: test [ARG] ...
 
   -e, --email EMAIL (*)    : user email (default: ctn@gmail.com)
   --enum VAL (+)           : enum argument (default: a)
