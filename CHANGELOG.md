@@ -1,7 +1,7 @@
 # Change Log
 
 ## [0.10.0]
-* feat: improve cmdline arguments parsing
+* feat: improve cmdline arguments parsing (`arg.js`)
 
 ## [0.9.1]
 * feat: possibility to disable `stdout` streaming when executing a process (`process.js`)
