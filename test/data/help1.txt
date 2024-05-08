@@ -1,0 +1,19 @@
+Example help header
+
+Usage: test [OPTION] ...
+
+  -e, --email EMAIL (*)    : user email (default: ctn@gmail.com)
+  --enum VAL (+)           : enum argument (default: a)
+                               - it can be one of [a, b, c]
+                               - it can be set multiple times
+                               - it can be passed as 'ENUM' environment variable
+  --num NUM            
+  -f, --file FILE          : file argument
+  --dir DIR                : dir argument
+  --(no-)flag              : (set by default)
+
+EXAMPLES
+
+$ test --email test@gmail.com -e a
+
+$ test --file /tmp/test.json

@@ -11,6 +11,7 @@ import testCurl from './tests/test.curl.js';
 import testVersion from './tests/test.version.js';
 import testSsh from './tests/test.ssh.js';
 import testGum from './tests/test.gum.js';
+import testArg from './tests/test.arg.js';
 
 import * as std from 'std';
 
@@ -23,6 +24,7 @@ const testSuites = [
   'version',
   'ssh',
   'gum',
+  'arg',
 ];
 const verbosity_levels = [1, 2, 3];
 
@@ -141,6 +143,9 @@ if (undefined === testSuite || 'ssh' === testSuite) {
 }
 if (undefined === testSuite || 'gum' === testSuite) {
   testGum();
+}
+if (undefined === testSuite || 'arg' === testSuite) {
+  testArg();
 }
 
 tester.run({ stopOnFailure: args['--stop-on-failure'] });
