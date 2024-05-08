@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.10.0]
+* feat: improve cmdline arguments parsing
+
 ## [0.9.1]
 * feat: possibility to disable `stdout` streaming when executing a process (`process.js`)
 * feat: possiblity to disable `[]` in query string when same parameter is defined multiple times (`curl.js`)
