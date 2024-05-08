@@ -10,7 +10,7 @@ A wrapper around *curl* binary
 
 Constructor
 
-* **[url]** (*string*} : http:/https url to connect to
+* **url** (*string*} : http:/https url to connect to
 * opt (*object*) : options
   * opt.method (*string*) : HTTP method (default = `GET`)
   * opt.userAgent (*string*) : user agent
@@ -27,7 +27,7 @@ Constructor
   * opt.outputFile (*string|object*) : if set, *curl* output will be redirected to this file
     * when using a *string*, `opt.outputFile` should be the path of the output file
     * when using an *object*
-      * **[opt.outputFile.filepath]** (*string*) : path of the output file (mandatory)
+      * **opt.outputFile.filepath** (*string*) : path of the output file (mandatory)
       * opt.outputFile.conditionalOutput (*boolean*) : if `true`, output file will only be written if `opt.outputFile.onCheckCondition` returns `true` (default = `false`)
       * opt.outputFile.onCheckCondition (*function*) : function which take a `Curl` instance as single parameter
         * it should return `true` if case output file should be written, `false` otherwise
@@ -53,7 +53,7 @@ Constructor
     * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`) was set
     * when using a *string*, `opt.file` should be the path of the file to upload
     * when using an *object*
-      * **[opt.file.filepath]** (*string*) : path of the local file (mandatory)
+      * **opt.file.filepath** (*string*) : path of the local file (mandatory)
       * opt.file.name (*string*) : name of the form parameter (default = `file`)
       * opt.file.filename (*string*) : name of the file (defaults to the name of the local file)
       * opt.file.contentType (*string*) : file content type (will be set by curl automatically if not provided)
@@ -67,7 +67,7 @@ Constructor
     * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`, `opt.body`) was set
     * when using a *string*, `opt.bodyFile` should be the path of the file containing the body
     * when using an *object*
-      * **[opt.bodyFile.filepath]** (*string*) : path of the local file (mandatory)
+      * **opt.bodyFile.filepath** (*string*) : path of the local file (mandatory)
       * opt.bodyFile.binary (*boolean*) : if `true`, disable extra processing on the file (ie: use `--data-binary`) (default = `false`)
   * opt.params (*object*) : parameters to add as query string
   * opt.useBracketsForParams (*boolean*) - if `true`, use `param[]=value1&param[]=value2` if a query string parameter is defined multiple times (default = `true`)
@@ -500,7 +500,7 @@ console.log(c.duration);
 
 Perfoms a *curl* request and return the response's body
 
-* **[url]** (*string*} : http:/https url to connect to
+* **url** (*string*} : http:/https url to connect to
 * opt (*object*) : options
   * opt.method (*string*) : HTTP method (default = `GET`)
   * opt.userAgent (*string*) : user agent
@@ -517,7 +517,7 @@ Perfoms a *curl* request and return the response's body
   * opt.outputFile (*string|object*) : if set, *curl* output will be redirected to this file
     * when using a *string*, `opt.outputFile` should be the path of the output file
     * when using an *object*
-      * **[opt.outputFile.filepath]** (*string*) : path of the output file (mandatory)
+      * **opt.outputFile.filepath** (*string*) : path of the output file (mandatory)
       * opt.outputFile.conditionalOutput (*boolean*) : if `true`, output file will only be written if `opt.outputFile.onCheckCondition` returns `true` (default = `false`)
       * opt.outputFile.onCheckCondition (*function*) : function which take a `Curl` instance as single parameter
         * it should return `true` if case output file should be written, `false` otherwise
@@ -543,7 +543,7 @@ Perfoms a *curl* request and return the response's body
     * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`) was set
     * when using a *string*, `opt.file` should be the path of the file to upload
     * when using an *object*
-      * **[opt.file.filepath]** (*string*) : path of the local file (mandatory)
+      * **opt.file.filepath** (*string*) : path of the local file (mandatory)
       * opt.file.name (*string*) : name of the form parameter (default = `file`)
       * opt.file.filename (*string*) : name of the file (defaults to the name of the local file)
       * opt.file.contentType (*string*) : file content type (will be set by curl automatically if not provided)
@@ -557,7 +557,7 @@ Perfoms a *curl* request and return the response's body
     * will be ignored if one of (`opt.data`, `opt.json`, `opt.jsonFile`, `opt.file`, `opt.body`) was set
     * when using a *string*, `opt.bodyFile` should be the path of the file containing the body
     * when using an *object*
-      * **[opt.bodyFile.filepath]** (*string*) : path of the local file (mandatory)
+      * **opt.bodyFile.filepath** (*string*) : path of the local file (mandatory)
       * opt.bodyFile.binary (*boolean*) : if `true`, disable extra processing on the file (ie: use `--data-binary`) (default = `false`)
   * opt.params (*object*) : parameters to add as query string
   * opt.useBracketsForParams (*boolean*) - if `true`, use `param[]=value1&param[]=value2` if a query string parameter is defined multiple times (default = `true`)
@@ -604,7 +604,7 @@ console.log(JSON.stringify(body, null, 4));
 
 Run multiple Curl objects and return when all requests are finished
 
-* **[list]** *Curl[]* : array of `Curl` *objects*
+* **list** *Curl[]* : array of `Curl` *objects*
 
 **return** *Promise* which resolved to an *object[]* where each *object* has following properties
 

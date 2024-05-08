@@ -6,7 +6,7 @@ Promisified *wait* function
 
 `wait(delay)`
 
-* **[delay]** (*integer*) : delay in ms
+* **delay** (*integer*) : delay in ms
 
 **return** *Promise* which will resolve after delay
 
@@ -22,8 +22,8 @@ Schedules repeated execution of a callback every delay milliseconds
 
 `setInterval(cb, interval)`
 
-* **[cb]** (*function*) : callback to call
-* **[interval]** (*integer*) : interval in ms
+* **cb** (*function*) : callback to call
+* **interval** (*integer*) : interval in ms
 
 **return** *object* : timer to use with `clearInterval`
 
@@ -41,7 +41,7 @@ Cancels a timer created by `setInterval`
 
 `clearInterval(timer)`
 
-* **[timer]** (*object*) : timer created by `setInterval`
+* **timer** (*object*) : timer created by `setInterval`
 
 <u>Example</u>
 

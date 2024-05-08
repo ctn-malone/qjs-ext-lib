@@ -6,7 +6,7 @@ Strings helpers
 
 Encode a plain string to a base64 string
 
-* **[plainStr]** (*string*) : string to encode
+* **plainStr** (*string*) : string to encode
 
 **return** *Promise<string>*
 
@@ -27,7 +27,7 @@ main();
 
 Decode a base64 string as a plain string
 
-* **[base64Str]** (*string*) : base64 string to decode
+* **base64Str** (*string*) : base64 string to decode
 
 **return** *Promise<string>*
 
@@ -48,7 +48,7 @@ main();
 
 Encode a *Uint8Array* to a base64 string
 
-* **[bytesArray]** (*Uint8Array*) : bytes array to encode
+* **bytesArray** (*Uint8Array*) : bytes array to encode
 
 **return** *Promise<string>*
 
@@ -72,7 +72,7 @@ main();
 
 Decode a base64 string as a *Uint8Array*
 
-* **[base64Str]** (*string*) : base64 string to decode
+* **base64Str** (*string*) : base64 string to decode
 
 **return** *Promise<Uint8Array>*
 

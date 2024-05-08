@@ -8,8 +8,8 @@ Minimal unit testing library
 
 Defines a new test
 
-* **[testName]** (*string*) : name/description of the test
-* **[fn]** (*function*) : test function
+* **testName** (*string*) : name/description of the test
+* **fn** (*function*) : test function
 * opt (*object*) : options
   * opt.isAsync (*boolean*) : whether or not test is async (default = `false`)
   * opt.tags (*string|string[]*) : tags to assign to the test (can be used to filter which tests will be run)
@@ -45,8 +45,8 @@ await tester.run();
 
 Expects a condition to be `true`
 
-* **[cond]** (*boolean*) : condition to check
-* **[msg]** (*string*) : message to display
+* **cond** (*boolean*) : condition to check
+* **msg** (*string*) : message to display
 * opt (*object*) : options
   * opt.actualResult (*any*) : if defined, will be displayed in case of failure
   * opt.expectedResult (*any*) : if defined, will be displayed in case of failure
@@ -76,9 +76,9 @@ await tester.run();
 
 Expects two items to be equals (deep object comparison)
 
-* **[actualResult]** (*any*) : result to compare
-* **[expectedResult]** (*any*) : result which is expected
-* **[msg]** (*string*) : message to display
+* **actualResult** (*any*) : result to compare
+* **expectedResult** (*any*) : result which is expected
+* **msg** (*string*) : message to display
 
 <u>Example</u>
 
@@ -97,9 +97,9 @@ await tester.run();
 
 Expects two items to be distinct (deep object comparison)
 
-* **[actualResult]** (*any*) : result to compare
-* **[unexpectedResult]** (*any*) : result which we are not supposed to get
-* **[msg]** (*string*) : message to display
+* **actualResult** (*any*) : result to compare
+* **unexpectedResult** (*any*) : result which we are not supposed to get
+* **msg** (*string*) : message to display
 
 <u>Example</u>
 
@@ -118,8 +118,8 @@ await tester.run();
 
 Checks whether or not two items are equal (deep object comparison)
 
-* **[a]** (*any*) : first item
-* **[b]** (*any*) : second item
+* **a** (*any*) : first item
+* **b** (*any*) : second item
 * mismatch (*object*) will be filled with information in case of mismatch
 
 **return** *boolean*
@@ -170,7 +170,7 @@ await tester.run({tags:['myTag1','myTag2']});
 
 Change report verbosity. This only apply to *default reporter*
 
-* **[level]** (*integer*) : define report verbosity (default = `3`). Can be one of the following :
+* **level** (*integer*) : define report verbosity (default = `3`). Can be one of the following :
   * `3` (*default*) : print test name, all assertions and final summary
   * `2` : only print test name, failed assertions and final summary
   * `1` : only print final summary
@@ -194,7 +194,7 @@ await tester.run();
 
 Enable / disable color in report. This only apply to *default reporter*
 
-* **[flag]** (*boolean*) : if `true`, color will be enabled (default = `true`)
+* **flag** (*boolean*) : if `true`, color will be enabled (default = `true`)
 
 <u>Example</u>
 
@@ -212,7 +212,7 @@ await tester.run();
 
 Defines a custom reporter
 
-* **[fn]** (*function*) : reporting function
+* **fn** (*function*) : reporting function
 
 Following arguments will be passed to the function
 
@@ -287,6 +287,6 @@ await tester.run();
 
 Defines a callback which will be called once all tests have been run
 
-* **[fn]** (*function*) : callback
+* **fn** (*function*) : callback
 
 An *object* will be passed as a single argument to the callback. See `run` method result

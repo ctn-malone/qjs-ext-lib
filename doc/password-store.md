@@ -6,7 +6,7 @@ Check whether or not a password exists
 
 `checkPassword(passwordPath)`
 
-* **[passwordPath]** (*string*) : path relative to the password store
+* **passwordPath** (*string*) : path relative to the password store
 
 **return** *boolean* whether or not password exists
 
@@ -22,7 +22,7 @@ Retrieve a password
 
 `getPassword(passwordPath, opt)`
 
-* **[passwordPath]** (*string*) : path relative to the password store
+* **passwordPath** (*string*) : path relative to the password store
 * opt (*object*) : options
   * opt.json (*boolean*) : if `true`, password will be JSON parsed (default = `false`)
   * opt.lineNumber (*number*) : if set, only this line (0 based) will be returned (default = `undefined`)

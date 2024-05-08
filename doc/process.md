@@ -26,7 +26,7 @@ Executes external processes asynchronously and returns an object (named `Process
 
 Constructor
 
-* **[cmdline]** (*string|string[]*) : command line to execute
+* **cmdline** (*string|string[]*) : command line to execute
 * opt (*object*) : options
   * opt.usePath (*boolean*) : if `true`, the command will be searched using `PATH` environment variable (default = `true`)
   * opt.cwd (*string*) : set the working directory of the new process
@@ -393,7 +393,7 @@ os.setTimeout(() => {
 
 Executes a command and return the content of *stdout*
 
-* **[cmdline]** (*string|string[]*) : command line to execute
+* **cmdline** (*string|string[]*) : command line to execute
 * opt (*object*) : options
   * opt.usePath (*boolean*) : if `true`, the command will be searched using `PATH` environment variable (default = `true`)
   * opt.cwd (*string*) : set the working directory of the new process
@@ -459,7 +459,7 @@ console.log(`stdout: ${stdout}`);
 
 Wait asynchronously until a given process is terminated
 
-* **[pid]** (*integer*) : pid of the process to wait for
+* **pid** (*integer*) : pid of the process to wait for
 * pollDelay (*integer*) : delay in ms between polling (default = `250`)
 
 **return** *Promise<void>* which resolves once the process is gone
@@ -472,7 +472,7 @@ Wait asynchronously until a given process is terminated
 
 Constructor
 
-* **[cmdline]** (*string|string[]*) : command line to execute
+* **cmdline** (*string|string[]*) : command line to execute
 * opt (*object*) : options
   * opt.usePath (*boolean*) : if `true`, the command will be searched using `PATH` environment variable (default = `true`)
   * opt.cwd (*string*) : set the working directory of the new process
@@ -640,7 +640,7 @@ console.log(JSON.stringify(p.props));
 
 Executes a command synchronously and return the content of *stdout*
 
-* **[cmdline]** (*string|string[]*) : command line to execute
+* **cmdline** (*string|string[]*) : command line to execute
 * opt (*object*) : options
   * opt.usePath (*boolean*) : if `true`, the command will be searched using `PATH` environment variable (default = `true`)
   * opt.cwd (*string*) : set the working directory of the new process
@@ -693,7 +693,7 @@ console.log(`stdout: ${stdout}`);
 
 Ensures a process executed successfully (ie: exit code == 0) and throws an error if not
 
-* **[process]** (*Process|ProcessSync*) : process to check result for
+* **process** (*Process|ProcessSync*) : process to check result for
 
 In case child process failed, an exception will be triggered, using the content of *stderr* as message
 

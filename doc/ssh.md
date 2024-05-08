@@ -86,12 +86,12 @@ This class can be used to execute a remote command using *SSH*
 
 Constructor
 
-* **[host]** (*string*} : host to connec to. Format can be one of
+* **host** (*string*} : host to connec to. Format can be one of
   * hostname
   * user@hostname
   * hostname:port
   * user@hostname:port
-* **[cmd]** (*string*) : remote command (can be *empty*)   
+* **cmd** (*string*) : remote command (can be *empty*)   
 * opt (*object*) : options
   * opt.port (*integer*) : remote port (default = `22`)
   * opt.user (*string*) : login user (defaults to current user)
@@ -683,12 +683,12 @@ Ssh.err.puts(`stderr output`);
 
 Executes a command and return the content of *stdout*
 
-* **[host]** (*string*} : host to connec to. Format can be one of
+* **host** (*string*} : host to connec to. Format can be one of
   * hostname
   * user@hostname
   * hostname:port
   * user@hostname:port
-* **[cmd]** (*string*) : remote command (cannot be *empty*)   
+* **cmd** (*string*) : remote command (cannot be *empty*)   
 * opt (*object*) : options
   * opt.port (*integer*) : remote port (default = `22`)
   * opt.user (*string*) : login user (defaults to current user)
@@ -736,7 +736,7 @@ Following extra properties will be added to the exception
 
 Run multiple Ssh objects and return when all sessions are finished
 
-* **[list]** *Ssh[]* : array of `Ssh` *objects*
+* **list** *Ssh[]* : array of `Ssh` *objects*
 
 **return** *Promise* which resolved to an *object[]* where each *object* has following properties
 
@@ -803,7 +803,7 @@ console.log(JSON.stringify(list, null, 2));
 
 Checks whether or not an identity is loaded
 
-* **[file]** (*string*} : absolute path to *SSH* key
+* **file** (*string*} : absolute path to *SSH* key
 
 **return** *boolean*
 
@@ -820,7 +820,7 @@ console.log(`isLoaded: ${isLoaded}`);
 
 Adds an identity to *SSH* agent
 
-* **[file]** (*string*} : absolute path to *SSH* key
+* **file** (*string*} : absolute path to *SSH* key
 * opt (*object*) : options
   * opt.checkFirst (*boolean*) : if `true`, identity won't be added if it is already loaded
   * opt.expiry (*integer*) : maximum lifetime in seconds (no expiry by default, will be ignored if `opt.checkFirst` is `true`)
@@ -858,7 +858,7 @@ console.log(JSON.stringify(list));
 
 Removes an identity from *SSH* agent
 
-* **[file]** (*string*} : absolute path to *SSH* key
+* **file** (*string*} : absolute path to *SSH* key
   
 **return** *boolean* `true` if identity existed and was removed, `false` otherwise
 

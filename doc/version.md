@@ -29,7 +29,7 @@ console.log(version.VERSION);
 
 Checks whether or not a given version matches semver format
 
-* **[version]** (*string*) : version to check
+* **version** (*string*) : version to check
 
 **return** *boolean*
 
@@ -51,7 +51,7 @@ console.log(result);
 
 Tries to convert a string to semver format
 
-* **[version]** (*string*) : version to convert
+* **version** (*string*) : version to convert
 
 **return** *string|undefined* will return `undefined` if `version` does not start with `x.y.z`
 
@@ -73,7 +73,7 @@ console.log(result);
 
 Checks whether or not two versions are equal
 
-* **[target]** (*string*) : version to compare to
+* **target** (*string*) : version to compare to
 * current (*string*) : version to compare (default = library version)
 
 **return** *boolean*
@@ -94,7 +94,7 @@ console.log(result);
 
 Checks whether or not two versions are distinct
 
-* **[target]** (*string*) : version to compare to
+* **target** (*string*) : version to compare to
 * current (*string*) : version to check (default = library version)
 
 **return** *boolean*
@@ -115,7 +115,7 @@ console.log(result);
 
 Checks if a given version is less than another version
 
-* **[target]** (*string*) : version to compare to
+* **target** (*string*) : version to compare to
 * current (*string*) : version to check (default = library version)
 
 **return** *boolean*
@@ -138,7 +138,7 @@ console.log(result);
 
 Checks if a given version is less than or equal to another version
 
-* **[target]** (*string*) : version to compare to
+* **target** (*string*) : version to compare to
 * current (*string*) : version to check (default = library version)
 
 **return** *boolean*
@@ -161,7 +161,7 @@ console.log(result);
 
 Checks if a given version is greater than another version
 
-* **[target]** (*string*) : version to compare to
+* **target** (*string*) : version to compare to
 * current (*string*) : version to check (default = library version)
 
 **return** *boolean*
@@ -184,7 +184,7 @@ console.log(result);
 
 Checks if a given version is greater than or equal to another version
 
-* **[target]** (*string*) : version to compare to
+* **target** (*string*) : version to compare to
 * current (*string*) : version to check (default = library version)
 
 **return** *boolean*

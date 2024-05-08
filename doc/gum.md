@@ -62,7 +62,7 @@ Choose a single item from a list
 > gum choose --limit 1 ...
 ```
 
-* **[list]** (*ListItem<T>[]|string[]*) : list to choose from
+* **list** (*ListItem<T>[]|string[]*) : list to choose from
 * opt (*object*) : options
   * opt.header (*string*) : header value
   * opt.selected (*ListItem<T>|string*) : default item
@@ -100,7 +100,7 @@ Choose multiple items from a list (press `Space` to select / unselect an item, `
 > gum choose --no-limit ...
 ```
 
-* **[list]** (*ListItem<T>[]|string[]*) : list to choose from
+* **list** (*ListItem<T>[]|string[]*) : list to choose from
 * opt (*object*) : options
   * opt.header (*string*) : header value
   * opt.selected (*ListItem<T>|ListItem<T>[]|string|string[]*) : selected items
@@ -145,7 +145,7 @@ Choose a single item by filtering a list
 > gum filter --limit 1 ...
 ```
 
-* **[list]** (*ListItem<T>[]|string[]*) : list to choose from
+* **list** (*ListItem<T>[]|string[]*) : list to choose from
 * opt (*object*) : options
   * opt.header (*string*) : header value
   * opt.placeholder (*string*) : placeholder value (default = `"Filter..."`) ($GUM_FILTER_PLACEHOLDER)
@@ -184,7 +184,7 @@ Choose multiple items by filtering a list (press `Ctrl+Space` to select/unselect
 > gum filter --no-limit ...
 ```
 
-* **[list]** (*ListItem<T>[]|string[]*) : list to choose from
+* **list** (*ListItem<T>[]|string[]*) : list to choose from
 * opt (*object*) : options
   * opt.header (*string*) : header value
   * opt.placeholder (*string*) : placeholder value (default = `"Filter..."`) ($GUM_FILTER_PLACEHOLDER)
@@ -229,7 +229,7 @@ Apply coloring, borders, spacing to text
 > gum style ...
 ```
 
-* **[text]** (*string|string[]*) : text to style
+* **text** (*string|string[]*) : text to style
 * opt (*object*) : options
   * opt.background (*string|number*) : background color ($BACKGROUND)
   * opt.foreground (*string|number*) : foreground color ($FOREGROUND)
@@ -285,8 +285,8 @@ Render a list of rows as a table
 > gum table --print --separator ',' ...
 ```
 
-* **[columns]** (*string[]*) : column names
-* **[rows]** (*TableRow<T>[]|string[][]*)
+* **columns** (*string[]*) : column names
+* **rows** (*TableRow<T>[]|string[][]*)
 * opt (*object*) : options
   * opt.border (*Border*) : border style (default = `Border.ROUNDED`)
   * opt.widths (*number[]*) : column widths
@@ -323,8 +323,8 @@ Choose a row from a table
 > gum table --separator ',' ...
 ```
 
-* **[columns]** (*string[]*) : column names
-* **[rows]** (*TableRow<T>[]|string[][]*)
+* **columns** (*string[]*) : column names
+* **rows** (*TableRow<T>[]|string[][]*)
 * opt (*object*) : options
   * opt.widths (*number[]*) : column widths
   * opt.height (*number*) : table height (default = `20`)
@@ -541,7 +541,7 @@ Format a string using a template
 > gum format ...
 ```
 
-* **[text]** (*string*) : text to format
+* **text** (*string*) : text to format
 * opt (*object*) : options
   * opt.type (*FormatType*) : format type (default = `FormatType.MARKDOWN`) ($GUM_FORMAT_TYPE)
   * opt.language (*string*) : programming language to parse when using FormatType.Code ($GUM_FORMAT_LANGUAGE)
@@ -590,7 +590,7 @@ Join text vertically or horizontally
 > gum join ...
 ```
 
-* **[text]** (*string[]*) : text to join
+* **text** (*string[]*) : text to join
 * opt (*object*) : options
   * opt.align (*Align*) : text alignment (default = `Align.LEFT`)
   * opt.direction (*JoinDirection*) : join direction (default = `JoinDirection.HORIZONTAL`)
@@ -635,7 +635,7 @@ Scroll through content
 > gum pager ...
 ```
 
-* **[content]** (*string*) : content to scroll
+* **content** (*string*) : content to scroll
 * opt (*object*) : options
   * opt.showLineNumbers (*boolean*) : show line numbers (default = `true`)
   * opt.softWrap (*boolean*) : soft wrap lines (default = `false`)
