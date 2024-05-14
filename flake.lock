@@ -54,17 +54,17 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1701282334,
-        "narHash": "sha256-MxCVrXY6v4QmfTwIysjjaX0XUhqBbxTWWB4HXtDYsdk=",
+        "lastModified": 1715534503,
+        "narHash": "sha256-5ZSVkFadZbFP1THataCaSf0JH2cAH3S29hU9rrxTEqk=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "057f9aecfb71c4437d2b27d3323df7f93c010b7e",
+        "rev": "2057814051972fa1453ddfb0d98badbea9b83c06",
         "type": "github"
       },
       "original": {
         "owner": "nixos",
+        "ref": "nixos-unstable",
         "repo": "nixpkgs",
-        "rev": "057f9aecfb71c4437d2b27d3323df7f93c010b7e",
         "type": "github"
       }
     },
@@ -74,17 +74,17 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1705192805,
-        "narHash": "sha256-kj2gqp9Uw0w78c3IOxBZEzjWXARkvhxufsCYyyQ+wjQ=",
+        "lastModified": 1715725511,
+        "narHash": "sha256-GHsjc48sURiAPPcc0O6nG+csI21LuxpjRtaWCrrqalU=",
         "owner": "ctn-malone",
         "repo": "quickjs-cross-compiler",
-        "rev": "5f6239ff669c0992d7db2d9f3781f25ac5bf2c14",
+        "rev": "6ef572fd456dc0f0ab18554f0885fdcb8e0107d2",
         "type": "github"
       },
       "original": {
         "owner": "ctn-malone",
         "repo": "quickjs-cross-compiler",
-        "rev": "5f6239ff669c0992d7db2d9f3781f25ac5bf2c14",
+        "rev": "6ef572fd456dc0f0ab18554f0885fdcb8e0107d2",
         "type": "github"
       }
     },
