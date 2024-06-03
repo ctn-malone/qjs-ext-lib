@@ -70,6 +70,10 @@ const DEFAULT_USAGE_HELP_DESCRIPTION = 'print help';
   Text to display for version flag in usage
  */
 const DEFAULT_USAGE_VERSION_DESCRIPTION = 'print version';
+/*
+  Message to display before enum values in usage
+ */
+const DEFAULT_USAGE_ENUM_MESSAGE = 'it can be one of';
 
 class ArgError extends Error {
   /**
@@ -446,9 +450,10 @@ const arg = (specs, options) => {
       }
       // validator
       else {
+        const isRequired = /** @type {ArgValidator} */ (type[0]).isRequired();
         argValidator = fn;
         type = (value, name, prev = [], _index) => {
-          if (value !== undefined) {
+          if (value !== undefined || isRequired) {
             prev.push(fn.validate(value, name, prev));
           }
           return prev;
@@ -1644,11 +1649,12 @@ class StringArgValidator extends BaseStringArgValidator {
    * Ensure value is one of possible values
    *
    * @param {string[]} possibleValues
+   * @param {string} [message="it can be one of"]
    *
    * @returns {this}
    * @throws {Error} if "possibleValues" is empty or not an Array of strings
    */
-  enum(possibleValues) {
+  enum(possibleValues, message) {
     if (!Array.isArray(possibleValues)) {
       throw new Error("Argument 'enum' should be an array");
     }
@@ -1662,9 +1668,10 @@ class StringArgValidator extends BaseStringArgValidator {
         );
       }
     }
+    message = message?.trim() || DEFAULT_USAGE_ENUM_MESSAGE;
     this._enum = [...possibleValues];
     const values = /** @type {const} */ this._enum;
-    const description = `it can be one of [${values.join(', ')}]`;
+    const description = `${message} [${values.join(', ')}]`;
     this.setValidator(
       ValueValidatorType.ENUM,
       (value) => {

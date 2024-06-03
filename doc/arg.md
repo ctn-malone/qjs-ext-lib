@@ -409,11 +409,12 @@ const args = arg
 
 #### StringArgValidator.enum(...)
 
-`.enum(possibleValues)`
+`.enum(possibleValues, message)`
 
 Defines the list of possible values
 
 * **possibleValues** (*string[]*)
+* message (*string*) : message to display before enum values in usage (default = `it can be one of`)
 
 <u>NB</u> : possible values will be listed in usage
 

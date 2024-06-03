@@ -1,5 +1,9 @@
 # Change Log
 
+## *WIP*
+* fix: throw an error when no value was provided for a validator which can be defined multiple times (`arg.js`)
+* feat: possibility to override the usage message for enum values (`arg.js`)
+
 ## [0.10.0]
 * feat: improve cmdline arguments parsing (`arg.js`)
 
