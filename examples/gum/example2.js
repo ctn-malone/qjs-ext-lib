@@ -4,7 +4,7 @@
 // @ts-ignore
 import * as std from 'std';
 
-import { ProcessSync, execSync } from '../../src/process.js';
+import { execSync } from '../../src/process.js';
 import * as gum from '../../src/gum.js';
 
 /**
@@ -127,7 +127,7 @@ const rebaseBranch = (branch, branches) => {
   try {
     execSync(`git fetch origin`);
     execSync(`git checkout ${branch}`);
-    execSync(`git rebase origin/${branch}`);
+    execSync(`git rebase origin/${baseBranch}`);
     console.log(
       `Branch ${gitColorText(branch)} successfully rebased on ${gitColorText(
         baseBranch.value
