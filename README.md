@@ -21,6 +21,8 @@ I'm focused on building static binaries targeting linux command line. This libra
 
 # Nix
 
+## Nix shell
+
 In order to get a shell with the static interpreter (`qjs.sh`) and compiler (`qjsc.sh`), as well as this library, run following command
 
 ```
@@ -64,6 +66,16 @@ const main = async () => {
 
 main();
 ```
+
+## Bootstrap a new project
+
+In order to bootstrap a new project in your current directory, with an example script, following command can be run
+
+```
+nix run 'github:ctn-malone/qjs-ext-lib#bootstrap'
+```
+
+<img src="https://github.com/user-attachments/assets/24c9919d-3222-4660-8974-44cbb547f67d" alt="Example" width="500">
 
 # Examples
 
