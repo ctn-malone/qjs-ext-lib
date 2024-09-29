@@ -517,7 +517,11 @@ class Curl {
         }
       }
       if ('' != qs) {
-        finalUrl += `?${qs}`;
+        if (finalUrl.includes('?')) {
+          finalUrl += `&${qs}`;
+        } else {
+          finalUrl += `?${qs}`;
+        }
       }
     }
     this._curlArgs.push('--url');

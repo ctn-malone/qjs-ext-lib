@@ -86,7 +86,7 @@ This class can be used to execute a remote command using *SSH*
 
 Constructor
 
-* **host** (*string*} : host to connec to. Format can be one of
+* **host** (*string*) : host to connec to. Format can be one of
   * hostname
   * user@hostname
   * hostname:port

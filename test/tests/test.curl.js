@@ -455,6 +455,20 @@ export default () => {
       `cmdline should match when using scalar values as query params`
     );
 
+    c = new Curl('http://127.0.0.1?param0=value0', {
+      params: {
+        param1: 'value1',
+        param2: 'value2',
+      },
+    });
+    expectedCmdline = `curl -D /dev/stderr -q -X GET -L --url http://127.0.0.1?param0=value0&param1=value1&param2=value2`;
+    cmdline = c.cmdline;
+    tester.assertEq(
+      cmdline,
+      expectedCmdline,
+      `cmdline should match when initial url already contains query parameters`
+    );
+
     c = new Curl('http://127.0.0.1', {
       params: {
         array1: ['value1', 'value2&='],
