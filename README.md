@@ -69,11 +69,17 @@ main();
 
 ## Bootstrap a new project
 
-In order to bootstrap a new project in your current directory, with an example script, following command can be run
+In order to bootstrap a new project in your current directory, following command can be run
 
 ```
 nix run 'github:ctn-malone/qjs-ext-lib#bootstrap'
 ```
+
+Above command will do the following
+
+- initialize a git repository
+- create a flake
+- add an example script
 
 <img src="https://github.com/user-attachments/assets/24c9919d-3222-4660-8974-44cbb547f67d" alt="Example" width="500">
 
