@@ -5,6 +5,7 @@
 * fix: throw an error when no value was provided for a validator which can be defined multiple times (`arg.js`)
 * feat: possibility to override the usage message for enum values (`arg.js`)
 * feat: new _bootstrap_ script to create a new project
+* fix: detect whether or not query parameters exist in the url
 
 ## [0.10.0]
 * feat: improve cmdline arguments parsing (`arg.js`)
