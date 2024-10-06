@@ -1,4 +1,5 @@
 /** @format */
+// @ts-check
 
 import arg from '../src/arg.js';
 import * as path from '../src/path.js';
@@ -13,7 +14,7 @@ import testSsh from './tests/test.ssh.js';
 import testGum from './tests/test.gum.js';
 import testArg from './tests/test.arg.js';
 
-import * as std from 'std';
+import * as std from '../src/std.js';
 
 const testSuites = [
   'timers',
@@ -64,6 +65,7 @@ try {
             ','
           )}])`
         );
+        // @ts-ignore
         err.code = 'ARG_INVALID_OPTION';
         throw err;
       }
@@ -78,6 +80,7 @@ try {
             ','
           )}])`
         );
+        // @ts-ignore
         err.code = 'ARG_INVALID_OPTION';
         throw err;
       }

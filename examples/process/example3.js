@@ -1,4 +1,5 @@
 /** @format */
+// @ts-check
 
 import { Process } from '../../src/process.js';
 

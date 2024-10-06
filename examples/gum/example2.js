@@ -1,27 +1,11 @@
 /** @format */
 // @ts-check
 
-// @ts-ignore
-import * as std from 'std';
+import * as std from '../../src/std.js';
 
 import { execSync } from '../../src/process.js';
 import * as gum from '../../src/gum.js';
-
-/**
- * JSDoc types lack a non-null assertion.
- * https://github.com/Microsoft/TypeScript/issues/23405#issuecomment-873331031
- *
- * @format
- * @template T
- * @param {T} value
- */
-export const notNull = (value) => {
-  // Use `==` to check for both null and undefined
-  if (value == null) {
-    throw new Error(`Did not expect value to be null or undefined`);
-  }
-  return value;
-};
+import { notNull } from '../../src/types.js';
 
 /*
   Heavily inspired by https://github.com/charmbracelet/gum/blob/main/examples/git-branch-manager.sh

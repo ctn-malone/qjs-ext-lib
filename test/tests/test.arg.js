@@ -1,10 +1,9 @@
 /** @format */
 // @ts-check
 
-// @ts-ignore
-import * as std from 'std';
-// @ts-ignore
-import * as os from 'os';
+import * as std from '../../src/std.js';
+import * as os from '../../src/os.js';
+import { notNull } from '../../src/types.js';
 
 import { tester } from '../../src/tester.js';
 import { execSync } from '../../src/process.js';
@@ -484,7 +483,7 @@ export default () => {
   tester.test('arg - path validator (read)', () => {
     let tmpDir = createTmpDir();
     let validator = arg.path().read();
-    let file = std.open(`${tmpDir}/file`, 'w+');
+    let file = notNull(std.open(`${tmpDir}/file`, 'w+'));
     file.puts('abcdef');
     file.close();
     try {
@@ -514,7 +513,7 @@ export default () => {
 
     tmpDir = createTmpDir();
     validator = arg.path().read({ json: true });
-    file = std.open(`${tmpDir}/file`, 'w+');
+    file = notNull(std.open(`${tmpDir}/file`, 'w+'));
     file.puts('{"key":"value"}');
     file.close();
     try {
@@ -531,7 +530,7 @@ export default () => {
     tmpDir = createTmpDir();
     exceptionThrown = false;
     validator = arg.path().read({ json: true });
-    file = std.open(`${tmpDir}/file`, 'w+');
+    file = notNull(std.open(`${tmpDir}/file`, 'w+'));
     file.puts('abcdef');
     file.close();
     try {
@@ -1207,7 +1206,7 @@ export default () => {
       }
     );
     const help = args.getHelp();
-    const expectedHelp = std.loadFile('data/help1.txt').trim();
+    const expectedHelp = notNull(std.loadFile('data/help1.txt')).trim();
     tester.assertEq(help, expectedHelp, `help should be as expected`);
   });
 };

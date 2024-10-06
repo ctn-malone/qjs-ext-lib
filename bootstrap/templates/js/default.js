@@ -1,7 +1,5 @@
 /** @format */
 // @ts-check
 
-// @ts-ignore
-import * as std from 'std';
-// @ts-ignore
-import * as os from 'os';
+import * as std from './ext/std.js';
+import * as os from './ext/os.js';

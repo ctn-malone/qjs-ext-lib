@@ -66,10 +66,8 @@
 import { Process } from './process.js';
 import { getLines } from './strings.js';
 
-// @ts-ignore
-import * as os from 'os';
-// @ts-ignore
-import * as std from 'std';
+import * as os from './os.js';
+import * as std from './std.js';
 
 const DEFAULT_PORT = 22;
 
@@ -89,7 +87,6 @@ const DEFAULT_PORT = 22;
  * @returns {Object}
  */
 const createStreamWrapper = (stream) => {
-  // @ts-ignore
   const isatty = os.isatty(stream.fileno());
 
   /**
@@ -670,15 +667,15 @@ const UNSUPPORTED_OPTIONS = {
  * @property {string} [remoteAddr] - remote binding ip address (by default, use remote hostname)
  * @property {number} remotePort - remote binding port (mandatory)
  * @property {string} [localAddr="127.0.0.1"] - local binding ip address (default = "127.0.0.1", use "*" to bind to all interfaces)
- * @property {string} [localPort] - local binding port (by default, use remote binding port)
+ * @property {number} [localPort] - local binding port (by default, use remote binding port)
  */
 
 /**
  * @typedef {Object} RemoteForward
- * @param {string} [remoteAddr="127.0.0.1"] - remote binding ip address (default = "127.0.0.1", use "*" to bind to all interfaces)
- * @param {number} [remotePort=0] - remote binding port (default = {0}, dynamically allocated by server)
- * @param {string} [localAddr="127.0.0.1"] - local binding ip address (default = "127.0.0.1")
- * @param {number} [localPort] - local binding port (by default, use remote binding port if != {0})
+ * @property {string} [remoteAddr="127.0.0.1"] - remote binding ip address (default = "127.0.0.1", use "*" to bind to all interfaces)
+ * @property {number} [remotePort=0] - remote binding port (default = {0}, dynamically allocated by server)
+ * @property {string} [localAddr="127.0.0.1"] - local binding ip address (default = "127.0.0.1")
+ * @property {number} [localPort] - local binding port (by default, use remote binding port if != {0})
  */
 
 class Ssh {
@@ -946,7 +943,10 @@ class Ssh {
               `Argument 'opt.localForward[${index}].localPort' should be a valid port number (${forward.localPort})`
             );
           }
-          localPort = parseInt(forward.localPort);
+          localPort =
+            typeof forward.localPort === 'string'
+              ? parseInt(forward.localPort)
+              : forward.localPort;
         }
         this._sshArgs.push('-o');
         this._sshArgs.push(
@@ -957,7 +957,6 @@ class Ssh {
     // remote port forwarding
     if (undefined !== opt.remoteForward) {
       // convert to array if needed
-      /** @type {RemoteForward[]} */
       let list = opt.remoteForward;
       if (!Array.isArray(list)) {
         list = [list];
@@ -982,7 +981,10 @@ class Ssh {
               `Argument 'opt.remoteForward[${index}].remotePort' should be a valid port number (${forward.remotePort})`
             );
           }
-          remotePort = parseInt(forward.remotePort);
+          remotePort =
+            typeof forward.remotePort === 'string'
+              ? parseInt(forward.remotePort)
+              : forward.remotePort;
         }
         if (0 == remotePort) {
           this._portForwarding.remote.dynamic.enabled = true;
@@ -994,7 +996,7 @@ class Ssh {
         // local port (use same as remote port by default)
         if (0 != remotePort) {
           localPort = remotePort;
-        } else if (undefined === forward.localPort || '' == forward.localPort) {
+        } else if (undefined === forward.localPort) {
           throw new Error(
             `Argument 'opt.remoteForward[${index}].localPort' is missing`
           );
@@ -1005,7 +1007,10 @@ class Ssh {
               `Argument 'opt.remoteForward[${index}].localPort' should be a valid port number (${forward.localPort})`
             );
           }
-          localPort = parseInt(forward.localPort);
+          localPort =
+            typeof forward.localPort === 'string'
+              ? parseInt(forward.localPort)
+              : forward.localPort;
         }
         this._sshArgs.push('-o');
         this._sshArgs.push(
@@ -1165,6 +1170,7 @@ class Ssh {
       };
 
       // in case SSH is killed by a signal
+      /** @type {number | undefined} */
       let signal;
 
       // current local port forwarding
@@ -1529,7 +1535,6 @@ class Ssh {
 
       // update process state using signal
       if (undefined !== signal) {
-        // @ts-ignore
         this._state.exitCode = -signal;
         this._state.signal = Process.getSignalName(signal);
       }
@@ -1605,7 +1610,6 @@ class Ssh {
     if (this._isBeingCancelled) {
       return true;
     }
-    // @ts-ignore
     let signal = os.SIGINT;
     if (undefined !== opt && undefined !== opt.signal) {
       signal = opt.signal;

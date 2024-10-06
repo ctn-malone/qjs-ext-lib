@@ -10,6 +10,8 @@ A set of pure JS extensions for [QuickJS](https://github.com/ctn-malone/quickjs-
 * interact with [pass](https://www.passwordstore.org/) (see [doc](doc/password-store.md))
 * build glamorous shell scripts using [gum](https://github.com/charmbracelet/gum) (see [doc](doc/gum.md))
 
+<u>NB</u>: all extensions as well as `os` and `std` modules have typing through *JSDoc*
+
 # Rational
 
 I'm focused on building static binaries targeting linux command line. This library is an intent at providing just enough to make creating static adhoc scripts easier on linux. This library is for you if you're interested in doing one of the following
@@ -45,11 +47,13 @@ nix run github:ctn-malone/qjs-ext-lib#qjsc
 
 Inside the Nix shell, any `.js` file from the library can be imported from an `ext` directory
 
+<u>NB</u>: it's recommended to run `qel-symlink.sh` to create a symlink and get completion through *JSDoc*
+
 ```js
 import { curlRequest } from 'ext/curl.js';
 
 /*
-    Perform a POST request to https://jsonplaceholder.typicode.com/posts and print response payload
+  Perform a POST request to https://jsonplaceholder.typicode.com/posts and print response payload
  */
 
 const main = async () => {
@@ -88,7 +92,7 @@ Above command will do the following
 ## Execute external processes
 
 ```js
-import { exec } from './src/process.js';
+import { exec } from 'ext/process.js';
 
 /*
   Run 3 external commands in parallel 
@@ -111,7 +115,7 @@ See more [examples](examples/process)
 ## Perform REST calls
 
 ```js
-import { curlRequest } from './src/curl.js';
+import { curlRequest } from 'ext/curl.js';
 
 /*
   Perform a POST request to https://jsonplaceholder.typicode.com/posts and print response payload
@@ -137,8 +141,8 @@ See more [examples](examples/curl)
 ## Execute remote command through SSH
 
 ```js
-import * as std from 'std';
-import { Ssh } from './src/ssh.js';
+import * as std from 'ext/std.js';
+import { Ssh } from 'ext/ssh.js';
 
 /* 
   Run 'uptime' through SSH
@@ -162,7 +166,7 @@ See more [examples](examples/ssh)
 ## Parse command-line arguments
 
 ```js
-import arg from './src/arg.js';
+import arg from 'ext/arg.js';
 
 /*
   Say hello

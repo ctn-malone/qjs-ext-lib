@@ -11,8 +11,7 @@
 import { Process } from './process.js';
 import { getHomeDir } from './path.js';
 
-// @ts-ignore
-import * as os from 'os';
+import * as os from './os.js';
 
 const PASSWORD_STORE_DIRECTORY = '.password-store';
 
@@ -29,7 +28,6 @@ const checkPassword = (passwordPath) => {
     return false;
   }
   const p = `${home}/${PASSWORD_STORE_DIRECTORY}/${passwordPath}.gpg`;
-  // @ts-ignore
   const obj = os.stat(p);
   return obj[1] === 0;
 };

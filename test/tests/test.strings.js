@@ -1,10 +1,9 @@
 /** @format */
 // @ts-check
 
-// @ts-ignore
-import * as os from 'os';
-// @ts-ignore
-import * as std from 'std';
+import * as std from '../../src/std.js';
+import * as os from '../../src/os.js';
+import { notNull } from '../../src/types.js';
 
 import { tester } from '../../src/tester.js';
 import {
@@ -29,7 +28,7 @@ export default () => {
     // call method without the expected length
     const contentFromBuffer = bytesArrayToStr(buffer).trim();
     // read file using std
-    const content = std.loadFile(filepath).trim();
+    const content = notNull(std.loadFile(filepath)).trim();
     tester.assert(
       contentFromBuffer.length == content.length,
       `converted buffer should have a length of ${content.length} (${contentFromBuffer.length})`
@@ -70,7 +69,7 @@ export default () => {
         to: len,
       }).trim();
       // read file using std
-      const content = std.loadFile(filepath).trim();
+      const content = notNull(std.loadFile(filepath)).trim();
       tester.assert(
         contentFromBuffer.length == content.length,
         `converted buffer (${filepath}) should have a length of ${content.length} (${contentFromBuffer.length})`
@@ -150,7 +149,7 @@ export default () => {
     const fd = os.open(filepath);
     // @ts-ignore
     const len = os.read(fd, initialBuffer.buffer, 0, initialBuffer.length);
-    const file = std.open('data/file2.txt', 'r');
+    const file = notNull(std.open('data/file2.txt', 'r'));
     const content = file.readAsString();
     const convertedBuffer = strToBytesArray(content);
     // in case we don't have a match, identify first non-matching character

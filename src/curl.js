@@ -8,10 +8,8 @@
 
 import { Process } from './process.js';
 
-// @ts-ignore
-import * as os from 'os';
-// @ts-ignore
-import * as std from 'std';
+import * as os from './os.js';
+import * as std from './std.js';
 
 // in case of timeout, curl process will exit with this error code
 const CURL_ERR_TIMEOUT = 28;
@@ -648,7 +646,7 @@ class Curl {
     else if (undefined !== this._outputFile) {
       // in case of conditional output, pass a temporary file as stdout to process
       if (this._outputFile.conditionalOutput) {
-        conditionalOutputTmpFile = std.tmpfile();
+        conditionalOutputTmpFile = /** @type {std.StdFile} */ (std.tmpfile());
         processOpt.stdout = conditionalOutputTmpFile.fileno();
       }
     }
@@ -849,7 +847,6 @@ class Curl {
     if (this._isBeingCancelled) {
       return true;
     }
-    // @ts-ignore
     let signal = os.SIGINT;
     if (undefined !== opt && undefined !== opt.signal) {
       signal = opt.signal;

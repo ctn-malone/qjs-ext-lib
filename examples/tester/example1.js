@@ -1,4 +1,5 @@
 /** @format */
+// @ts-check
 
 import { tester } from '../../src/tester.js';
 

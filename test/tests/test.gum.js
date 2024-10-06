@@ -1,9 +1,6 @@
 /** @format */
 // @ts-check
 
-// @ts-ignore
-import * as std from 'std';
-
 import { tester } from '../../src/tester.js';
 import * as gum from '../../src/gum.js';
 

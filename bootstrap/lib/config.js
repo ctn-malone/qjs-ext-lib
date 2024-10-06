@@ -1,8 +1,7 @@
 /** @format */
 // @ts-check
 
-// @ts-ignore
-import * as std from 'std';
+import * as std from '../ext/std.js';
 import { writeFile } from './utils.js';
 
 export const CONFIG_FILE_NAME = 'qel.config.json';
@@ -73,7 +72,7 @@ export const loadConfig = (configPath) => {
   /** @type {Config} */
   let config;
   try {
-    config = JSON.parse(configFile.readAsString());
+    config = JSON.parse(/** @type {std.StdFile} */ (configFile).readAsString());
   } catch (e) {
     throw new Error(`Invalid config '${configPath}' (invalid json)`);
   }
@@ -110,7 +109,7 @@ export const addScript = (config, scriptName, options) => {
   if (!config.scripts.length) {
     newScript.default = true;
   }
-  newScript.runtimeDeps = [...runtimeDeps ?? []];
+  newScript.runtimeDeps = [...(runtimeDeps ?? [])];
   config.scripts.push(newScript);
   return newScript;
 };

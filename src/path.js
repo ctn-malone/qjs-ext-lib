@@ -2,10 +2,8 @@
 // @ts-check
 'use strict;';
 
-// @ts-ignore
-import * as std from 'std';
-// @ts-ignore
-import * as os from 'os';
+import * as std from './std.js';
+import * as os from './os.js';
 
 /**
  * @returns {string}
@@ -15,7 +13,6 @@ const getScriptDir = () => {
   const arr = scriptArgs[0].split('/');
   // only a single entry (ie: we're in the same directory) => return cwd
   if (1 === arr.length) {
-    // @ts-ignore
     return os.getcwd()[0];
   }
   // remove last entry
@@ -49,7 +46,7 @@ const getScriptName = (withoutExt) => {
  * @returns {string}
  */
 const getHomeDir = () => {
-  return std.getenv('HOME');
+  return /** @type {string} */ (std.getenv('HOME'));
 };
 
 export { getScriptDir, getScriptName, getHomeDir };

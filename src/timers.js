@@ -6,8 +6,7 @@
   setInterval / clearInterval implementation
  */
 
-// @ts-ignore
-import * as os from 'os';
+import * as os from './os.js';
 
 const timers = new Map();
 
@@ -20,7 +19,6 @@ const timers = new Map();
  */
 const wait = (delay) => {
   return new Promise((resolve) => {
-    // @ts-ignore
     os.setTimeout(() => {
       return resolve();
     }, delay);
@@ -40,7 +38,6 @@ const setInterval = (cb, interval) => {
   const state = { enabled: true };
   timers.set(timer, state);
   const fn = () => {
-    // @ts-ignore
     os.setTimeout(() => {
       if (!state.enabled) {
         return;

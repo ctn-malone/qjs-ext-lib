@@ -1,4 +1,5 @@
 /** @format */
+// @ts-check
 
 import { Curl, multiCurl } from '../../src/curl.js';
 
