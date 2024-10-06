@@ -1,8 +1,8 @@
 /** @format */
+// @ts-check
 
 import { Ssh } from '../../src/ssh.js';
-import * as std from 'std';
-import * as os from 'os';
+import * as std from '../../src/std.js';
 
 /*
   Setup local port forwarding through 2 servers

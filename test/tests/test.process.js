@@ -1,7 +1,10 @@
 /** @format */
+// @ts-check
 
-import * as os from 'os';
-import * as std from 'std';
+import * as std from '../../src/std.js';
+import * as os from '../../src/os.js';
+import { notNull } from '../../src/types.js';
+
 import { tester } from '../../src/tester.js';
 import {
   Process,
@@ -419,7 +422,7 @@ export default () => {
   tester.test(
     'process.Process (custom stdout)',
     async (done) => {
-      const tmpFile = std.tmpfile();
+      const tmpFile = notNull(std.tmpfile());
       // redirect stderr will be ignored
       const opt = {
         trim: false,
@@ -833,12 +836,12 @@ export default () => {
 
       // load input
       const inputFile = 'data/input1.txt';
-      const input = std.loadFile(inputFile).trim();
-      const tmpFile = std.tmpfile();
+      const input = notNull(std.loadFile(inputFile)).trim();
+      const tmpFile = notNull(std.tmpfile());
       tmpFile.puts(input);
       tmpFile.flush();
       // rewind
-      tmpFile.seek(0);
+      tmpFile.seek(0, std.SEEK_SET);
 
       const expectedContent = input
         .split('\n')
@@ -872,7 +875,7 @@ export default () => {
 
       // load input
       const inputFile = 'data/input1.txt';
-      const input = std.loadFile(inputFile).trim();
+      const input = notNull(std.loadFile(inputFile)).trim();
 
       const expectedContent = input
         .split('\n')
@@ -1298,12 +1301,12 @@ export default () => {
 
     // load input
     const inputFile = 'data/input1.txt';
-    const input = std.loadFile(inputFile).trim();
-    const tmpFile = std.tmpfile();
+    const input = notNull(std.loadFile(inputFile)).trim();
+    const tmpFile = notNull(std.tmpfile());
     tmpFile.puts(input);
     tmpFile.flush();
     // rewind
-    tmpFile.seek(0);
+    tmpFile.seek(0, std.SEEK_SET);
 
     const expectedContent = input
       .split('\n')
@@ -1330,7 +1333,7 @@ export default () => {
 
     // load input
     const inputFile = 'data/input1.txt';
-    const input = std.loadFile(inputFile).trim();
+    const input = notNull(std.loadFile(inputFile)).trim();
 
     const expectedContent = input
       .split('\n')

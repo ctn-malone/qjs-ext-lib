@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.12.0]
+* refactor: add *JSDoc* support for `os` and `std` modules
+* refactor: replace `os` and `std` imports with `./os.js` and `./std.js` to get completion
+* refactor: ensure `// @ts-check` is set in `.js` files
+* feat: add `notNull` function to simulate `!` typescript operator (*non-null* assertion) (`types.js`)
+
 ## [0.11.0]
 * refactor: improve *JSDoc* support (`ssh.js`)
 * fix: throw an error when no value was provided for a validator which can be defined multiple times (`arg.js`)

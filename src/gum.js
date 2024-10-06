@@ -11,10 +11,8 @@
   - >= 0.12.0
  */
 
-// @ts-ignore
-import * as os from 'os';
-// @ts-ignore
-import * as std from 'std';
+import * as os from './os.js';
+import * as std from './std.js';
 
 import { ProcessSync, Process } from './process.js';
 
@@ -978,9 +976,9 @@ export const chooseRowFromTable = (columns, rows, opt) => {
 
 const CONFIRM_DEFAULT_PROMPT = 'Are you sure?';
 
-/** 
+/**
  * @readonly
- * @enum {string} 
+ * @enum {string}
  */
 export const ConfirmAnswer = {
   YES: 'yes',
@@ -1493,7 +1491,6 @@ export const pager = (content, opt) => {
 
   addCustomArguments(cmdline, opt.custom?.args);
   const env = {
-    // @ts-ignore
     ...std.getenviron(),
     ...getEnv(opt.custom?.env),
   };
@@ -1503,7 +1500,6 @@ export const pager = (content, opt) => {
     return;
   }
 
-  // @ts-ignore
   os.exec(cmdline, {
     env,
   });
@@ -1513,7 +1509,6 @@ export const pager = (content, opt) => {
  * Clear the terminal :)
  */
 export const clear = () => {
-  // @ts-ignore
   os.exec(['clear']);
 };
 

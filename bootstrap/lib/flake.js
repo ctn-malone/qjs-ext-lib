@@ -1,8 +1,7 @@
 /** @format */
 // @ts-check
 
-// @ts-ignore
-import * as std from 'std';
+import * as std from '../ext/std.js';
 import { writeFile } from './utils.js';
 import { execSync } from '../ext/process.js';
 
@@ -27,10 +26,10 @@ export const createMainFlake = (flakePath, templatePath, flakeDescription) => {
       )})`
     );
   }
-  const template = templateFile
+  const template = /** @type {std.StdFile} */ (templateFile)
     .readAsString()
     .replace('@flake_description@', flakeDescription);
-  templateFile.close();
+  /** @type {std.StdFile} */ (templateFile).close();
 
   writeFile(flakePath, template);
 };
@@ -83,8 +82,8 @@ export const createQelFlake = (flakePath, templatePath) => {
       )})`
     );
   }
-  const template = templateFile.readAsString();
-  templateFile.close();
+  const template = /** @type {std.StdFile} */ (templateFile).readAsString();
+  /** @type {std.StdFile} */ (templateFile).close();
 
   writeFile(flakePath, template);
 };

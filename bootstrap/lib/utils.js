@@ -1,10 +1,8 @@
 /** @format */
 // @ts-check
 
-// @ts-ignore
-import * as std from 'std';
-
-import * as os from 'os';
+import * as std from '../ext/std.js';
+import * as os from '../ext/os.js';
 
 /**
  * @param {number} exitCode
@@ -40,8 +38,8 @@ export const writeFile = (filePath, content) => {
       `Could not open '${filePath}' for writing (${std.strerror(errObj.errno)})`
     );
   }
-  file.puts(content);
-  file.close();
+  /** @type {std.StdFile} */ (file).puts(content);
+  /** @type {std.StdFile} */ (file).close();
 };
 
 /**

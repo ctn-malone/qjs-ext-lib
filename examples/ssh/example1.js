@@ -1,4 +1,5 @@
 /** @format */
+// @ts-check
 
 import { Ssh, multiSsh } from '../../src/ssh.js';
 

@@ -6,10 +6,8 @@
   Execute external processes asynchronously
  */
 
-// @ts-ignore
-import * as os from 'os';
-// @ts-ignore
-import * as std from 'std';
+import * as os from './os.js';
+import * as std from './std.js';
 
 import { bytesArrayToStr, getLines, strToBytesArray } from './strings.js';
 import { wait } from './timers.js';
@@ -45,7 +43,7 @@ const parseArgs = (command) => {
  * @property {number} pid
  * @property {number} exitCode - exit code of the process
  * @property {boolean} [didTimeout] - whether or not process was killed after timeout
- * @property {string} [signalName] - signal name (only defined if process was terminated using a signal)
+ * @property {string} [signal] - signal name (only defined if process was terminated using a signal)
  */
 
 /**
@@ -254,7 +252,9 @@ class Process {
     if (undefined !== opt.stdout) {
       this._qjsOpt.stdout = opt.stdout;
     } else if (opt.streamStdout === false) {
-      this._qjsOpt.stdout = this._stdoutFile.fileno();
+      this._qjsOpt.stdout = /** @type {std.StdFile} */ (
+        this._stdoutFile
+      ).fileno();
     }
     /*
       If stdout was set, we need to rely on stderr
@@ -286,7 +286,6 @@ class Process {
     this._timeout = {
       enabled: false,
       delay: 0,
-      // @ts-ignore
       signal: os.SIGTERM,
     };
     if (undefined !== opt.timeout) {
@@ -518,8 +517,11 @@ class Process {
         endOfStderr = true;
       }
 
+      /** @typedef {[number, number] | undefined} */
       let stdoutPipe = undefined;
+      /** @typedef {[number, number] | undefined} */
       let stderrPipe = undefined;
+      /** @typedef {[number, number] | undefined} */
       let stdinPipe = undefined;
 
       /**
@@ -530,26 +532,21 @@ class Process {
       const finalize = () => {
         // remove timer
         if (undefined !== timer) {
-          // @ts-ignore
           os.clearTimeout(timer);
           timer = undefined;
         }
-        // @ts-ignore
         const [ret, status] = os.waitpid(this._state.pid);
 
         /*
           close pipes
          */
         if (undefined !== stdoutPipe) {
-          // @ts-ignore
           os.close(stdoutPipe[0]);
         }
         if (undefined !== stderrPipe) {
-          // @ts-ignore
           os.close(stderrPipe[0]);
         }
         if (undefined !== stdinPipe) {
-          // @ts-ignore
           os.close(stdinPipe[1]);
         }
 
@@ -620,7 +617,6 @@ class Process {
         }
         // rewind stdout file descriptor
         if (undefined !== this._qjsOpt.stdout) {
-          // @ts-ignore
           os.seek(this._qjsOpt.stdout, 0, std.SEEK_SET);
         }
         // call callback
@@ -636,7 +632,6 @@ class Process {
         process stdout (only if no stdout handle was passed to constructor)
        */
       if (undefined === this._qjsOpt.stdout) {
-        // @ts-ignore
         stdoutPipe = os.pipe();
         if (null === stdoutPipe) {
           // @ts-ignore
@@ -647,14 +642,12 @@ class Process {
           data: '',
           timestamp: Date.now(),
         };
-        // @ts-ignore
         os.setReadHandler(stdoutPipe[0], () => {
           if (0 === this._state.pid) {
             return;
           }
 
           const timestamp = Date.now();
-          // @ts-ignore
           const len = os.read(
             stdoutPipe[0],
             stdoutBuffer.buffer,
@@ -664,7 +657,6 @@ class Process {
 
           // end of stream
           if (0 == len) {
-            // @ts-ignore
             os.setReadHandler(stdoutPipe[0], null);
             endOfStdout = true;
             // process incomplete line if needed
@@ -725,21 +717,23 @@ class Process {
                */
               if (0 == i) {
                 if ('' != stdoutIncompleteLine.data) {
-                  // @ts-ignore
-                  this._cb.stdout({
-                    pid: this._state.pid,
-                    data: str,
-                    timestamp: stdoutIncompleteLine.timestamp,
-                  });
+                  if (undefined !== this._cb.stdout) {
+                    this._cb.stdout({
+                      pid: this._state.pid,
+                      data: str,
+                      timestamp: stdoutIncompleteLine.timestamp,
+                    });
+                  }
                   return;
                 }
               }
-              // @ts-ignore
-              this._cb.stdout({
-                pid: this._state.pid,
-                data: str,
-                timestamp: timestamp,
-              });
+              if (undefined !== this._cb.stdout) {
+                this._cb.stdout({
+                  pid: this._state.pid,
+                  data: str,
+                  timestamp: timestamp,
+                });
+              }
             });
             stdoutIncompleteLine.data = result.incompleteLine;
             stdoutIncompleteLine.timestamp = timestamp;
@@ -755,17 +749,15 @@ class Process {
        */
       let stderrBuffer;
       if (!this._redirectStderr && !this._passStderr) {
-        // @ts-ignore
         stderrPipe = os.pipe();
         if (null === stderrPipe) {
           // close stdout pipe (only if no stdout handle was passed to constructor)
           if (undefined !== this._qjsOpt.stdout) {
-            // @ts-ignore
-            os.setReadHandler(stdoutPipe[0], null);
-            // @ts-ignore
-            os.close(stdoutPipe[0]);
-            // @ts-ignore
-            os.close(stdoutPipe[1]);
+            if (undefined !== stdoutPipe) {
+              os.setReadHandler(stdoutPipe[0], null);
+              os.close(stdoutPipe[0]);
+              os.close(stdoutPipe[1]);
+            }
           }
           // @ts-ignore
           throw new InternalError(`Could not create stderr pipe`);
@@ -775,10 +767,8 @@ class Process {
           data: '',
           timestamp: Date.now(),
         };
-        // @ts-ignore
         os.setReadHandler(stderrPipe[0], () => {
           const timestamp = Date.now();
-          // @ts-ignore
           const len = os.read(
             stderrPipe[0],
             stderrBuffer.buffer,
@@ -788,7 +778,6 @@ class Process {
 
           // end of stream
           if (0 == len) {
-            // @ts-ignore
             os.setReadHandler(stderrPipe[0], null);
             endOfStderr = true;
             // process incomplete line if needed
@@ -849,21 +838,23 @@ class Process {
                */
               if (0 == i) {
                 if ('' != stderrIncompleteLine.data) {
-                  // @ts-ignore
-                  this._cb.stderr({
-                    pid: this._state.pid,
-                    data: str,
-                    timestamp: stderrIncompleteLine.timestamp,
-                  });
+                  if (undefined !== this._cb.stderr) {
+                    this._cb.stderr({
+                      pid: this._state.pid,
+                      data: str,
+                      timestamp: stderrIncompleteLine.timestamp,
+                    });
+                  }
                   return;
                 }
               }
-              // @ts-ignore
-              this._cb.stderr({
-                pid: this._state.pid,
-                data: str,
-                timestamp: stderrIncompleteLine.timestamp,
-              });
+              if (undefined !== this._cb.stderr) {
+                this._cb.stderr({
+                  pid: this._state.pid,
+                  data: str,
+                  timestamp: stderrIncompleteLine.timestamp,
+                });
+              }
             });
             stderrIncompleteLine.data = result.incompleteLine;
             stderrIncompleteLine.timestamp = timestamp;
@@ -878,22 +869,18 @@ class Process {
         create input pipe
        */
       if (undefined !== this._input) {
-        // @ts-ignore
         stdinPipe = os.pipe();
         if (null === stdinPipe) {
           // close stdout pipe (only if no stdout handle was passed to constructor)
           if (undefined !== this._qjsOpt.stdout) {
-            // @ts-ignore
-            os.setReadHandler(stdoutPipe[0], null);
-            // @ts-ignore
-            os.close(stdoutPipe[0]);
-            // @ts-ignore
-            os.close(stdoutPipe[1]);
+            if (undefined !== stdoutPipe) {
+              os.setReadHandler(stdoutPipe[0], null);
+              os.close(stdoutPipe[0]);
+              os.close(stdoutPipe[1]);
+            }
           }
           if (undefined !== stderrPipe) {
-            // @ts-ignore
             os.close(stderrPipe[0]);
-            // @ts-ignore
             os.close(stderrPipe[1]);
           }
           // @ts-ignore
@@ -910,10 +897,9 @@ class Process {
       }
       if (undefined !== this._qjsOpt.stdout) {
         // rewind stdout file descriptor
-        // @ts-ignore
         os.seek(this._qjsOpt.stdout, 0, std.SEEK_SET);
       } else {
-        qjsOpt.stdout = stdoutPipe[1];
+        qjsOpt.stdout = /** @type {[number, number]} */ (stdoutPipe)[1];
       }
       if (!this._passStderr) {
         qjsOpt.stderr = qjsOpt.stdout;
@@ -923,10 +909,8 @@ class Process {
       }
       // rewind stdin file descriptor
       if (undefined !== this._qjsOpt.stdin) {
-        // @ts-ignore
         os.seek(this._qjsOpt.stdin, 0, std.SEEK_SET);
       }
-      // @ts-ignore
       this._state.pid = os.exec(args, qjsOpt);
 
       /*
@@ -934,11 +918,11 @@ class Process {
        */
       // only close pipe if no stdout handle was passed to constructor
       if (undefined === this._qjsOpt.stdout) {
-        // @ts-ignore
-        os.close(stdoutPipe[1]);
+        if (undefined !== stdoutPipe) {
+          os.close(stdoutPipe[1]);
+        }
       }
       if (undefined !== stderrPipe) {
-        // @ts-ignore
         os.close(stderrPipe[1]);
       }
 
@@ -946,11 +930,8 @@ class Process {
         send input
        */
       if (undefined !== stdinPipe) {
-        // @ts-ignore
-        const bytesArray = strToBytesArray(this._input);
-        // @ts-ignore
+        const bytesArray = strToBytesArray(/** @type {string} */ (this._input));
         os.write(stdinPipe[1], bytesArray.buffer, 0, bytesArray.length);
-        // @ts-ignore
         os.close(stdinPipe[1]);
       }
 
@@ -958,7 +939,6 @@ class Process {
         timeout
        */
       if (this._timeout.enabled) {
-        // @ts-ignore
         timer = os.setTimeout(() => {
           this._state.didTimeout = true;
           this.kill(this._timeout.signal);
@@ -990,7 +970,6 @@ class Process {
     if (undefined === this._state.pid || this._didStop || this._paused) {
       return;
     }
-    // @ts-ignore
     os.kill(this._state.pid, os.SIGSTOP);
     this._paused = true;
     if (undefined !== this._cb.pause) {
@@ -1008,7 +987,6 @@ class Process {
     if (undefined === this._state.pid || this._didStop || !this._paused) {
       return;
     }
-    // @ts-ignore
     os.kill(this._state.pid, os.SIGCONT);
     this._paused = false;
     if (undefined !== this._cb.resume) {
@@ -1023,7 +1001,6 @@ class Process {
    *
    * @param {number} [signal=os.SIGTERM] - signal number to use (default = SIGTERM)
    */
-  // @ts-ignore
   kill(signal = os.SIGTERM) {
     // do nothing if process is not running
     if (undefined === this._state.pid || this._didStop) {
@@ -1031,10 +1008,8 @@ class Process {
     }
     // resume process if it is paused
     if (this._paused) {
-      // @ts-ignore
       os.kill(this._state.pid, os.SIGCONT);
     }
-    // @ts-ignore
     os.kill(this._state.pid, signal);
   }
 
@@ -1100,9 +1075,6 @@ const exec = async (cmdline, opt) => {
   const options = Object.assign({}, opt);
   const ignoreError = true === options.ignoreError;
   delete options.ignoreError;
-  // supporting {opt.stdout} does not make sense here
-  // @ts-ignore
-  delete options.stdout;
   const p = new Process(cmdline, options);
   await p.run();
   if (!ignoreError) {
@@ -1373,7 +1345,6 @@ class ProcessSync {
     }
     if (undefined !== stdinFd) {
       // rewind stdin file descriptor
-      // @ts-ignore
       os.seek(stdinFd, 0, std.SEEK_SET);
     }
 
@@ -1392,7 +1363,6 @@ class ProcessSync {
         qjsOpt.stderr = stderrFile.fileno();
       }
     }
-    // @ts-ignore
     this._exitCode = os.exec(args, qjsOpt);
     this._run = true;
 
@@ -1415,7 +1385,6 @@ class ProcessSync {
     // read stderr
     if (undefined !== stderrFile) {
       stderrFile.flush();
-      // @ts-ignore
       os.seek(stderrFile.fileno(), 0, std.SEEK_SET);
       this._output.stderr = stderrFile.readAsString();
       stderrFile.close();
@@ -1511,7 +1480,6 @@ const execSync = (cmdline, opt) => {
  */
 const waitpid = async (pid, pollDelay = 250) => {
   for (;;) {
-    // @ts-ignore
     if (0 != os.kill(pid, 0)) {
       return;
     }

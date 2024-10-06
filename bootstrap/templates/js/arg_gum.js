@@ -1,8 +1,7 @@
 /** @format */
 // @ts-check
 
-// @ts-ignore
-import * as std from 'std';
+import * as std from './ext/std.js';
 
 import arg from './ext/arg.js';
 import { exec } from './ext/process.js';

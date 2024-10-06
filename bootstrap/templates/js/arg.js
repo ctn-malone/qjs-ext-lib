@@ -1,8 +1,7 @@
 /** @format */
 // @ts-check
 
-// @ts-ignore
-import * as std from 'std';
+import * as std from './ext/std.js';
 
 import arg from './ext/arg.js';
 
@@ -46,8 +45,8 @@ if (args['--output'] === '-') {
   std.out.puts(`${formattedContent}\n`);
 } else {
   const file = std.open(args['--output'], 'w');
-  file.puts(formattedContent);
-  file.close();
+  /** @type {std.StdFile} */ (file).puts(formattedContent);
+  /** @type {std.StdFile} */ (file).close();
   if (!args['--quiet']) {
     std.err.puts(
       `Formatted content successfully written to ${args['--output']}`

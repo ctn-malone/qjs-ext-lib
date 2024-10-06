@@ -2,12 +2,11 @@
 // @ts-check
 'use strict;';
 
-// @ts-ignore
-import * as os from 'os';
-// @ts-ignore
-import * as std from 'std';
+import * as os from './os.js';
+import * as std from './std.js';
 
 import * as path from './path.js';
+import { notNull } from './types.js';
 
 /*
   Based on https://github.com/vercel/arg/tree/5.0.0
@@ -200,11 +199,9 @@ class ArgError extends Error {
  * @return {number|undefined}
  */
 const getTtyWidth = () => {
-  // @ts-ignore
   if (!os.isatty(std.err.fileno())) {
     return;
   }
-  // @ts-ignore
   const arr = os.ttyGetWinSize(std.err.fileno());
   if (!arr) {
     return;
@@ -955,6 +952,9 @@ const splitParagraph = (paragraph, maxLength) => {
  * @returns {string|undefined}
  */
 const getValueFromEnv = (varName) => {
+  if (varName === undefined) {
+    return undefined;
+  }
   return std.getenv(varName);
 };
 
@@ -1940,7 +1940,6 @@ class PathArgValidator extends BaseStringArgValidator {
    */
   ensure() {
     this.setValidator(ValueValidatorType.ENSURE_PATH, (value) => {
-      // @ts-ignore
       if (this._checkPath(value, this._isDir)) {
         return;
       }
@@ -1958,7 +1957,6 @@ class PathArgValidator extends BaseStringArgValidator {
           `could not create parent directory - errCode: ${errCode}`
         );
       }
-      // @ts-ignore
       const fd = os.open(value, os.O_CREAT);
       if (fd < 0) {
         throw new Error(`could not create file - errCode: ${-fd}`);
@@ -1976,7 +1974,6 @@ class PathArgValidator extends BaseStringArgValidator {
   ensureParent() {
     this.setValidator(ValueValidatorType.ENSURE_PARENT_DIR, (value) => {
       const parentDir = this._getParentDir(value);
-      // @ts-ignore
       if (this._checkPath(parentDir, true)) {
         return;
       }
@@ -2034,7 +2031,6 @@ class PathArgValidator extends BaseStringArgValidator {
     let parentDir;
     const arr = entry.split('/');
     if (1 === arr.length) {
-      // @ts-ignore
       parentDir = os.getcwd()[0];
     } else {
       arr.pop();
@@ -2051,13 +2047,11 @@ class PathArgValidator extends BaseStringArgValidator {
    * @returns {boolean}
    */
   _checkPath(entry, isDir) {
-    // @ts-ignore
     const [obj, err] = os.stat(entry);
     if (err) {
       return false;
     }
-    // @ts-ignore
-    if (isDir && (obj.mode & os.S_IFDIR) !== os.S_IFDIR) {
+    if (isDir && (notNull(obj).mode & os.S_IFDIR) !== os.S_IFDIR) {
       return false;
     }
     return true;
@@ -2082,7 +2076,6 @@ class PathArgValidator extends BaseStringArgValidator {
       break;
     }
     for (const dir of dirs) {
-      // @ts-ignore
       const errCode = os.mkdir(dir);
       if (errCode < 0) {
         return -errCode;

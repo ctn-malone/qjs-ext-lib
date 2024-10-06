@@ -1,8 +1,7 @@
 /** @format */
 // @ts-check
 
-// @ts-ignore
-import * as std from 'std';
+import * as std from '../../src/std.js';
 
 import { wait } from '../../src/timers.js';
 import * as gum from '../../src/gum.js';
@@ -189,7 +188,6 @@ const askIfLikeBubbleGum = async () => {
 
   await gum.spin(wait(2000), {
     spinner: gum.Spinner.PULSE,
-    // @ts-ignore
     title: `Chewing some ${gum.style(flavor, {
       foreground: '#04B575',
     })} bubble gum...`,

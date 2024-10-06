@@ -1,4 +1,5 @@
 /** @format */
+// @ts-check
 
 import { curlRequest } from '../../src/curl.js';
 

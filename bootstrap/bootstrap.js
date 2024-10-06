@@ -1,10 +1,8 @@
 /** @format */
 // @ts-check
 
-// @ts-ignore
-import * as std from 'std';
-// @ts-ignore
-import * as os from 'os';
+import * as std from './ext/std.js';
+import * as os from './ext/os.js';
 
 import arg from './ext/arg.js';
 import * as ui from './lib/ui.js';
@@ -53,8 +51,16 @@ const args = arg
   });
 
 const repoRoot = ui.ensureGitRepo(args['--dir']);
-const configPath = ui.ensureConfig(repoRoot, templatesRootDir);
-const script = ui.addScript(repoRoot, configPath, templatesRootDir, extDir);
+const configPath = ui.ensureConfig(
+  repoRoot,
+  /** @type {string} */ (templatesRootDir)
+);
+const script = ui.addScript(
+  repoRoot,
+  configPath,
+  /** @type {string} */ (templatesRootDir),
+  /** @type {string} */ (extDir)
+);
 
 const scriptPath = ui.getScriptPath(repoRoot, script.file);
 const scriptRelativePath = getRelativePath(scriptPath, curDir);

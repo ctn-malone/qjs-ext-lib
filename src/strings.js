@@ -2,12 +2,10 @@
 // @ts-check
 'use strict;';
 
-// @ts-ignore
-import * as std from 'std';
-// @ts-ignore
-import * as os from 'os';
+import * as std from './std.js';
 
 import { Process, ensureProcessResult, exec } from './process.js';
+
 /*
   String helpers. Mostly for internal use
  */
@@ -277,15 +275,15 @@ const base64EncodeStr = async (plainStr) => {
  * @return {Promise<string>}
  */
 const base64EncodeBytesArray = async (bytesArray) => {
-  const outputFile = std.tmpfile();
-  const inputFile = std.tmpfile();
+  const outputFile = /** @type {std.StdFile} */ (std.tmpfile());
+  const inputFile = /** @type {std.StdFile} */ (std.tmpfile());
   inputFile.write(bytesArray.buffer, 0, bytesArray.length);
   inputFile.flush();
 
   const process = new Process(['base64', '-w', '0'], {
     stdin: inputFile.fileno(),
     stdout: outputFile.fileno(),
-  })
+  });
   await process.run();
   inputFile.close();
   if (!process.success) {
@@ -322,7 +320,7 @@ const base64DecodeStr = async (base64Str) => {
  * @return {Promise<Uint8Array>}
  */
 const base64DecodeBytesArray = async (base64Str) => {
-  const outputFile = std.tmpfile();
+  const outputFile = /** @type {std.StdFile} */ (std.tmpfile());
 
   const process = new Process(['base64', '-d', '-'], {
     input: base64Str,

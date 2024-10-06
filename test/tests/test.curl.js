@@ -1,6 +1,9 @@
 /** @format */
+// @ts-check
 
-import * as std from 'std';
+import * as std from '../../src/std.js';
+import { notNull } from '../../src/types.js';
+
 import { tester } from '../../src/tester.js';
 import { Curl, curlRequest, multiCurl } from '../../src/curl.js';
 
@@ -161,6 +164,7 @@ export default () => {
     );
 
     c = new Curl('http://127.0.0.1', {
+      // @ts-ignore
       connectTimeout: 'notANumber',
     });
     expectedCmdline = `curl -D /dev/stderr -q -X GET -L --url http://127.0.0.1`;
@@ -183,6 +187,7 @@ export default () => {
     );
 
     c = new Curl('http://127.0.0.1', {
+      // @ts-ignore
       maxTime: 'notANumber',
     });
     expectedCmdline = `curl -D /dev/stderr -q -X GET -L --url http://127.0.0.1`;
@@ -385,7 +390,7 @@ export default () => {
 
     c = new Curl('http://127.0.0.1', {
       method: 'post',
-      body: {},
+      body: '{}',
     });
     expectedCmdline = `curl -D /dev/stderr -q -X POST -L --url http://127.0.0.1`;
     cmdline = c.cmdline;
@@ -506,7 +511,10 @@ export default () => {
       tester.assertEq(c.body, undefined, 'Payload should be undefined');
       tester.assert(c.curlFailed, '{curlFailed} should be {true}');
       tester.assertNeq(c.curlError, undefined, '{curlError} should be defined');
-      tester.assert(0 != c.curlError.length, '{curlError} should not be empty');
+      tester.assert(
+        0 != notNull(c.curlError).length,
+        '{curlError} should not be empty'
+      );
 
       done();
     },
@@ -634,7 +642,7 @@ export default () => {
     'curl.Curl (POST request from file)',
     async (done) => {
       const jsonFile = 'data/post_json1.json';
-      const reqBody = JSON.parse(std.loadFile(jsonFile));
+      const reqBody = JSON.parse(notNull(std.loadFile(jsonFile)));
       let c = new Curl('http://jsonplaceholder.typicode.com/posts', {
         method: 'post',
         jsonFile: jsonFile,
@@ -930,7 +938,9 @@ export default () => {
       },
     ];
     for (const e of setCookieValues) {
-      const cookies = c._parseSetCookieHeaders(e.cookiesStrings);
+      const cookies = /** @type {any} */ (c)._parseSetCookieHeaders(
+        e.cookiesStrings
+      );
       tester.assertEq(
         cookies,
         e.expectedCookies,
