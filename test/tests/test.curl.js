@@ -390,7 +390,8 @@ export default () => {
 
     c = new Curl('http://127.0.0.1', {
       method: 'post',
-      body: '{}',
+      // @ts-ignore
+      body: {},
     });
     expectedCmdline = `curl -D /dev/stderr -q -X POST -L --url http://127.0.0.1`;
     cmdline = c.cmdline;
