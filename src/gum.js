@@ -403,7 +403,7 @@ export const chooseItemsFromList = (list, opt) => {
 };
 
 const FILTER_DEFAULT_PROMPT = '> ';
-const FILTER_DEFAULT_HEIGHT = 0;
+const FILTER_DEFAULT_HEIGHT = 50;
 const FILTER_DEFAULT_WIDTH = 20;
 const FILTER_DEFAULT_PLACEHOLDER = 'Filter...';
 const FILTER_DEFAULT_FUZZY = 'yes';
@@ -1040,26 +1040,26 @@ export const confirm = (opt) => {
   return true;
 };
 
-const FILE_DEFAULT_HEIGHT = 0;
+const FILE_DEFAULT_HEIGHT = 50;
 const FILE_DEFAULT_CURSOR = '>';
 
 /**
  * Pick a file from a folder
  *
- * > gum file ...
+ * > gum file --file=true --directory=false ...
  *
  * @param {object} [opt] - options
  * @param {string} [opt.path] - the path to the folder to begin traversing (default = current directory)
  * @param {boolean} [opt.all=false] - if true, show hidden and 'dot' files
  * @param {string} [opt.cursor=">"] - the cursor character (default = ">") ($GUM_FILE_CURSOR)
- * @param {number} [opt.height] - maximum number of files to display (no limit by default, will depend on the terminal) ($GUM_FILE_HEIGHT)
+ * @param {number} [opt.height=50] - maximum number of entries to display (default=50) ($GUM_FILE_HEIGHT)
  * @param {CustomOptions} [opt.custom]
  *
  * @returns {string|undefined}
  */
 export const chooseFile = (opt) => {
   opt = opt || {};
-  const cmdline = ['gum', 'file'];
+  const cmdline = ['gum', 'file', '--file=true', '--directory=false'];
   if (opt.cursor !== undefined) {
     cmdline.push(`--cursor=${opt.cursor}`);
   }
@@ -1073,7 +1073,58 @@ export const chooseFile = (opt) => {
     cmdline.push(opt.path);
   }
 
-  addCustomArguments(cmdline, opt.custom?.args);
+  addCustomArguments(cmdline, opt.custom?.args, ['file', 'directory']);
+  const env = getEnv(opt.custom?.env);
+
+  if (opt.custom?.dryRunCb) {
+    opt.custom.dryRunCb(cmdline, env);
+    return;
+  }
+
+  const p = new ProcessSync(cmdline, {
+    env,
+    replaceEnv: false,
+  });
+  if (!p.run()) {
+    if (p.exitCode === 130) {
+      return undefined;
+    }
+    throw new Error(p.stderr);
+  }
+  return p.stdout;
+};
+
+/**
+ * Pick a directory from a folder
+ *
+ * > gum file --file=false --directory=true ...
+ *
+ * @param {object} [opt] - options
+ * @param {string} [opt.path] - the path to the folder to begin traversing (default = current directory)
+ * @param {boolean} [opt.all=false] - if true, show hidden and 'dot' files
+ * @param {string} [opt.cursor=">"] - the cursor character (default = ">") ($GUM_FILE_CURSOR)
+ * @param {number} [opt.height=50] - maximum number of entries to display (default=50) ($GUM_FILE_HEIGHT)
+ * @param {CustomOptions} [opt.custom]
+ *
+ * @returns {string|undefined}
+ */
+export const chooseDirectory = (opt) => {
+  opt = opt || {};
+  const cmdline = ['gum', 'file', '--file=false', '--directory=true'];
+  if (opt.cursor !== undefined) {
+    cmdline.push(`--cursor=${opt.cursor}`);
+  }
+  if (opt.all) {
+    cmdline.push('--all');
+  }
+  if (opt.height) {
+    cmdline.push('--height', opt.height.toString());
+  }
+  if (opt.path) {
+    cmdline.push(opt.path);
+  }
+
+  addCustomArguments(cmdline, opt.custom?.args, ['file', 'directory']);
   const env = getEnv(opt.custom?.env);
 
   if (opt.custom?.dryRunCb) {

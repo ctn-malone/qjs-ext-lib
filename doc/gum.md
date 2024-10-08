@@ -389,14 +389,14 @@ console.log(doIt);
 Pick a file from a folder
 
 ```
-> gum file ...
+> gum file --file=true --directory=false ...
 ```
 
 * opt (*object*) : options
   * opt.path (*string*) : the path to the folder to begin traversing (default = current directory)
   * opt.all (*boolean*) : if true, show hidden and 'dot' files
   * opt.cursor (*string*) : the cursor character (default = `">"`) ($GUM_FILE_CURSOR)
-  * opt.height (*number*) : maximum number of files to display (no limit by default, will depend on the terminal) ($GUM_FILE_HEIGHT)
+  * opt.height (*number*) : maximum number of entries to display (default = `50`) ($GUM_FILE_HEIGHT)
   * opt.custom (*CustomOptions*)
 
 **returns** *string|undefined*
@@ -407,6 +407,38 @@ Pick a file from a folder
 import * as gum from 'ext/gum.js';
 
 const filename = gum.chooseFile({
+  path: '/tmp',
+  cursor: '>>',
+  height: 10,
+});
+console.log(filename);
+```
+
+## chooseDirectory(...)
+
+`chooseDirectory(opt)`
+
+Pick a directory from a folder
+
+```
+> gum file --file=true --directory=false ...
+```
+
+* opt (*object*) : options
+  * opt.path (*string*) : the path to the folder to begin traversing (default = current directory)
+  * opt.all (*boolean*) : if true, show hidden and 'dot' files
+  * opt.cursor (*string*) : the cursor character (default = `">"`) ($GUM_FILE_CURSOR)
+  * opt.height (*number*) : maximum number of entries to display (default = `50`) ($GUM_FILE_HEIGHT)
+  * opt.custom (*CustomOptions*)
+
+**returns** *string|undefined*
+
+<u>Example</u>
+
+```js
+import * as gum from 'ext/gum.js';
+
+const filename = gum.chooseDirectory({
   path: '/tmp',
   cursor: '>>',
   height: 10,

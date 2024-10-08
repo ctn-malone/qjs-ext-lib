@@ -189,7 +189,7 @@ export default () => {
             GUM_FILTER_FUZZY: 'yes',
             GUM_FILTER_REVERSE: 'no',
             GUM_FILTER_SORT: 'yes',
-            GUM_FILTER_HEIGHT: '0',
+            GUM_FILTER_HEIGHT: '50',
           });
         },
       },
@@ -275,7 +275,7 @@ export default () => {
             GUM_FILTER_INDICATOR: '•',
             GUM_FILTER_SELECTED_PREFIX: ' ◉ ',
             GUM_FILTER_UNSELECTED_PREFIX: ' ○ ',
-            GUM_FILTER_HEIGHT: '0',
+            GUM_FILTER_HEIGHT: '50',
           });
         },
       },
@@ -726,8 +726,16 @@ export default () => {
     gum.chooseFile({
       custom: {
         dryRunCb: (cmdline, env) => {
-          cmdlineShouldMatch(cmdline, ['gum', 'file']);
-          envShouldContain(env, { GUM_FILE_CURSOR: '>', GUM_FILE_HEIGHT: '0' });
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'file',
+            '--file=true',
+            '--directory=false',
+          ]);
+          envShouldContain(env, {
+            GUM_FILE_CURSOR: '>',
+            GUM_FILE_HEIGHT: '50',
+          });
         },
       },
     });
@@ -751,6 +759,64 @@ export default () => {
           cmdlineShouldMatch(cmdline, [
             'gum',
             'file',
+            '--file=true',
+            '--directory=false',
+            '--cursor=>>',
+            '--all',
+            '--height',
+            '100',
+            '/tmp',
+            '--test',
+            'extra-arg',
+          ]);
+          envShouldContain(env, {
+            GUM_FILE_CURSOR: 'cursor-var',
+            GUM_FILE_HEIGHT: '101',
+          });
+        },
+      },
+    });
+  });
+
+  tester.test('gum.chooseDirectory (without options)', () => {
+    gum.chooseDirectory({
+      custom: {
+        dryRunCb: (cmdline, env) => {
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'file',
+            '--file=false',
+            '--directory=true',
+          ]);
+          envShouldContain(env, {
+            GUM_FILE_CURSOR: '>',
+            GUM_FILE_HEIGHT: '50',
+          });
+        },
+      },
+    });
+  });
+
+  tester.test('gum.chooseDirectory (with options)', () => {
+    gum.chooseDirectory({
+      path: '/tmp',
+      cursor: '>>',
+      height: 100,
+      all: true,
+      custom: {
+        args: {
+          test: 'extra-arg',
+        },
+        env: {
+          GUM_FILE_CURSOR: 'cursor-var',
+          GUM_FILE_HEIGHT: 101,
+        },
+        dryRunCb: (cmdline, env) => {
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'file',
+            '--file=false',
+            '--directory=true',
             '--cursor=>>',
             '--all',
             '--height',
