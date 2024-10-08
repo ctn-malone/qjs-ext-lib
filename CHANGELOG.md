@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.12.1]
+* feat: add `chooseDirectory` function (`gum.js`)
+* refactor: set default height to `50` for `gum filter` and `gum file` wrappers (`gum.js`)
+* feat: add support for trimming the content of a `path` argument (`arg.js`)
+
 ## [0.12.0]
 * refactor: add *JSDoc* support for `os` and `std` modules
 * refactor: replace `os` and `std` imports with `./os.js` and `./std.js` to get completion
