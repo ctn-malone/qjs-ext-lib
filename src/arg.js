@@ -1794,6 +1794,11 @@ class PathArgValidator extends BaseStringArgValidator {
      * @type {boolean}
      */
     this._json = false;
+    /**
+     * @private
+     * @type {boolean}
+     */
+    this._trimFileContent = false;
 
     this.setValidator(ValueValidatorType.CUSTOM, (value) => {
       if (value === '') {
@@ -1811,6 +1816,9 @@ class PathArgValidator extends BaseStringArgValidator {
     this._customMap = /** @type {ValueMapper<string>} */ (value) => {
       if (this._read) {
         value = this._readFile(value);
+        if (this._trimFileContent) {
+          value = value.trim();
+        }
         if (this._json) {
           let jsonValue;
           try {
@@ -1874,12 +1882,14 @@ class PathArgValidator extends BaseStringArgValidator {
    *
    * @param {Object} [opt]
    * @param {boolean} [opt.json=false] - if true, parse the content as json
+   * @param {boolean} [opt.trim=false] - if true, trim the content
    *
    * @returns {this}
    */
   read(opt = {}) {
     this._read = true;
     this._json = !!opt?.json;
+    this._trimFileContent = !!opt?.trim;
     return this;
   }
 

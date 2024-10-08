@@ -588,7 +588,8 @@ const args = arg
 Reads file content at the end of validation
 
 * opt (*object*) : options
-  * opt.json (*boolean*) : if `true`, parse the content as *json*(default = `false`)
+  * opt.json (*boolean*) : if `true`, parse the content as *json* (default = `false`)
+  * opt.trim (*boolean*) : if `true`, trim the content (default = `false`)
 
 **returns** *self*
 
