@@ -31,8 +31,8 @@ const args = arg
   .ex(['-c date', '-c uptime --verbose'])
   .parse();
 
-if (args['--verbose']) {
-  std.err.puts(`Executing ${args['--command']}...\n`);
+if (args.get('--verbose')) {
+  std.err.puts(`Executing ${args.get('--command')}...\n`);
 }
 
 const handleCommandDate = async () => {
@@ -72,7 +72,7 @@ const handleCommandMarkdown = () => {
   );
 };
 
-switch (args['--command']) {
+switch (args.get('--command')) {
   case 'date':
     await handleCommandDate();
     break;

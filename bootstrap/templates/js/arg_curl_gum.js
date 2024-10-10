@@ -29,9 +29,11 @@ const args = arg
   )
   .parse();
 
-if (args['--verbose']) {
+if (args.get('--verbose')) {
   std.err.puts(
-    `Retrieving the ${args['--count']} most popular repositories on github...\n`
+    `Retrieving the ${args.get(
+      '--count'
+    )} most popular repositories on github...\n`
   );
 }
 
@@ -40,7 +42,7 @@ const output = await curlRequest(`${BASE_URL}/search/repositories`, {
     q: 'stars:>1',
     sort: 'stars',
     order: 'desc',
-    per_page: args['--count'],
+    per_page: args.get('--count'),
   },
 });
 
@@ -67,7 +69,7 @@ const repo = gum.chooseItemFromList(
 if (!repo) {
   std.exit(1);
 } else {
-  if (args['--format'] === 'json') {
+  if (args.get('--format') === 'json') {
     std.out.puts(`${JSON.stringify(repo.value, null, 2)}\n`);
     std.exit(0);
   }

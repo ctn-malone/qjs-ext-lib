@@ -36,20 +36,20 @@ const args = arg
   .parse();
 
 const formattedContent = JSON.stringify(
-  args['--input'],
+  args.get('--input'),
   null,
-  args['--indent']
+  args.get('--indent')
 );
 
-if (args['--output'] === '-') {
+if (args.get('--output') === '-') {
   std.out.puts(`${formattedContent}\n`);
 } else {
-  const file = std.open(args['--output'], 'w');
+  const file = std.open(args.get('--output'), 'w');
   /** @type {std.StdFile} */ (file).puts(formattedContent);
   /** @type {std.StdFile} */ (file).close();
-  if (!args['--quiet']) {
+  if (!args.get('--quiet')) {
     std.err.puts(
-      `Formatted content successfully written to ${args['--output']}`
+      `Formatted content successfully written to ${args.get('--output')}`
     );
   }
 }

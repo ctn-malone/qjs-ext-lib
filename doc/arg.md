@@ -77,14 +77,14 @@ const args = arg
   .ver('0.1.0')
   .parse();
 
-let mood = args['--mood'];
-if (args['--random']) {
+let mood = args.get('--mood');
+if (args.get('--random')) {
   const index = Math.floor(Math.random() * MOODS.length);
   mood = MOODS[index];
 }
-let message = `Hello ${args['--email']}. I am `;
-if (args['--intensity'] > 0) {
-  for (let i = 0; i < args['--intensity']; ++i) {
+let message = `Hello ${args.get('--email')}. I am `;
+if (args.get('--intensity') > 0) {
+  for (let i = 0; i < args.get('--intensity'); ++i) {
     if (i > 0) {
       message += '-';
     }
@@ -285,7 +285,7 @@ const args = arg
   $ program --num 5 --num 6
   => 6
  */
-console.log(JSON.stringify(args['--num']));
+console.log(JSON.stringify(args.get('--num')));
 ```
 
 In below example, argument `--num` can be set multiple times
@@ -300,7 +300,7 @@ const args = arg
   $ program --num 5 --num 6
   => [5,6]
  */
-console.log(JSON.stringify(args['--num']));
+console.log(JSON.stringify(args.get('--num')));
 ```
 
 ### StringArgValidator
@@ -603,7 +603,7 @@ const args = arg
     '-f': arg.path().read({ json: true }),
   })
   .parse();
-console.log(typeof args['-f']);
+console.log(typeof args.get('-f'));
 ```
 
 #### PathArgValidator.std(...)
@@ -756,7 +756,7 @@ const args = arg
     '--verbose': arg.flag()
   })
   .parse();
-console.log(`Flag is ${args['--verbose'] ? 'enabled' : 'disabled'}`);
+console.log(`Flag is ${args.get('--verbose') ? 'enabled' : 'disabled'}`);
 ```
 
 Below example only accepts `--verbose` flag
@@ -767,7 +767,7 @@ const args = arg
     '--verbose': arg.flag().no(false)
   })
   .parse();
-console.log(`Flag is ${args['--verbose'] ? 'enabled' : 'disabled'}`);
+console.log(`Flag is ${args.get('--verbose') ? 'enabled' : 'disabled'}`);
 ```
 
 #### FlagArgValidator.count(...)
@@ -786,7 +786,7 @@ const args = arg
     '-v': [arg.flag().count()]
   })
   .parse();
-console.log(`Flag was set ${args['-v']} times`);
+console.log(`Flag was set ${args.get('-v')} times`);
 ```
 
 ### ArgValidator
