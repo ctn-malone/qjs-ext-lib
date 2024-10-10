@@ -181,7 +181,7 @@ const main = async () => {
     })
     .parse();
 
-  console.log(`Hello ${args['--name']} !`);
+  console.log(`Hello ${args.get('--name')} !`);
 };
 
 main();

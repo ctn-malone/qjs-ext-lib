@@ -775,7 +775,7 @@ export default () => {
       }
     );
     tester.assertEq(
-      args['--flag'],
+      args.get('--flag'),
       3,
       'value should equal the number of times flag was set'
     );
@@ -805,7 +805,7 @@ export default () => {
         }
       );
       tester.assertEq(
-        args['--flag'],
+        args.get('--flag'),
         3,
         'value should equal the number of times flag was set'
       );

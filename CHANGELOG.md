@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.12.2]
+* refactor: improve typing of `ArgOuput.get` function and arg validators definition (`arg.js`)
+
 ## [0.12.1]
 * feat: add `chooseDirectory` function (`gum.js`)
 * refactor: set default height to `50` for `gum filter` and `gum file` wrappers (`gum.js`)

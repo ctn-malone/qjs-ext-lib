@@ -144,11 +144,15 @@ class ArgError extends Error {
  */
 
 /**
- * @typedef {ArgHandler|[ArgHandler]|ArgValidator|[ArgValidator]|string} ArgType
+ * @typedef {ArgHandler|[ArgHandler]|ArgValidator|[ArgValidator]} NonAliasArgSpec
  */
 
 /**
- * @typedef {Record<string, ArgType>} ArgSpecs
+ * @typedef {NonAliasArgSpec|string} ArgSpec
+ */
+
+/**
+ * @typedef {Record<`-${string}`, ArgSpec>} ArgSpecs
  */
 
 /**
@@ -156,9 +160,32 @@ class ArgError extends Error {
  */
 
 /**
+ * @template T
+ * @typedef {Extract<
+ *   keyof T,
+ *   {
+ *     [K in keyof T]: T[K] extends NonAliasArgSpec
+ *       ? (K extends `-${string}` ? K : never)
+ *       : never
+ *   }[keyof T]
+ * >} KeysForNonAliasArgSpec
+ */
+
+/**
+ * @template T
+ * @typedef {(name: KeysForNonAliasArgSpec<T>, defaultValue?: any) => any} GetValueOrDefault
+ */
+
+/**
+ * @template T
+ * @typedef {(name: KeysForNonAliasArgSpec<T>) => boolean} HasValue
+ */
+
+/**
+ * @template T
  * @typedef {Object} ArgOutput
- * @property {(name: string, defaultValue: any) => any} get - try to get argument value and fallback to default
- * @property {(name: string) => any} has - check whether or not an argument is defined
+ * @property {GetValueOrDefault<T>} get - try to get argument value and fallback to default
+ * @property {HasValue<T>} has - check whether or not an argument is defined
  * @property {() => void} parse - parse arguments
  * @property {() => string} getUsage - return usage content
  * @property {() => DescribeUsageOutput} describeUsage - return an object describing usage
@@ -363,10 +390,11 @@ const getVersionUsage = (shouldCapitalize) => {
 /**
  * Parse arguments
  *
- * @param {ArgSpecs} specs
+ * @template {ArgSpecs} T
+ * @param {T} specs
  * @param {ArgOptions} [options]
  *
- * @returns {ArgOutput}
+ * @returns {ArgOutput<T>}
  */
 const arg = (specs, options) => {
   if (!specs) {
@@ -385,7 +413,7 @@ const arg = (specs, options) => {
     scriptName = path.getScriptName(true),
   } = options;
 
-  /** @type {ArgOutput} */
+  /** @type {ArgOutput<T>} */
   // @ts-ignore
   const result = {
     /** @type {string[]} */
@@ -666,32 +694,23 @@ const arg = (specs, options) => {
     }
   };
 
-  /**
-   * Extra function to fallback to a default value
-   *
-   * @param {string} name
-   * @param {any} defaultValue
-   *
-   * @returns {any}
-   */
+  /** @type {GetValueOrDefault<T>} */
   result.get = (name, defaultValue) => {
+    // @ts-ignore
     if (result[name] === undefined) {
       return defaultValue;
     }
+    // @ts-ignore
     return result[name];
   };
 
-  /**
-   * Extra function to know whether or not an argument is defined
-   *
-   * @param {string} name
-   *
-   * @returns {boolean}
-   */
+  /** @type {HasValue<T>} */
   result.has = (name) => {
+    // @ts-ignore
     if (result[name] === undefined) {
       return false;
     }
+    // @ts-ignore
     if (Array.isArray(result[name]) && !result[name].length) {
       return false;
     }
@@ -2482,16 +2501,17 @@ arg.registerFormat = (format, validator) => {
  */
 
 /**
+ * @template {ArgSpecs} T
  * @class
  */
 class ArgParser {
   /**
-   * @param {ArgSpecs} specs
+   * @param {T} specs
    */
   constructor(specs) {
     /**
      * @private
-     * @type {ArgSpecs}
+     * @type {T}
      */
     this._specs = specs;
 
@@ -2569,7 +2589,7 @@ class ArgParser {
   /**
    * @param {ArgParserOptions} [options]
    *
-   * @returns {ArgOutput}
+   * @returns {ArgOutput<T>}
    */
   parse(options = {}) {
     return arg(this._specs, {
@@ -2598,9 +2618,10 @@ class ArgParser {
 }
 
 /**
- * @param {ArgSpecs} specs
+ * @template {ArgSpecs} T
+ * @param {T} specs
  *
- * @returns {ArgParser}
+ * @returns {ArgParser<T>}
  */
 arg.parser = (specs) => new ArgParser(specs);
 

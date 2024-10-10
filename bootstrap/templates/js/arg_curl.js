@@ -26,9 +26,11 @@ const args = arg
   .ex(['-f json', '-f text -c 10'])
   .parse();
 
-if (args['--verbose']) {
+if (args.get('--verbose')) {
   std.err.puts(
-    `Retrieving the ${args['--count']} most popular repositories on github...\n`
+    `Retrieving the ${args.get(
+      '--count'
+    )} most popular repositories on github...\n`
   );
 }
 
@@ -37,7 +39,7 @@ const output = await curlRequest(`${BASE_URL}/search/repositories`, {
     q: 'stars:>1',
     sort: 'stars',
     order: 'desc',
-    per_page: args['--count'],
+    per_page: args.get('--count'),
   },
 });
 
@@ -55,11 +57,11 @@ const repos = output.items.map((/** @type {Repository} */ obj) => ({
   stargazers_count: obj.stargazers_count,
 }));
 
-if (args['--format'] === 'json') {
+if (args.get('--format') === 'json') {
   std.out.puts(`${JSON.stringify(repos, null, 2)}\n`);
 } else {
   std.err.puts(
-    `The ${args['--count']} most popular repositories on github:\n\n`
+    `The ${args.get('--count')} most popular repositories on github:\n\n`
   );
   const content = repos
     .map((repo) => `- ${repo.html_url} (${repo.stargazers_count} stars)`)

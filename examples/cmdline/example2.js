@@ -26,9 +26,9 @@ const args = arg
   })
   .parse();
 
-if (args['--verbose']) {
-  console.log(`Will run command '${args['--command']}'`);
+if (args.get('--verbose')) {
+  console.log(`Will run command '${args.get('--command')}'`);
 }
-exec(args['--command']).then((output) => {
+exec(args.get('--command')).then((output) => {
   console.log(output);
 });

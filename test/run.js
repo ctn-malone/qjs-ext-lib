@@ -106,13 +106,13 @@ try {
   }
   throw e;
 }
-if (args['--help']) {
+if (args.get('--help')) {
   std.err.printf(`${getHelp()}\n`);
   std.exit(2);
 }
 
-tester.setReportVerbosity(args['--verbosity']);
-tester.enableColorInReport(!args['--no-color']);
+tester.setReportVerbosity(args.get('--verbosity'));
+tester.enableColorInReport(!args.get('--no-color'));
 tester.displayResultsIfMismatch(true);
 tester.setResultHandler((r) => {
   if (!r.success) {
@@ -121,7 +121,7 @@ tester.setResultHandler((r) => {
   std.exit(0);
 });
 
-const testSuite = args['--suite'];
+const testSuite = args.get('--suite');
 
 if (undefined === testSuite || 'timers' === testSuite) {
   testTimers();
@@ -151,4 +151,4 @@ if (undefined === testSuite || 'arg' === testSuite) {
   testArg();
 }
 
-tester.run({ stopOnFailure: args['--stop-on-failure'] });
+tester.run({ stopOnFailure: args.get('--stop-on-failure') });

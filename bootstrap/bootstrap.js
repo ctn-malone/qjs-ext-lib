@@ -50,7 +50,7 @@ const args = arg
     scriptName: SCRIPT_NAME,
   });
 
-const repoRoot = ui.ensureGitRepo(args['--dir']);
+const repoRoot = ui.ensureGitRepo(args.get('--dir'));
 const configPath = ui.ensureConfig(
   repoRoot,
   /** @type {string} */ (templatesRootDir)
