@@ -609,7 +609,7 @@ const parseContent = (content, steps, config) => {
 /**
  * Initialize process state
  *
- * @returns {Object}
+ * @returns {SshState}
  */
 const getDefaultProcessState = () => {
   return {
@@ -676,6 +676,51 @@ const UNSUPPORTED_OPTIONS = {
  * @property {number} [remotePort=0] - remote binding port (default = {0}, dynamically allocated by server)
  * @property {string} [localAddr="127.0.0.1"] - local binding ip address (default = "127.0.0.1")
  * @property {number} [localPort] - local binding port (by default, use remote binding port if != {0})
+ */
+
+/**
+ * @readonly
+ * @enum {string}
+ */
+export const SshEvent =
+  /** @type {{STDOUT: 'stdout', STDERR: 'stderr', EXIT: 'exit'}} */ ({
+    STDOUT: 'stdout',
+    STDERR: 'stderr',
+    EXIT: 'exit',
+  });
+
+/**
+ * @typedef {Object} SshStdoutStderrEventPayload
+ * @property {number} pid
+ * @property {string} data
+ */
+
+/**
+ * @callback SshStdoutStderrEventCallback
+ * @param {SshStdoutStderrEventPayload} payload
+ */
+
+/** @typedef {import('./process.js').ProcessState & {wasCancelled: boolean}} SshState */
+
+/**
+ * @typedef {Object} SshExitEventPayload
+ * @property {SshState} state
+ * @property {string} [sshError]
+ * @property {string} [sshErrorReason]
+ * @property {any} [context]
+ */
+
+/**
+ * @callback SshExitEventCallback
+ * @param {SshExitEventPayload} payload
+ */
+
+/**
+ * @typedef {{
+ *   stdout: SshStdoutStderrEventPayload;
+ *   stderr: SshStdoutStderrEventPayload;
+ *   exit: SshExitEventPayload;
+ * }} SshEventPayloadMap
  */
 
 class Ssh {
@@ -777,7 +822,11 @@ class Ssh {
      */
     /**
      * @private
-     * @type {Record<string, Function|undefined>}
+     * @type {{
+     *   stdout: SshStdoutStderrEventCallback | undefined,
+     *   stderr: SshStdoutStderrEventCallback | undefined,
+     *   exit: SshExitEventCallback | undefined,
+     * }}
      */
     this._cb = {
       stdout: undefined,
@@ -1090,7 +1139,10 @@ class Ssh {
       this._newSession = true;
     }
 
-    /** @private */
+    /**
+     * @private
+     * @type {SshState}
+     */
     this._state = getDefaultProcessState();
 
     // whether or not request is being cancelled
@@ -1114,19 +1166,21 @@ class Ssh {
    * Define event handler
    * Any previously defined handler will be replaced
    *
-   * @param {string} eventType (stdout|stderr|exit)
-   * @param {Function} cb (use {undefined} to disable handler)
+   * @template {keyof SshEventPayloadMap} T
+   * @param {T} eventType - SshEvent.STDOUT | SshEvent.STDERR |
+   *                        SshEvent.EXIT
+   * @param {(payload: SshEventPayloadMap[T]) => void} [cb] - (use {undefined} to disable handler)
    */
   setEventListener(eventType, cb) {
     switch (eventType) {
-      case 'stdout':
-        this._cb[eventType] = cb;
+      case SshEvent.STDOUT:
+        this._cb.stdout = /** @type {SshStdoutStderrEventCallback} */ (cb);
         return;
-      case 'stderr':
-        this._cb[eventType] = cb;
+      case SshEvent.STDERR:
+        this._cb.stderr = /** @type {SshStdoutStderrEventCallback} */ (cb);
         return;
-      case 'exit':
-        this._cb[eventType] = cb;
+      case SshEvent.EXIT:
+        this._cb.exit = /** @type {SshExitEventCallback} */ (cb);
         return;
     }
   }
@@ -1409,8 +1463,11 @@ class Ssh {
       const p = this._process.run();
       this._state.pid = this._process.pid;
 
-      this._state = await p;
-      this._state.wasCancelled = false;
+      const state = await p;
+      this._state = {
+        ...state,
+        wasCancelled: false,
+      };
 
       // ssh error
       if (!steps.didSetupSession) {
@@ -1541,7 +1598,7 @@ class Ssh {
 
       // process failed
       if (0 != this._state.exitCode) {
-        // we might have cancelled the process using asignal
+        // we might have cancelled the process using a signal
         if (
           this._isBeingCancelled &&
           this._cancelSignal == -this._state.exitCode

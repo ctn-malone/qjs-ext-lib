@@ -1,7 +1,8 @@
 /** @format */
 // @ts-check
-// @ts-ignore
-import * as os from 'os';
+import * as _os from 'os';
+
+const os = /** @type {any} **/ (_os);
 
 /*
   The os module provides Operating System specific functions:

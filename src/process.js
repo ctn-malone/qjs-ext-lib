@@ -42,7 +42,7 @@ const parseArgs = (command) => {
  * @typedef {Object} ProcessState
  * @property {number} pid
  * @property {number} exitCode - exit code of the process
- * @property {boolean} [didTimeout] - whether or not process was killed after timeout
+ * @property {boolean} didTimeout - whether or not process was killed after timeout
  * @property {string} [signal] - signal name (only defined if process was terminated using a signal)
  */
 
@@ -73,6 +73,60 @@ const getSignalName = (signal) => {
       return 'SIGTERM';
   }
 };
+
+/**
+ * @readonly
+ * @enum {string}
+ */
+export const ProcessEvent =
+  /** @type {{STDOUT: 'stdout', STDERR: 'stderr', EXIT: 'exit', PAUSE: 'pause', RESUME: 'resume'}} */ ({
+    STDOUT: 'stdout',
+    STDERR: 'stderr',
+    EXIT: 'exit',
+    PAUSE: 'pause',
+    RESUME: 'resume',
+  });
+
+/**
+ * @typedef {Object} ProcessStdoutStderrEventPayload
+ * @property {number} pid
+ * @property {string} data
+ * @property {number} timestamp
+ */
+
+/**
+ * @callback ProcessStdoutStderrEventCallback
+ * @param {ProcessStdoutStderrEventPayload} payload
+ */
+
+/**
+ * @typedef {Object} ProcessPauseResumeEventPayload
+ * @property {number} pid
+ */
+
+/**
+ * @callback ProcessPauseResumeEventCallback
+ * @param {ProcessPauseResumeEventPayload} payload
+ */
+
+/**
+ * @typedef {ProcessState} ProcessExitEventPayload
+ */
+
+/**
+ * @callback ProcessExitEventCallback
+ * @param {ProcessExitEventPayload} payload
+ */
+
+/**
+ * @typedef {{
+ *   stdout: ProcessStdoutStderrEventPayload;
+ *   stderr: ProcessStdoutStderrEventPayload;
+ *   exit: ProcessExitEventPayload;
+ *   pause: ProcessPauseResumeEventPayload;
+ *   resume: ProcessPauseResumeEventPayload;
+ * }} ProcessEventPayloadMap
+ */
 
 const DEFAULT_SHELL = '/bin/sh';
 const SETSID_BINARY = '/usr/bin/setsid';
@@ -157,7 +211,10 @@ class Process {
     this._didStop = false;
     /** @private */
     this._promise = undefined;
-    /** @private */
+    /**
+     * @private
+     * @type {ProcessState}
+     */
     this._state = {
       pid: 0,
       exitCode: 0,
@@ -172,7 +229,13 @@ class Process {
      */
     /**
      * @private
-     * @type {Record<string, Function|undefined>}
+     * @type {{
+     *   stdout: ProcessStdoutStderrEventCallback | undefined,
+     *   stderr: ProcessStdoutStderrEventCallback | undefined,
+     *   exit: ProcessExitEventCallback | undefined,
+     *   pause: ProcessPauseResumeEventCallback | undefined,
+     *   resume: ProcessPauseResumeEventCallback | undefined,
+     * }}
      */
     this._cb = {
       stdout: undefined,
@@ -380,7 +443,7 @@ class Process {
   /**
    * Retrieve process state (pid, exitCode ...)
    *
-   * @returns {object}
+   * @returns {ProcessState}
    */
   get state() {
     return Object.assign({}, this._state);
@@ -420,25 +483,28 @@ class Process {
    * Define event handler
    * Any previously defined handler will be replaced
    *
-   * @param {string} eventType - (stdout|stderr|pause|resume|exit)
-   * @param {Function|undefined} cb - (use {undefined} to disable handler)
+   * @template {keyof ProcessEventPayloadMap} T
+   * @param {T} eventType - ProcessEvent.STDOUT | ProcessEvent.STDERR |
+   *                        ProcessEvent.PAUSE | ProcessEvent.RESUME |
+   *                        ProcessEvent.EXIT
+   * @param {(payload: ProcessEventPayloadMap[T]) => void} [cb] - (use {undefined} to disable handler)
    */
   setEventListener(eventType, cb) {
     switch (eventType) {
-      case 'stdout':
-        this._cb[eventType] = cb;
+      case ProcessEvent.STDOUT:
+        this._cb.stdout = /** @type {ProcessStdoutStderrEventCallback} */ (cb);
         return;
-      case 'stderr':
-        this._cb[eventType] = cb;
+      case ProcessEvent.STDERR:
+        this._cb.stderr = /** @type {ProcessStdoutStderrEventCallback} */ (cb);
         return;
-      case 'exit':
-        this._cb[eventType] = cb;
+      case ProcessEvent.EXIT:
+        this._cb.exit = /** @type {ProcessExitEventCallback} */ (cb);
         return;
-      case 'pause':
-        this._cb[eventType] = cb;
+      case ProcessEvent.PAUSE:
+        this._cb.pause = /** @type {ProcessPauseResumeEventCallback} */ (cb);
         return;
-      case 'resume':
-        this._cb[eventType] = cb;
+      case ProcessEvent.RESUME:
+        this._cb.resume = /** @type {ProcessPauseResumeEventCallback} */ (cb);
         return;
     }
   }

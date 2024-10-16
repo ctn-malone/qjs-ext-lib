@@ -756,6 +756,7 @@ export const style = (text, opt) => {
     env,
     replaceEnv: false,
     trim: false,
+    passStderr: false,
   });
   if (!p.run()) {
     throw new Error(p.stderr);
@@ -896,6 +897,7 @@ export const renderTable = (columns, rows, opt) => {
     env,
     replaceEnv: false,
     input: extendedRows.map((row) => row.key).join('\n'),
+    passStderr: false,
   });
   if (!p.run()) {
     throw new Error(p.stderr);
@@ -1221,14 +1223,11 @@ export const spin = async (promise, opt) => {
       replaceEnv: false,
       passStderr: true,
     });
-    spinProcess.setEventListener(
-      'exit',
-      (/** @type {ProcessState} */ state) => {
-        if (state.exitCode === 130) {
-          resolve(true);
-        }
+    spinProcess.setEventListener('exit', (state) => {
+      if (state.exitCode === 130) {
+        resolve(true);
       }
-    );
+    });
     spinProcess.run();
     // wait for promise to resolve and stop spinner when it's done
     await promise;
@@ -1451,6 +1450,7 @@ export const format = (text, opt) => {
     env,
     replaceEnv: false,
     trim: false,
+    passStderr: false,
   });
   if (!p.run()) {
     throw new Error(p.stderr);
@@ -1509,6 +1509,7 @@ export const join = (text, opt) => {
     env,
     replaceEnv: false,
     trim: false,
+    passStderr: false,
   });
   if (!p.run()) {
     throw new Error(p.stderr);

@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.12.3]
+* refactor: improve typing of `os` module (`os.js`)
+* refactor: improve typing of event listeners (`process.js`, `gum.js`, `ssh.js`)
+* fix: disable `passStderr` pass in some gum function
+
 ## [0.12.2]
 * refactor: improve typing of `ArgOuput.get` function and arg validators definition (`arg.js`)
 
