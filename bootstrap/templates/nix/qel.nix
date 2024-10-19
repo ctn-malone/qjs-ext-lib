@@ -1,4 +1,4 @@
-{ pkgs, qjsExtLib }:
+{ pkgs, qjsExtLib, pkgs-gum }:
 
 let
   lib = pkgs.lib;
@@ -79,7 +79,7 @@ with pkgs; rec {
     postFixup = lib.strings.concatStringsSep "\n" (map
       (script:
         let
-          deps = map (pkgName: pkgs.${pkgName}) script.runtimeDeps;
+          deps = map (pkgName: (if pkgName == "gum" then pkgs-gum.${pkgName} else pkgs.${pkgName})) script.runtimeDeps;
           wrapCmd = ''
             wrapProgram $out/bin/${script.name} \
               --prefix PATH : ${lib.makeBinPath deps}

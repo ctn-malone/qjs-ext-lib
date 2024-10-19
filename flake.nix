@@ -8,18 +8,22 @@
 
     quickjs-static.url = "github:ctn-malone/quickjs-cross-compiler?rev=d8010afb61ef9c7d53c0bd26e65af83b83ce5e48";
     flake-utils.url = "github:numtide/flake-utils";
+    # pin gum to version 0.12
+    nixpkgs-gum.url = "github:nixos/nixpkgs/5112417739f9b198047bedc352cebb41aa339e1d";
   };
 
-  outputs = { self, nixpkgs, quickjs-static, flake-utils }:
+  outputs = { self, nixpkgs, quickjs-static, flake-utils, nixpkgs-gum }:
     flake-utils.lib.eachSystem [ "x86_64-linux" "armv7l-linux" "aarch64-linux" ] (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        pkgs-gum = nixpkgs-gum.legacyPackages.${system};
+
 
         highlight = text: "\\x1b[1;38;5;212m${text}\\x1b[0m";
 
         bootstrap = pkgs.writeShellApplication {
           name = "qel-bootstrap.sh";
-          runtimeInputs = [ pkgs.gum ];
+          runtimeInputs = [ pkgs-gum.gum ];
           text = ''
             script_dir="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
             bootstrap_dir="$(realpath "$script_dir/../bootstrap")"
@@ -89,7 +93,7 @@
             pkgs.upx
             pkgs.curl
             # to build interactive CLIs
-            pkgs.gum
+            pkgs-gum.gum
             self.packages.${system}.qjs-ext-lib
           ];
 

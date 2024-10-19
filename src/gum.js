@@ -1239,7 +1239,7 @@ export const spin = async (promise, opt) => {
 };
 
 const INPUT_DEFAULT_CHAR_LIMIT = 400;
-const INPUT_DEFAULT_WIDTH = 40;
+const INPUT_DEFAULT_WIDTH = 0;
 const INPUT_DEFAULT_PLACEHOLDER = 'Type something...';
 const INPUT_DEFAULT_PROMPT = '> ';
 const INPUT_DEFAULT_CURSOR_MODE = CursorMode.BLINK;
@@ -1257,7 +1257,7 @@ const INPUT_DEFAULT_CURSOR_MODE = CursorMode.BLINK;
  * @param {string} [opt.prompt="> "] - prompt to display (default = "> ") ($GUM_INPUT_PROMPT)
  * @param {boolean} [opt.password=false] - mask input characters (default = false)
  * @param {number} [opt.charLimit=400] - maximum value length (default = 400, 0 for no limit)
- * @param {number} [opt.width=40] - input width (default = 40, 0 for terminal width) ($GUM_INPUT_WIDTH)
+ * @param {number} [opt.width=0] - input width (0 = terminal width) ($GUM_INPUT_WIDTH)
  * @param {CustomOptions} [opt.custom]
  *
  * @returns {string|undefined}
