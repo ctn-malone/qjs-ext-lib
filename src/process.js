@@ -305,16 +305,14 @@ class Process {
     }
     /** @private */
     this._stdoutFile = undefined;
-    if (opt.streamStdout === false) {
+    if (undefined !== opt.stdout) {
+      this._qjsOpt.stdout = opt.stdout;
+    } else if (opt.streamStdout === false) {
       this._stdoutFile = std.tmpfile();
       if (null === this._stdoutFile) {
         // @ts-ignore
         throw new InternalError('Could not create temporary stdout file');
       }
-    }
-    if (undefined !== opt.stdout) {
-      this._qjsOpt.stdout = opt.stdout;
-    } else if (opt.streamStdout === false) {
       this._qjsOpt.stdout = /** @type {std.StdFile} */ (
         this._stdoutFile
       ).fileno();
