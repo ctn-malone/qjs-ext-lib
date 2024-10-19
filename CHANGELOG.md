@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.12.4]
+* chore: pin `gum` to version `0.12` in flake. Newer versions have a broken `gum spin` behaviour
+
 ## [0.12.3]
 * refactor: improve typing of `os` module (`os.js`)
 * refactor: improve typing of event listeners (`process.js`, `gum.js`, `ssh.js`)
