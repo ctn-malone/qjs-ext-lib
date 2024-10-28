@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.12.5]
+* fix: ignore `pause`, `resume` and `kill` methods if process has not been started (`process.js`)
+* fix: fix typing for `std.tmpfile` function (`std.js`)
+
 ## [0.12.4]
 * chore: pin `gum` to version `0.12` in flake. Newer versions have a broken `gum spin` behaviour
 

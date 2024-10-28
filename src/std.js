@@ -143,8 +143,6 @@ export const fdopen =
 /**
  * Open a temporary file
  *
- * @param {number} fd
- * @param {string} flags - ex: "r" for read, "w" for write ...
  * @param {{errno: number}} [errorObj] - if defined, set its "errno" property to the error code or to 0 if no error occured
  *
  * @returns {StdFile | null} FILE object or null in case of I/O error

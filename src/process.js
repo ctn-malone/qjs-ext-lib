@@ -1031,7 +1031,7 @@ class Process {
    */
   pause() {
     // do nothing if process is not running or is already paused
-    if (undefined === this._state.pid || this._didStop || this._paused) {
+    if (!this._state.pid || this._didStop || this._paused) {
       return;
     }
     os.kill(this._state.pid, os.SIGSTOP);
@@ -1048,7 +1048,7 @@ class Process {
    */
   resume() {
     // do nothing if process is not running or is not paused
-    if (undefined === this._state.pid || this._didStop || !this._paused) {
+    if (!this._state.pid || this._didStop || !this._paused) {
       return;
     }
     os.kill(this._state.pid, os.SIGCONT);
@@ -1067,7 +1067,7 @@ class Process {
    */
   kill(signal = os.SIGTERM) {
     // do nothing if process is not running
-    if (undefined === this._state.pid || this._didStop) {
+    if (!this._state.pid || this._didStop) {
       return;
     }
     // resume process if it is paused
