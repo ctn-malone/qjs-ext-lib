@@ -1,6 +1,34 @@
+<!-- omit in toc -->
 # curl
 
 A wrapper around *curl* binary
+
+- [Curl](#curl-1)
+  - [Curl.constructor(...)](#curlconstructor)
+  - [Curl.run(...)](#curlrun)
+  - [Curl.cancel(...)](#curlcancel)
+  - [Curl.cmdline](#curlcmdline)
+  - [Curl.didTimeout](#curldidtimeout)
+  - [Curl.wasCancelled](#curlwascancelled)
+  - [Curl.curlFailed](#curlcurlfailed)
+  - [Curl.curlError](#curlcurlerror)
+  - [Curl.httpFailed](#curlhttpfailed)
+  - [Curl.failed](#curlfailed)
+  - [Curl.error](#curlerror)
+  - [Curl.method](#curlmethod)
+  - [Curl.url](#curlurl)
+  - [Curl.body](#curlbody)
+  - [Curl.contentType](#curlcontenttype)
+  - [Curl.headers](#curlheaders)
+  - [Curl.cookies](#curlcookies)
+  - [Curl.getCookie(...)](#curlgetcookie)
+  - [Curl.getCookieValue(...)](#curlgetcookievalue)
+  - [Curl.statusCode](#curlstatuscode)
+  - [Curl.status](#curlstatus)
+  - [Curl.context](#curlcontext)
+  - [Curl.duration](#curlduration)
+- [curlRequest](#curlrequest)
+- [multiCurl](#multicurl)
 
 ## Curl
 
@@ -10,7 +38,7 @@ A wrapper around *curl* binary
 
 Constructor
 
-* **url** (*string*} : http:/https url to connect to
+* **url** (*string*) : http:/https url to connect to
 * opt (*object*) : options
   * opt.method (*string*) : HTTP method (default = `GET`)
   * opt.userAgent (*string*) : user agent

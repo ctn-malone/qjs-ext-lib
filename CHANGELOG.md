@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.13.0] (WIP)
+* feat: add functions to mimic _Node.js_ `path` module (`path.js`)
+* feat: add a `passStdout` option to `ProcessSync` (`process.js`)
+* docs: add TOC to each module documentation
+
 ## [0.12.5]
 * fix: ignore `pause`, `resume` and `kill` methods if process has not been started (`process.js`)
 * fix: fix typing for `std.tmpfile` function (`std.js`)

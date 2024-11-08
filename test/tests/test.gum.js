@@ -897,7 +897,7 @@ export default () => {
           envShouldContain(env, {
             GUM_INPUT_PLACEHOLDER: 'Type something...',
             GUM_INPUT_CURSOR_MODE: gum.CursorMode.BLINK,
-            GUM_INPUT_WIDTH: '40',
+            GUM_INPUT_WIDTH: '0',
             GUM_INPUT_PROMPT: '> ',
           });
         },

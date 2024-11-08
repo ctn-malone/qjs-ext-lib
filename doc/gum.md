@@ -1,6 +1,28 @@
+<!-- omit in toc -->
 # gum
 
 A wrapper around *gum* binary
+
+- [getVersion(...)](#getversion)
+- [hasGum(...)](#hasgum)
+- [getDefaultEnv(...)](#getdefaultenv)
+- [chooseItemFromList(...)](#chooseitemfromlist)
+- [chooseItemsFromList(...)](#chooseitemsfromlist)
+- [filterItemFromList(...)](#filteritemfromlist)
+- [filterItemsFromList(...)](#filteritemsfromlist)
+- [style(...)](#style)
+- [renderTable(...)](#rendertable)
+- [chooseRowFromTable(...)](#chooserowfromtable)
+- [confirm(...)](#confirm)
+- [chooseFile(...)](#choosefile)
+- [chooseDirectory(...)](#choosedirectory)
+- [spin(...)](#spin)
+- [input(...)](#input)
+- [write(...)](#write)
+- [format(...)](#format)
+- [join(...)](#join)
+- [pager(...)](#pager)
+- [clear(...)](#clear)
 
 ## getVersion(...)
 

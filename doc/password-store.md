@@ -1,4 +1,10 @@
+<!-- omit in toc -->
 # password-store
+
+Simple wrappers to interact with [pass](https://www.passwordstore.org/)
+
+- [checkPassword(...)](#checkpassword)
+- [getPassword(...)](#getpassword)
 
 ## checkPassword(...)
 

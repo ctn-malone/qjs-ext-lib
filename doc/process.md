@@ -1,3 +1,4 @@
+<!-- omit in toc -->
 # process
 
 Executes external processes asynchronously and returns an object (named `ProcessState` afterward), with following properties
@@ -17,6 +18,38 @@ Executes external processes asynchronously and returns an object (named `Process
     "signal":"SIGTERM"
 }
 ```
+
+- [Process](#process-1)
+  - [Process.constructor(...)](#processconstructor)
+  - [Process.getSignalName(...)](#processgetsignalname)
+  - [Process.run(...)](#processrun)
+  - [Process.wait(...)](#processwait)
+  - [Process.pause(...)](#processpause)
+  - [Process.resume(...)](#processresume)
+  - [Process.kill(...)](#processkill)
+  - [Process.cmdline](#processcmdline)
+  - [Process.stdout](#processstdout)
+  - [Process.stderr](#processstderr)
+  - [Process.paused](#processpaused)
+  - [Process.state](#processstate)
+  - [Process.success](#processsuccess)
+  - [Process.pid](#processpid)
+  - [Process.props](#processprops)
+  - [Process.setEventListener(...)](#processseteventlistener)
+- [exec(...)](#exec)
+- [waitpid(...)](#waitpid)
+- [ProcessSync](#processsync)
+  - [ProcessSync.constructor(...)](#processsyncconstructor)
+  - [ProcessSync.getSignalName(...)](#processsyncgetsignalname)
+  - [ProcessSync.run(...)](#processsyncrun)
+  - [ProcessSync.cmdline](#processsynccmdline)
+  - [ProcessSync.stdout](#processsyncstdout)
+  - [ProcessSync.stderr](#processsyncstderr)
+  - [ProcessSync.exitCode](#processsyncexitcode)
+  - [ProcessSync.success](#processsyncsuccess)
+  - [ProcessSync.props](#processsyncprops)
+- [execSync(...)](#execsync)
+- [ensureProcessResult(...)](#ensureprocessresult)
 
 ## Process
 

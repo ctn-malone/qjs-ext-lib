@@ -1,4 +1,9 @@
+<!-- omit in toc -->
 # timers
+
+- [wait(...)](#wait)
+- [setInterval(...)](#setinterval)
+- [clearInterval(...)](#clearinterval)
 
 ## wait(...)
 
