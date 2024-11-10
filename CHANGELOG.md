@@ -1,6 +1,6 @@
 # Change Log
 
-## [0.13.0] (WIP)
+## [0.13.0]
 * feat: add functions to mimic _Node.js_ `path` module (`path.js`)
 * feat: add a `passStdout` option to `ProcessSync` (`process.js`)
 * docs: add TOC to each module documentation
