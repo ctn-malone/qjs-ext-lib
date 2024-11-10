@@ -1,6 +1,12 @@
+<!-- omit in toc -->
 # strings
 
 Strings helpers
+
+- [base64EncodeStr(...)](#base64encodestr)
+- [base64DecodeStr(...)](#base64decodestr)
+- [base64EncodeBytesArray(...)](#base64encodebytesarray)
+- [base64EncodeBytesArray(...)](#base64encodebytesarray-1)
 
 ## base64EncodeStr(...)
 

@@ -1,3 +1,4 @@
+<!-- omit in toc -->
 # process
 
 Executes external processes asynchronously and returns an object (named `ProcessState` afterward), with following properties
@@ -17,6 +18,38 @@ Executes external processes asynchronously and returns an object (named `Process
     "signal":"SIGTERM"
 }
 ```
+
+- [Process](#process-1)
+  - [Process.constructor(...)](#processconstructor)
+  - [Process.getSignalName(...)](#processgetsignalname)
+  - [Process.run(...)](#processrun)
+  - [Process.wait(...)](#processwait)
+  - [Process.pause(...)](#processpause)
+  - [Process.resume(...)](#processresume)
+  - [Process.kill(...)](#processkill)
+  - [Process.cmdline](#processcmdline)
+  - [Process.stdout](#processstdout)
+  - [Process.stderr](#processstderr)
+  - [Process.paused](#processpaused)
+  - [Process.state](#processstate)
+  - [Process.success](#processsuccess)
+  - [Process.pid](#processpid)
+  - [Process.props](#processprops)
+  - [Process.setEventListener(...)](#processseteventlistener)
+- [exec(...)](#exec)
+- [waitpid(...)](#waitpid)
+- [ProcessSync](#processsync)
+  - [ProcessSync.constructor(...)](#processsyncconstructor)
+  - [ProcessSync.getSignalName(...)](#processsyncgetsignalname)
+  - [ProcessSync.run(...)](#processsyncrun)
+  - [ProcessSync.cmdline](#processsynccmdline)
+  - [ProcessSync.stdout](#processsyncstdout)
+  - [ProcessSync.stderr](#processsyncstderr)
+  - [ProcessSync.exitCode](#processsyncexitcode)
+  - [ProcessSync.success](#processsyncsuccess)
+  - [ProcessSync.props](#processsyncprops)
+- [execSync(...)](#execsync)
+- [ensureProcessResult(...)](#ensureprocessresult)
 
 ## Process
 
@@ -483,7 +516,8 @@ Constructor
   * opt.useShell (*boolean*) : if `true`, run command using `/bin/sh -c` (default = `false`)
   * opt.shell (*string*) : full path to shell (default = `/bin/sh`, ignored if `opt.useShell` is `false`)
   * opt.passStderr (*boolean*) if `true` *stderr* will not be intercepted (default = `true`)
-  * opt.redirectStderr (*boolean*) : if `true` *stderr* will be redirected to *stdout*, ignored if `opt.passStderr` is `true` (default = `false`)
+  * opt.redirectStderr (*boolean*) : if `true` *stderr* will be redirected to *stdout*, ignored if `opt.passStderr` is `true` or `opt.passStdout` is `true` (default = `false`)
+  * opt.passStdout (*boolean*) if `true` *stdout* will not be intercepted (default = `false`)
   * opt.trim (*boolean*) : if `true` *stdout* & *stderr* content will be trimmed (default = `true`)
   * opt.skipBlankLines (*boolean*) : if `true` empty lines will be ignored in both *stdout* & *stderr* content (default = `false`)
   * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by child process (don't share the same *handle* between multiple instances as it will be automatically rewind !)
@@ -650,8 +684,8 @@ Executes a command synchronously and return the content of *stdout*
   * opt.replaceEnv (*boolean*) : if `true`, ignore parent environment when setting child environment (default = `true`)
   * opt.useShell (*boolean*) : if `true`, run command using `/bin/sh -c` (default = `false`)
   * opt.shell (*string*) : full path to shell (default = `/bin/sh`, ignored if `opt.useShell` is `false`)
-  * opt.passStderr (*boolean*) if `true` *stderr* will not be intercepted (default = `true`)
-  * opt.redirectStderr (*boolean*) : if `true` *stderr* will be redirected to *stdout*, ignored if `opt.passStderr` is `true` (default = `false`)
+  * opt.redirectStderr (*boolean*) : if `true` *stderr* will be redirected to *stdout*, ignored if `opt.passStderr` is `true` or `opt.passStdout` is `true` (default = `false`)
+  * opt.passStdout (*boolean*) if `true` *stdout* will not be intercepted (default = `false`)
   * opt.trim (*boolean*) : if `true` *stdout* & *stderr* content will be trimmed (default = `true`)
   * opt.skipBlankLines (*boolean*) : if `true` empty lines will be ignored in both *stdout* & *stderr* content (default = `false`)
   * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by child process (don't share the same *handle* between multiple instances as it will be automatically rewind !)

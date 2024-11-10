@@ -9,6 +9,7 @@ A set of pure JS extensions for [QuickJS](https://github.com/ctn-malone/quickjs-
 * semver versions comparison (see [doc](doc/version.md))
 * interact with [pass](https://www.passwordstore.org/) (see [doc](doc/password-store.md))
 * build glamorous shell scripts using [gum](https://github.com/charmbracelet/gum) (see [doc](doc/gum.md))
+* manipulate paths in the style of [Node.js path module](https://nodejs.org/api/path.html) (see [doc](doc/path.md))
 
 <u>NB</u>: all extensions as well as `os` and `std` modules have typing through *JSDoc*
 

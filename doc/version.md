@@ -1,3 +1,4 @@
+<!-- omit in toc -->
 # version
 
 Helpers to perform semver versions comparison
@@ -8,6 +9,16 @@ It only accept versions matching `x.y.z-p+m` where
   * `m` contains metadata (dot separated list of `[0-9A-Za-z-]+` identifiers)
 
 It will throw an exception in case an invalid version is passed
+
+- [version.VERSION](#versionversion)
+- [version.isSemver](#versionissemver)
+- [version.convert](#versionconvert)
+- [version.eq](#versioneq)
+- [version.neq](#versionneq)
+- [version.lt](#versionlt)
+- [version.lte](#versionlte)
+- [version.gt](#versiongt)
+- [version.gte](#versiongte)
 
 ## version.VERSION
 

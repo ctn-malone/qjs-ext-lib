@@ -1,3 +1,4 @@
+<!-- omit in toc -->
 # ssh
 
 A wrapper around *ssh* binary
@@ -24,6 +25,49 @@ Following ssh options are not supported in constructor (and will be ignored if p
 * `LocalForward`, `RemoteForward`, `DynamicForward` (forwarding should be handled using adhoc *constructor* options)
 
 By default, `~/.ssh/config` file will be ignored to avoid unexpected behaviours. Use `opt.ignoreUserConfig` to re-enable it
+
+- [SSH session](#ssh-session)
+- [Pseudo terminal](#pseudo-terminal)
+- [Ssh](#ssh-1)
+  - [Ssh.constructor(...)](#sshconstructor)
+  - [Ssh.run(...)](#sshrun)
+  - [Ssh.waitForSessionSetup(...)](#sshwaitforsessionsetup)
+  - [Ssh.cancel(...)](#sshcancel)
+  - [Ssh.setEventListener(...)](#sshseteventlistener)
+  - [Ssh.puts](#sshputs)
+  - [Ssh.log](#sshlog)
+  - [Ssh.cmdline](#sshcmdline)
+  - [Ssh.host](#sshhost)
+  - [Ssh.port](#sshport)
+  - [Ssh.user](#sshuser)
+  - [Ssh.uri](#sshuri)
+  - [Ssh.stdout](#sshstdout)
+  - [Ssh.stderr](#sshstderr)
+  - [Ssh.remotePorts](#sshremoteports)
+  - [Ssh.didTimeout](#sshdidtimeout)
+  - [Ssh.wasCancelled](#sshwascancelled)
+  - [Ssh.sshFailed](#sshsshfailed)
+  - [Ssh.sshError](#sshssherror)
+  - [Ssh.sshErrorReason](#sshssherrorreason)
+  - [Ssh.commandFailed](#sshcommandfailed)
+  - [Ssh.failed](#sshfailed)
+  - [Ssh.state](#sshstate)
+  - [Ssh.pid](#sshpid)
+  - [Ssh.context](#sshcontext)
+  - [Ssh.duration](#sshduration)
+  - [Ssh.out](#sshout)
+  - [Ssh.err](#ssherr)
+- [sshExec(...)](#sshexec)
+- [multiSsh](#multissh)
+- [SshAgent](#sshagent)
+  - [SshAgent.isRunning(...)](#sshagentisrunning)
+  - [SshAgent.listIdentities(...)](#sshagentlistidentities)
+  - [SshAgent.checkIdentity(...)](#sshagentcheckidentity)
+  - [SshAgent.addIdentity(...)](#sshagentaddidentity)
+  - [SshAgent.addDefaultIdentities(...)](#sshagentadddefaultidentities)
+  - [SshAgent.removeIdentity(...)](#sshagentremoveidentity)
+  - [SshAgent.removeDefaultIdentities(...)](#sshagentremovedefaultidentities)
+  - [SshAgent.removeAllIdentities(...)](#sshagentremoveallidentities)
 
 ## SSH session
 
@@ -683,7 +727,7 @@ Ssh.err.puts(`stderr output`);
 
 Executes a command and return the content of *stdout*
 
-* **host** (*string*} : host to connec to. Format can be one of
+* **host** (*string*) : host to connec to. Format can be one of
   * hostname
   * user@hostname
   * hostname:port
@@ -803,7 +847,7 @@ console.log(JSON.stringify(list, null, 2));
 
 Checks whether or not an identity is loaded
 
-* **file** (*string*} : absolute path to *SSH* key
+* **file** (*string*) : absolute path to *SSH* key
 
 **return** *boolean*
 
@@ -820,7 +864,7 @@ console.log(`isLoaded: ${isLoaded}`);
 
 Adds an identity to *SSH* agent
 
-* **file** (*string*} : absolute path to *SSH* key
+* **file** (*string*) : absolute path to *SSH* key
 * opt (*object*) : options
   * opt.checkFirst (*boolean*) : if `true`, identity won't be added if it is already loaded
   * opt.expiry (*integer*) : maximum lifetime in seconds (no expiry by default, will be ignored if `opt.checkFirst` is `true`)
@@ -858,7 +902,7 @@ console.log(JSON.stringify(list));
 
 Removes an identity from *SSH* agent
 
-* **file** (*string*} : absolute path to *SSH* key
+* **file** (*string*) : absolute path to *SSH* key
   
 **return** *boolean* `true` if identity existed and was removed, `false` otherwise
 

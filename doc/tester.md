@@ -1,6 +1,18 @@
+<!-- omit in toc -->
 # tester
 
 Minimal unit testing library
+
+- [tester.test(...)](#testertest)
+- [tester.assert(...)](#testerassert)
+- [tester.assertEq(...)](#testerasserteq)
+- [tester.assertNeq(...)](#testerassertneq)
+- [tester.eq(...)](#testereq)
+- [tester.run(...)](#testerrun)
+- [tester.setReportVerbosity(...)](#testersetreportverbosity)
+- [tester.enableColorInReport(...)](#testerenablecolorinreport)
+- [tester.setReportHandler(...)](#testersetreporthandler)
+- [tester.setResultHandler(...)](#testersetresulthandler)
 
 ## tester.test(...)
 

@@ -1162,8 +1162,9 @@ class ProcessSync {
    * @param {boolean} [opt.useShell=false] - if {true}, run command using '/bin/sh -c' (default = {false})
    * @param {string} [opt.shell="/bin/sh"] - full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
    * @param {boolean} [opt.passStderr=true] - if {true} stderr will not be intercepted (default = {true})
-   * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false}) (ignored if {opt.passStderr} is {true})
-   * @param {boolean} [opt.trim=true] - if {true} stdout & stderr content will be trimmed (default = {true}) (does not apply to stdout & stderr event handlers)
+   * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false}) (ignored if {opt.passStderr} is {true} or {opt.passStdout} is {true})
+   * @param {boolean} [opt.passStdout=true] - if {true} stdout will not be intercepted (default = {false})
+   * @param {boolean} [opt.trim=true] - if {true} stdout & stderr content will be trimmed (default = {true})
    * @param {boolean} [opt.skipBlankLines=false] - if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
    * @param {number} [opt.stdin] - if defined, sets the stdin handle used by child process (it will be rewind)
    *                                NB: don't share the same handle between multiple instances
@@ -1215,6 +1216,8 @@ class ProcessSync {
     this._passStderr = false !== opt.passStderr;
     /** @private */
     this._redirectStderr = !this._passStderr && true === opt.redirectStderr;
+    /** @private */
+    this._passStdout = true === opt.passStdout;
     /** @private */
     this._output = {
       stdout: '',
@@ -1368,10 +1371,13 @@ class ProcessSync {
     /*
       create stdout file
      */
-    const stdoutFile = std.tmpfile();
-    if (null === stdoutFile) {
-      // @ts-ignore
-      throw new InternalError('Could not create temporary stdout file');
+    let stdoutFile = undefined;
+    if (!this._passStdout) {
+      stdoutFile = std.tmpfile();
+      if (null === stdoutFile) {
+        // @ts-ignore
+        throw new InternalError('Could not create temporary stdout file');
+      }
     }
 
     /*
@@ -1382,7 +1388,9 @@ class ProcessSync {
       stderrFile = std.tmpfile();
       if (null === stderrFile) {
         // close stdout file
-        stdoutFile.close();
+        if (undefined !== stdoutFile) {
+          stdoutFile.close();
+        }
         // @ts-ignore
         throw new InternalError(`Could not create temporary stderr file`);
       }
@@ -1396,7 +1404,9 @@ class ProcessSync {
     if (undefined !== this._input) {
       stdinFile = std.tmpfile();
       if (null === stdinFile) {
-        stdoutFile.close();
+        if (undefined !== stdoutFile) {
+          stdoutFile.close();
+        }
         if (undefined !== stderrFile) {
           stderrFile.close();
         }
@@ -1419,10 +1429,14 @@ class ProcessSync {
     if (undefined !== stdinFd) {
       qjsOpt.stdin = stdinFd;
     }
-    qjsOpt.stdout = stdoutFile.fileno();
+    if (undefined !== stdoutFile) {
+      qjsOpt.stdout = stdoutFile.fileno();
+    }
 
     if (!this._passStderr) {
-      qjsOpt.stderr = qjsOpt.stdout;
+      if (this._redirectStderr) {
+        qjsOpt.stderr = qjsOpt.stdout;
+      }
       if (undefined !== stderrFile) {
         qjsOpt.stderr = stderrFile.fileno();
       }
@@ -1431,10 +1445,12 @@ class ProcessSync {
     this._run = true;
 
     // read stdout
-    stdoutFile.flush();
-    stdoutFile.seek(0, std.SEEK_SET);
-    this._output.stdout = stdoutFile.readAsString();
-    stdoutFile.close();
+    if (undefined !== stdoutFile) {
+      stdoutFile.flush();
+      stdoutFile.seek(0, std.SEEK_SET);
+      this._output.stdout = stdoutFile.readAsString();
+      stdoutFile.close();
+    }
     if ('' != this._output.stdout) {
       // remove empty lines
       if (this._skipBlankLines) {
@@ -1508,8 +1524,9 @@ class ProcessSync {
  * @param {boolean} [opt.useShell=false] - if {true}, run command using '/bin/sh -c' (default = {false})
  * @param {string} [opt.shell="/bin/sh"] - full path to shell (default = '/bin/sh', ignored if {opt.useShell} is {false})
  * @param {boolean} [opt.passStderr=true] - if {true} stderr will not be intercepted (default = {true})
- * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false}) (ignored if {opt.passStderr} is {true})
- * @param {boolean} [opt.trim=true] - if {true} stdout & stderr content will be trimmed (default = {true}) (does not apply to stdout & stderr event handlers)
+ * @param {boolean} [opt.redirectStderr=false] - if {true} stderr will be redirected to stdout (default = {false}) (ignored if {opt.passStderr} is {true} or {opt.passStdout} is {true})
+ * @param {boolean} [opt.passStdout=true] - if {true} stdout will not be intercepted (default = {false})
+ * @param {boolean} [opt.trim=true] - if {true} stdout & stderr content will be trimmed (default = {true})
  * @param {boolean} [opt.skipBlankLines=false] - if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
  * @param {number} [opt.stdin] - if defined, sets the stdin handle used by child process (it will be rewind)
  *                                NB: don't share the same handle between multiple instances

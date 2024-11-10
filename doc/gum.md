@@ -1,6 +1,29 @@
+<!-- omit in toc -->
 # gum
 
 A wrapper around *gum* binary
+
+- [getVersion(...)](#getversion)
+- [hasGum(...)](#hasgum)
+- [getDefaultEnv(...)](#getdefaultenv)
+- [updateDefaultEnv(...)](#updatedefaultenv)
+- [chooseItemFromList(...)](#chooseitemfromlist)
+- [chooseItemsFromList(...)](#chooseitemsfromlist)
+- [filterItemFromList(...)](#filteritemfromlist)
+- [filterItemsFromList(...)](#filteritemsfromlist)
+- [style(...)](#style)
+- [renderTable(...)](#rendertable)
+- [chooseRowFromTable(...)](#chooserowfromtable)
+- [confirm(...)](#confirm)
+- [chooseFile(...)](#choosefile)
+- [chooseDirectory(...)](#choosedirectory)
+- [spin(...)](#spin)
+- [input(...)](#input)
+- [write(...)](#write)
+- [format(...)](#format)
+- [join(...)](#join)
+- [pager(...)](#pager)
+- [clear(...)](#clear)
 
 ## getVersion(...)
 
@@ -50,6 +73,24 @@ import * as gum from 'ext/gum.js';
 
 const env = gum.getDefaultEnv();
 console.log(JSON.stringify(env, null, 2));
+```
+
+## updateDefaultEnv(...)
+
+`updateDefaultEnv(env)`
+
+Override default gum environment variables (ex: colors)
+
+* **env** (*Record<string, (string|number)>>*) : environment variables
+
+<u>Example</u>
+
+```js
+gum.updateDefaultEnv({
+  GUM_CHOOSE_HEADER_FOREGROUND: style.Color.TEXT_COLOR_DEFAULT,
+  GUM_INPUT_HEADER_FOREGROUND: style.Color.TEXT_COLOR_DEFAULT,
+  GUM_CONFIRM_PROMPT_FOREGROUND: style.Color.TEXT_COLOR_DEFAULT,
+});
 ```
 
 ## chooseItemFromList(...)
