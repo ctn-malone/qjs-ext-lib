@@ -727,7 +727,7 @@ Ssh.err.puts(`stderr output`);
 
 Executes a command and return the content of *stdout*
 
-* **host** (*string*} : host to connec to. Format can be one of
+* **host** (*string*) : host to connec to. Format can be one of
   * hostname
   * user@hostname
   * hostname:port
@@ -847,7 +847,7 @@ console.log(JSON.stringify(list, null, 2));
 
 Checks whether or not an identity is loaded
 
-* **file** (*string*} : absolute path to *SSH* key
+* **file** (*string*) : absolute path to *SSH* key
 
 **return** *boolean*
 
@@ -864,7 +864,7 @@ console.log(`isLoaded: ${isLoaded}`);
 
 Adds an identity to *SSH* agent
 
-* **file** (*string*} : absolute path to *SSH* key
+* **file** (*string*) : absolute path to *SSH* key
 * opt (*object*) : options
   * opt.checkFirst (*boolean*) : if `true`, identity won't be added if it is already loaded
   * opt.expiry (*integer*) : maximum lifetime in seconds (no expiry by default, will be ignored if `opt.checkFirst` is `true`)
@@ -902,7 +902,7 @@ console.log(JSON.stringify(list));
 
 Removes an identity from *SSH* agent
 
-* **file** (*string*} : absolute path to *SSH* key
+* **file** (*string*) : absolute path to *SSH* key
   
 **return** *boolean* `true` if identity existed and was removed, `false` otherwise
 

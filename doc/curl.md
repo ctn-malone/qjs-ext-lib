@@ -528,7 +528,7 @@ console.log(c.duration);
 
 Perfoms a *curl* request and return the response's body
 
-* **url** (*string*} : http:/https url to connect to
+* **url** (*string*) : http:/https url to connect to
 * opt (*object*) : options
   * opt.method (*string*) : HTTP method (default = `GET`)
   * opt.userAgent (*string*) : user agent
