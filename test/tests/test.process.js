@@ -988,6 +988,18 @@ export default () => {
     tester.assertEq(p.props, props, `{props} should match`);
   });
 
+  tester.test('process.ProcessSync (with passStdout)', () => {
+    const opt = { passStdout: true };
+    const cmdline = 'data/test8.sh hello';
+    const p = new ProcessSync(cmdline, opt);
+    const success = p.run();
+
+    tester.assert(success, `result should be true`);
+    tester.assert(p.success, `.success should be true`);
+
+    tester.assertEq(p.stdout, '', `'stdout' should be empty`);
+  });
+
   tester.test('process.ProcessSync (without stderr redirect)', () => {
     const opt = { passStderr: false, trim: false };
     const cmdline = 'data/test1.sh 10';
