@@ -11,8 +11,17 @@ import * as std from 'std';
  * Exit the process
  *
  * @param {number} exitCode
+ *
+ * @returns {never}
  */
-export const exit = /** @type {(exitCode: number) => void}*/ (std.exit);
+export const exit = (exitCode) => {
+  std.exit(exitCode);
+  /*
+    While this is not needed, it will help type checker to
+    understand thet the function never returns
+   */
+  throw 'Unreachable';
+};
 
 /**
  * @typedef {Object} EvalScriptOptions
@@ -103,12 +112,12 @@ export const SEEK_SET = std.SEEK_SET;
  *
  * @param {string} filename
  * @param {string} flags - ex: "r" for read, "w" for write ...
- * @param {{errno: number}} [errorObj] - if defined, set its "errno" property to the error code or to 0 if no error occured
+ * @param {{errno?: number}} [errorObj] - if defined, set its "errno" property to the error code or to 0 if no error occured
  *
  * @returns {StdFile | null} FILE object or null in case of I/O error
  */
 export const open =
-  /** @type {(filename: string, flags: string, errorObj?: {errno: number}) => StdFile | null} */ (
+  /** @type {(filename: string, flags: string, errorObj?: {errno?: number}) => StdFile | null} */ (
     std.open
   );
 
@@ -117,12 +126,12 @@ export const open =
  *
  * @param {string} command
  * @param {string} flags - ex: "r" for read, "w" for write ...
- * @param {{errno: number}} [errorObj] - if defined, set its "errno" property to the error code or to 0 if no error occured
+ * @param {{errno?: number}} [errorObj] - if defined, set its "errno" property to the error code or to 0 if no error occured
  *
  * @returns {StdFile | null} FILE object or null in case of I/O error
  */
 export const popen =
-  /** @type {(command: string, flags: string, errorObj?: {errno: number}) => StdFile | null} */ (
+  /** @type {(command: string, flags: string, errorObj?: {errno?: number}) => StdFile | null} */ (
     std.popen
   );
 
@@ -131,24 +140,24 @@ export const popen =
  *
  * @param {number} fd
  * @param {string} flags - ex: "r" for read, "w" for write ...
- * @param {{errno: number}} [errorObj] - if defined, set its "errno" property to the error code or to 0 if no error occured
+ * @param {{errno?: number}} [errorObj] - if defined, set its "errno" property to the error code or to 0 if no error occured
  *
  * @returns {StdFile | null} FILE object or null in case of I/O error
  */
 export const fdopen =
-  /** @type {(fd: number, flags: string, errorObj?: {errno: number}) => StdFile | null} */ (
+  /** @type {(fd: number, flags: string, errorObj?: {errno?: number}) => StdFile | null} */ (
     std.fdopen
   );
 
 /**
  * Open a temporary file
  *
- * @param {{errno: number}} [errorObj] - if defined, set its "errno" property to the error code or to 0 if no error occured
+ * @param {{errno?: number}} [errorObj] - if defined, set its "errno" property to the error code or to 0 if no error occured
  *
  * @returns {StdFile | null} FILE object or null in case of I/O error
  */
 export const tmpfile =
-  /** @type {(errorObj?: {errno: number}) => StdFile | null} */ (std.tmpfile);
+  /** @type {(errorObj?: {errno?: number}) => StdFile | null} */ (std.tmpfile);
 
 /**
  * Outputs the string "str" with the UTF-8 encoding.

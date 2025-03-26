@@ -1255,13 +1255,13 @@ export default () => {
       0 == p.exitCode,
       `when executing ${JSON.stringify(
         cmdline
-      )} with shell, exit code should be 0 (exitCode =${p.exitCode})`
+      )} with shell, exit code should be 0 (exitCode = ${p.exitCode})`
     );
     tester.assert(
       p.success,
       `when executing ${JSON.stringify(
         cmdline
-      )} with shell, .success should be true (exitCode =${p.exitCode})`
+      )} with shell, .success should be true (exitCode = ${p.exitCode})`
     );
     expectedContent = '1\n';
     tester.assertEq(

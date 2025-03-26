@@ -548,13 +548,15 @@ export const now = /** @type {() => number} */ (os.now);
 /**
  * Call the function "func" after "delay" ms
  *
- * @param {() => void} func
+ * @param {(...args: any[]) => void} func
  * @param {number} delay - delay in ms
  *
  * @returns {Object} handle to the timer
  */
 export const setTimeout =
-  /** @type {(func: () => void, delay: number) => Object} */ (os.setTimeout);
+  /** @type {(func: (...args: any[]) => void, delay: number) => Object} */ (
+    os.setTimeout
+  );
 
 /**
  * Cancel a timer

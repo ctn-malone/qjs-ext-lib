@@ -1209,4 +1209,37 @@ export default () => {
     const expectedHelp = notNull(std.loadFile('data/help1.txt')).trim();
     tester.assertEq(help, expectedHelp, `help should be as expected`);
   });
+
+  tester.test('arg - getHelp (with QEL_SCRIPT_NAME)', () => {
+    std.setenv('QEL_SCRIPT_NAME', 'test');
+    const args = arg(
+      {
+        '--email': arg
+          .str('ctn@gmail.com')
+          .fmt('email')
+          .req()
+          .desc('user email'),
+        '--enum': [
+          arg.str('a').enum(['a', 'b', 'c']).desc('enum argument').env('ENUM'),
+        ],
+        '--num': arg.num().min(5).max(7),
+        '--file': arg.path().desc('file argument'),
+        '--dir': arg.path().dir().desc('dir argument'),
+        '--flag': arg.flag(true),
+        '-e': '--email',
+        '-f': '--file',
+      },
+      {
+        help: {
+          description: 'Example help header',
+          examples: ['--email test@gmail.com -e a', '--file /tmp/test.json'],
+        },
+        parse: false,
+      }
+    );
+    const help = args.getHelp();
+    const expectedHelp = notNull(std.loadFile('data/help1.txt')).trim();
+    tester.assertEq(help, expectedHelp, `help should be as expected`);
+    std.unsetenv('QEL_SCRIPT_NAME');
+  });
 };

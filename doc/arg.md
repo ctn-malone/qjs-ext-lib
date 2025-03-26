@@ -10,6 +10,7 @@ Command-line parser based on https://github.com/vercel/arg/tree/5.0.0
   - [ArgParser.ver(...)](#argparserver)
   - [ArgParser.ex(...)](#argparserex)
   - [ArgParser.parse(...)](#argparserparse)
+  - [ArgParser.parseAsync(...)](#argparserparseasync)
 - [ArgValidator](#argvalidator)
   - [StringArgValidator](#stringargvalidator)
     - [StringArgValidator.trim(...)](#stringargvalidatortrim)
@@ -238,6 +239,16 @@ Parses and validates command-line arguments
 const args = arg.parser({
   '--name': arg.str().req(),
 }).parse({ usageLayout: { maxLength: 80 } });
+```
+
+### ArgParser.parseAsync(...)
+
+Same as [ArgParser.parse](#argparserparse) but return a _Promise_ instead
+
+```js
+const args = await arg.parser({
+  '--name': arg.str().req(),
+}).parseAsync({ usageLayout: { maxLength: 80 } });
 ```
 
 ## ArgValidator
@@ -1045,7 +1056,9 @@ const args = arg
 
 ## Describe usage
 
-When `DESCRIBE_USAGE` environment variable is set, program will output a *json* object instead of executing
+When `QEL_DESCRIBE_USAGE` environment variable is set, program will output a *json* object instead of executing
+
+<u>NB</u>: `DESCRIBE_USAGE` is also supported (for now) for backward compatibility
 
 ```js
 /**
@@ -1085,7 +1098,7 @@ const args = arg
   .parse();
 ```
 
-Running above program using `DESCRIBE_USAGE=1 program` will output the following
+Running above program using `QEL_DESCRIBE_USAGE=1 program` will output the following
 
 ```json
 [
@@ -1170,5 +1183,5 @@ No :blush:. It's outside of the scope of the module, and is unlikely to happen a
 
 ### Does it support completion
 
-Not yet, but using `DESCRIBE_USAGE` variable generates a *json* object which could be use to generate completion
+Not yet, but using `QEL_DESCRIBE_USAGE` variable generates a *json* object which could be use to generate completion
 

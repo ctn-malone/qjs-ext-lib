@@ -138,11 +138,6 @@ const askGumFlavor = async () => {
     LIME: 3,
     ORANGE: 4,
   };
-  console.log(
-    `What is your favorite ${gum.style('Gum', {
-      foreground: '212',
-    })} flavor?\n`
-  );
   const choice = gum.filterItemFromList(
     [
       { text: 'Cherry', value: Flavor.CHERRY },
