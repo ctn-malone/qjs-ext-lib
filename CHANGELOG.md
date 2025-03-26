@@ -1,7 +1,7 @@
 # Change Log
 
 ## [0.14.0]
-* feat: first attempt at providing `bash` completion (`arg.js`)
+* feat: first attempt at providing `bash` and `zsh` completion (`arg.js`)
 * refactor: support `QEL_SCRIPT_NAME` environment variable to customize the script name in `--help` output (`arg.js`)
 * docs(type): improve type documentation for `std` functions (`std.js`)
 * docs(type): improve type documentation for `os` functions (`os.js`)
