@@ -307,6 +307,18 @@ export const getValueFromEnv = (varName) => {
 };
 
 /**
+ * Check whether or not completion is needed
+ *
+ * @returns  {boolean}
+ */
+export const isCompletionNeeded = () => {
+  return (
+    getValueFromEnv('COMP_LINE') !== undefined &&
+    getValueFromEnv('COMP_POINT') !== undefined
+  );
+};
+
+/**
  * @typedef {[Function, boolean, boolean, ArgValidator|undefined]} Handler
  */
 

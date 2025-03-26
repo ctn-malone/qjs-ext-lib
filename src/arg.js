@@ -24,6 +24,7 @@ import {
   createUsageItem,
   splitParagraph,
   getAliasesMap,
+  isCompletionNeeded,
 } from './internal/arg.js';
 import {
   DEFAULT_COMPLETION_SHELL,
@@ -139,6 +140,7 @@ import {
  * @property {GetValueOrDefault<T>} get - try to get argument value and fallback to default
  * @property {HasValue<T>} has - check whether or not an argument is defined
  * @property {() => void} parse - parse arguments
+ * @property {() => Promise<void>} checkCompletion - function which will wait if completion needs to be performed
  * @property {() => string} getUsage - return usage content
  * @property {() => DescribeUsageOutput} describeUsage - return an object describing usage
  * @property {(message?: string) => void} usage - output usage to stderr and exit with code 2
@@ -322,6 +324,14 @@ const arg = (specs, options) => {
   const usageOptions = getUsageOptions(options.usage);
   const helpOptions = getHelpOptions(options.help);
   const versionOptions = getVersionOptions(options.version);
+
+  result.checkCompletion = () => {
+    return new Promise((resolve) => {
+      if (!isCompletionNeeded()) {
+        resolve();
+      }
+    });
+  };
 
   result.parse = () => {
     try {
@@ -581,18 +591,14 @@ const arg = (specs, options) => {
   /*
     Completion
    */
-  if (
-    getValueFromEnv('COMP_LINE') !== undefined &&
-    getValueFromEnv('COMP_POINT') !== undefined
-  ) {
+  if (isCompletionNeeded()) {
     const cmdLine = /** @type {string} */ (getValueFromEnv('COMP_LINE'));
     let cursorPos = parseInt(
       /** @type {string} */ (getValueFromEnv('COMP_POINT'))
     );
     if (isNaN(cursorPos)) {
       cursorPos = cmdLine ? cmdLine.length - 1 : 0;
-    }
-    else {
+    } else {
       cursorPos = cursorPos;
     }
 

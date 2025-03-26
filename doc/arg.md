@@ -1242,6 +1242,28 @@ Following environment variables can be used to customize the behaviour
 
 It is possible to provide a [custom completion](#argvalidatorcomp) function for an `ArgValidator`
 
+<u>NB</u>: when using `arg.js` without `ArgParser`, you should call the `checkCompletion` _async_ function
+
+```js
+const args = arg({
+  '--name': String,
+  '--mood': [String],
+  '--age': Number,
+  '-n': '--name',
+  '-m': '--mood',
+  '-a': '--age',
+});
+/*
+  If completion is needed, we don't want the rest of the code to be executed
+ */
+await args.checkCompletion();
+
+/*
+  Following code won't be executed if completion is needed
+ */
+console.log(JSON.stringify(args));
+```
+
 ### Completion functions
 
 Some shell functions are provided (as an example) to setup the completion for various shells
