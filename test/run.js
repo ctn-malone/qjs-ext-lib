@@ -13,6 +13,7 @@ import testVersion from './tests/test.version.js';
 import testSsh from './tests/test.ssh.js';
 import testGum from './tests/test.gum.js';
 import testArg from './tests/test.arg.js';
+import testInternalArg from './tests/test.internal-arg.js';
 
 import * as std from '../src/std.js';
 
@@ -26,6 +27,7 @@ const testSuites = [
   'ssh',
   'gum',
   'arg',
+  'internal-arg',
 ];
 const verbosity_levels = [1, 2, 3];
 
@@ -149,6 +151,9 @@ if (undefined === testSuite || 'gum' === testSuite) {
 }
 if (undefined === testSuite || 'arg' === testSuite) {
   testArg();
+}
+if (undefined === testSuite || 'internal-arg' === testSuite) {
+  testInternalArg();
 }
 
 tester.run({ stopOnFailure: args.get('--stop-on-failure') });

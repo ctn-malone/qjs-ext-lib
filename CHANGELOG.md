@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.14.0]
+* feat: first attempt at providing `bash` and `zsh` completion (`arg.js`)
+* refactor: support `QEL_SCRIPT_NAME` environment variable to customize the script name in `--help` output (`arg.js`)
+* docs(type): improve type documentation for `std` functions (`std.js`)
+* docs(type): improve type documentation for `os` functions (`os.js`)
+
 ## [0.13.0]
 * feat: add functions to mimic _Node.js_ `path` module (`path.js`)
 * feat: add a `passStdout` option to `ProcessSync` (`process.js`)

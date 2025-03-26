@@ -10,6 +10,7 @@ Command-line parser based on https://github.com/vercel/arg/tree/5.0.0
   - [ArgParser.ver(...)](#argparserver)
   - [ArgParser.ex(...)](#argparserex)
   - [ArgParser.parse(...)](#argparserparse)
+  - [ArgParser.parseAsync(...)](#argparserparseasync)
 - [ArgValidator](#argvalidator)
   - [StringArgValidator](#stringargvalidator)
     - [StringArgValidator.trim(...)](#stringargvalidatortrim)
@@ -46,7 +47,12 @@ Command-line parser based on https://github.com/vercel/arg/tree/5.0.0
     - [ArgValidator.cust(...)](#argvalidatorcust)
     - [ArgValidator.map(...)](#argvalidatormap)
     - [ArgValidator.clone(...)](#argvalidatorclone)
+    - [ArgValidator.comp(...)](#argvalidatorcomp)
 - [Describe usage](#describe-usage)
+- [Shell completion](#shell-completion)
+  - [Completion functions](#completion-functions)
+    - [bash](#bash)
+    - [zsh](#zsh)
 - [Faq](#faq)
   - [Does it support sub commands ?](#does-it-support-sub-commands-)
   - [Does it support completion](#does-it-support-completion)
@@ -240,6 +246,16 @@ const args = arg.parser({
 }).parse({ usageLayout: { maxLength: 80 } });
 ```
 
+### ArgParser.parseAsync(...)
+
+Same as [ArgParser.parse](#argparserparse) but return a _Promise_ instead
+
+```js
+const args = await arg.parser({
+  '--name': arg.str().req(),
+}).parseAsync({ usageLayout: { maxLength: 80 } });
+```
+
 ## ArgValidator
 
 `ArgValidator` is an abstract class inspired by [Joi](https://github.com/hapijs/joi) with following inherited classes
@@ -268,6 +284,7 @@ All `ArgValidator` inherited classes also support
 - retrieving the value using an environment variable
 - defining custom validator
 - defining a function to map result (once value has been successfully validated)
+- defining custom completion function
 
 In order to indicate that an argument can be set multiple times, the validator should be wrapped in an array
 
@@ -1043,9 +1060,55 @@ const args = arg
   .parse();
 ```
 
+#### ArgValidator.comp(...)
+
+`.comp(completeFn)`
+
+Defines a custom completion function
+
+* **completeFn** (*CustomCompletionFunc*)
+
+**returns** *self*
+
+```js
+/**
+ * @callback CustomCompletionFunc
+ * @param {string} content
+ * @param {DefaultCompletionFunc} defaultCompletion
+ * @returns {Promise<string[]>}
+ */
+
+/**
+ * @typedef {() => Promise<string[]>} DefaultCompletionFunc
+ */
+```
+
+A custom completion function can be used to provide a list of completions for a given `ArgValidator`
+
+<u>Example</u>
+
+```js
+const args = arg
+  .parser({
+    '--age': arg
+      .num()
+      .comp(async (content, _defaultCompletion) => {
+        // offer 3 possible values
+        const values = [20, 30, 40].map(String);
+        if (!content) {
+          return values;
+        }
+        return values.filter((v) => v.startsWith(content));
+      })
+  })
+  .parse();
+```
+
 ## Describe usage
 
-When `DESCRIBE_USAGE` environment variable is set, program will output a *json* object instead of executing
+When `QEL_DESCRIBE_USAGE` environment variable is set, program will output a *json* object instead of executing
+
+<u>NB</u>: `DESCRIBE_USAGE` is also supported (for now) for backward compatibility
 
 ```js
 /**
@@ -1085,7 +1148,7 @@ const args = arg
   .parse();
 ```
 
-Running above program using `DESCRIBE_USAGE=1 program` will output the following
+Running above program using `QEL_DESCRIBE_USAGE=1 program` will output the following
 
 ```json
 [
@@ -1162,6 +1225,125 @@ Running above program using `DESCRIBE_USAGE=1 program` will output the following
 ]
 ```
 
+## Shell completion
+
+Scripts can provide their own completion (for _bash_ and _zsh_)
+
+Following environment variables need to be set to trigger shell completion
+
+- **COMP_LINE** : full command line
+- **COMP_POINT** : cursor position
+
+Following environment variables can be used to customize the behaviour
+
+- QEL_COMPLETION_SHELL : shell (default = `bash`)
+- QEL_COMPLETION_INCLUDE_ARG_ALIASES : whether or not aliases should be offered (default = `true`)
+- QEL_COMPLETION_DEBUG : filepath where completion logs should be written
+
+It is possible to provide a [custom completion](#argvalidatorcomp) function for an `ArgValidator`
+
+### Completion functions
+
+Some shell functions are provided (as an example) to setup the completion for various shells
+
+<u>NB</u>: the same function can be shared for all scripts
+
+#### bash
+
+```shell
+_qel_completion() {
+  local IFS=$'\n'
+
+  local cur prev words cword
+  _get_comp_words_by_ref -n : cur prev words cword
+
+  # command which triggered the completion
+  local cmd=${words[0]}
+  local extension="${cmd##*.}"
+
+  # call command to get completions
+  local output
+  if [[ "${extension}" == 'js' ]]; then
+    output=$(COMP_LINE="${COMP_LINE}" COMP_POINT="${COMP_POINT}" qjs.sh --unhandled-rejection ${cmd})
+  else
+    output=$(COMP_LINE="${COMP_LINE}" COMP_POINT="${COMP_POINT}" ${cmd})
+  fi
+
+  if [[ -n "${output}" ]]; then
+    case "$output" in
+    "@QEL_DIR@")
+      # complete only directories
+      _filedir -d
+      ;;
+    "@QEL_PATH@")
+      # complete files and directories
+      _filedir
+      ;;
+    *)
+      # use completions from command
+      COMPREPLY=($output)
+      ;;
+    esac
+  fi
+}
+```
+
+Scripts can then be registered like this
+
+
+```shell
+# Register the completion function for your command
+complete -F _qel_completion my-script
+```
+
+#### zsh
+
+```shell
+_qel_completion() {
+  # full command line up to cursor position
+  local cmd_line="${BUFFER[1, $CURSOR]}"
+
+  # command which triggered the completion
+  local cmd="${words[1]}"
+  local extension="${cmd##*.}"
+
+  # call command to get completions
+  local output
+  if [[ "${extension}" == 'js' ]]; then
+    output=$(QEL_COMPLETION_SHELL=zsh COMP_LINE="${cmd_line}" COMP_POINT="${CURSOR}" qjs.sh --unhandled-rejection ${cmd})
+  else
+    output=$(QEL_COMPLETION_SHELL=zsh COMP_LINE="${cmd_line}" COMP_POINT="${CURSOR}" ${cmd})
+  fi
+
+  if [[ -n "${output}" ]]; then
+    case "$output" in
+    "@QEL_DIR@")
+      # complete only directories
+      _files -/
+      ;;
+    "@QEL_PATH@")
+      # complete files and directories
+      _files
+      ;;
+    *)
+      # use completions from command
+      local completions=("${(f)${output}}")
+      completions=("${(f)output}")
+      _describe 'completions' completions
+      ;;
+    esac
+  fi
+}
+```
+
+Scripts can then be registered like this
+
+
+```shell
+# Register the completion function for your command
+compdef _qel_completion my-script
+```
+
 ## Faq
 
 ### Does it support sub commands ?
@@ -1170,5 +1352,5 @@ No :blush:. It's outside of the scope of the module, and is unlikely to happen a
 
 ### Does it support completion
 
-Not yet, but using `DESCRIBE_USAGE` variable generates a *json* object which could be use to generate completion
+Yes, see [shell completion](#shell-completion) :smile:
 
