@@ -37,13 +37,13 @@ export const DEFAULT_COMPLETION_SHELL = 'bash';
  */
 
 /**
- * @typedef {() => Promise<string[]>} DefaultCompletionCallback
+ * @typedef {() => Promise<string[]>} DefaultCompletionFunc
  */
 
 /**
- * @callback CustomCompletionCallback
+ * @callback CustomCompletionFunc
  * @param {string} content
- * @param {DefaultCompletionCallback} defaultCompletion
+ * @param {DefaultCompletionFunc} defaultCompletion
  * @returns {Promise<string[]>}
  */
 
@@ -399,6 +399,11 @@ export const completeCmdLine = async (
     )
   );
 
+  if (curToken === undefined || curTokenIndex === undefined) {
+    debug(() => 'Cannot find current token');
+    return [];
+  }
+
   // if we're inside a subshell, don't complete
   if (curToken.content.startsWith('$(')) {
     debug(() => 'Inside a subshell (completion aborted)');
@@ -668,7 +673,7 @@ const completeShellVariable = (debug, content) => {
  */
 const completeArgValidatorValues = async (debug, argValidator, token) => {
   const content = token?.content ?? '';
-  const customCompletion = /** @type {CustomCompletionCallback | undefined} */ (
+  const customCompletion = /** @type {CustomCompletionFunc | undefined} */ (
     /** @type {any} */ (argValidator)._customComplete
   );
   /** @type {string[] | undefined} */
@@ -686,11 +691,19 @@ const completeArgValidatorValues = async (debug, argValidator, token) => {
         return findMatching(words, content).matches;
       };
       if (customCompletion) {
-        debug(() => `Argument value completion (custom) from '${content}'`);
-        output = await customCompletion(content, defaultCompletion);
+        output = await runCustomCompletion(
+          debug,
+          content,
+          customCompletion,
+          defaultCompletion
+        );
       } else if (words?.length) {
-        debug(() => `Argument value completion (enum) from '${content}'`);
-        output = await defaultCompletion();
+        output = await runDefaultCompletion(
+          debug,
+          content,
+          defaultCompletion,
+          'enum'
+        );
       }
     } else if (argValidator instanceof PathArgValidator) {
       const defaultCompletion = async () => {
@@ -698,11 +711,19 @@ const completeArgValidatorValues = async (debug, argValidator, token) => {
         return isDir ? ['@QEL_DIR@'] : ['@QEL_PATH@'];
       };
       if (customCompletion) {
-        debug(() => `Argument value completion (custom) from '${content}'`);
-        output = await customCompletion(content, defaultCompletion);
+        output = await runCustomCompletion(
+          debug,
+          content,
+          customCompletion,
+          defaultCompletion
+        );
       } else {
-        debug(() => `Argument value completion (path) from '${content}'`);
-        output = await defaultCompletion();
+        output = await runDefaultCompletion(
+          debug,
+          content,
+          defaultCompletion,
+          'path'
+        );
       }
     } else {
       const defaultValue = /** @type {string|number|boolean|undefined} */ (
@@ -712,16 +733,70 @@ const completeArgValidatorValues = async (debug, argValidator, token) => {
         return defaultValue !== undefined ? [defaultValue.toString()] : [];
       };
       if (customCompletion) {
-        debug(() => `Argument value completion (custom) from '${content}'`);
-        output = await customCompletion(content, defaultCompletion);
+        output = await runCustomCompletion(
+          debug,
+          content,
+          customCompletion,
+          defaultCompletion
+        );
       } else if (defaultValue !== undefined) {
-        debug(() => `Argument value completion (default) from '${content}'`);
-        output = await defaultCompletion();
+        output = await runDefaultCompletion(
+          debug,
+          content,
+          defaultCompletion,
+          'default'
+        );
       }
     }
   } catch (e) {
-    debug(() => [e.message, e.stack].join('\n'));
+    debug(() => `Argument value completion error: ${e.message}\n${e.stack}`);
   }
 
   return output ?? [];
+};
+
+/**
+ * @param {LogFunction} debug
+ * @param {string} content
+ * @param {DefaultCompletionFunc} defaultCompletion
+ * @param {string} type
+ *
+ * @returns {Promise<string[]>}
+ */
+const runDefaultCompletion = async (
+  debug,
+  content,
+  defaultCompletion,
+  type
+) => {
+  debug(() => `Argument value completion (${type}) from '${content}'`);
+  try {
+    return await defaultCompletion();
+  } catch (e) {
+    debug(() => `Argument value completion error: ${e.message}\n${e.stack}`);
+  }
+  return [];
+};
+
+/**
+ * @param {LogFunction} debug
+ * @param {string} content
+ * @param {CustomCompletionFunc} customCompletion
+ * @param {DefaultCompletionFunc} defaultCompletion
+ *
+ * @returns {Promise<string[]>}
+ */
+const runCustomCompletion = async (
+  debug,
+  content,
+  customCompletion,
+  defaultCompletion
+) => {
+  debug(() => `Argument value completion (custom) from '${content}'`);
+  try {
+    return await customCompletion(content, defaultCompletion);
+  } catch (e) {
+    debug(() => `Argument value completion error: ${e.message}\n${e.stack}`);
+  }
+  return [];
 };

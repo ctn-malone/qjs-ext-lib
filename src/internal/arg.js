@@ -1009,6 +1009,10 @@ export class ArgValidator {
 }
 
 /**
+ *  @typedef {import('./completion.js').CustomCompletionFunc} CustomCompletionFunc
+ */
+
+/**
  * @abstract
  * @class
  */
@@ -1020,6 +1024,12 @@ export class ArgValidatorWithValue extends ArgValidator {
    */
   constructor(type, defaultValue) {
     super(type, defaultValue);
+
+    /**
+     * @private
+     * @type {CustomCompletionFunc|undefined}
+     */
+    this._customComplete = undefined;
   }
 
   /**
@@ -1064,6 +1074,16 @@ export class ArgValidatorWithValue extends ArgValidator {
     if (text) {
       this._valueText = text;
     }
+    return this;
+  }
+
+  /**
+   * @param {CustomCompletionFunc} completeFn
+   *
+   * @returns {this}
+   */
+  comp(completeFn) {
+    this._customComplete = completeFn;
     return this;
   }
 
