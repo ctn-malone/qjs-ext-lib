@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.14.1]
+* fix: fix `--no-x` flag support (`arg.js`)
+* feat: add support for `--ipv4` and `--ipv6` flags (`curl.js`)
+* feat: add a `handleCurlRequestError` helper function (`curl.js`)
+
 ## [0.14.0]
 * feat: first attempt at providing `bash` and `zsh` completion (`arg.js`)
 * refactor: support `QEL_SCRIPT_NAME` environment variable to customize the script name in `--help` output (`arg.js`)

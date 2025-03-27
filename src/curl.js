@@ -116,6 +116,9 @@ class Curl {
    * @param {any} [opt.context] - user define context (can be used to identify curl request later by client code)
    * @param {number} [opt.stdin] - if defined, sets the stdin handle used by curl process (it will be rewind)
    *                               NB: don't share the same handle between multiple instances
+   * @param {boolean} [opt.forceIpv4] - if {true} use IPv4 addresses only when resolving host names
+   * @param {boolean} [opt.forceIpv6] - if {true} use IPv6 addresses only when resolving host names
+   *                                    Will be ignored if {opt.forceIpv4} is true
    */
   constructor(url, opt) {
     if (undefined === opt) {
@@ -492,6 +495,14 @@ class Curl {
         this._curlArgs.push(`@${filepath}`);
       }
     }
+
+    // ipv4, ipv6
+    if (true === opt.forceIpv4) {
+      this._curlArgs.push('--ipv4');
+    } else if (true === opt.forceIpv6) {
+      this._curlArgs.push('--ipv6');
+    }
+
     // url & query string
     let finalUrl = url;
     const useBracketsForParams = false !== opt.useBracketsForParams;
@@ -1244,6 +1255,9 @@ class Curl {
  * @param {number} [opt.stdin] - if defined, sets the stdin handle used by curl process (it will be rewind)
  *                               NB: don't share the same handle between multiple instances
  * @param {boolean} [opt.ignoreError=false] - if {true}, promise will resolve to the response's body even if curl failed or HTTP failed (default = {false})
+ * @param {boolean} [opt.forceIpv4] - if {true} use IPv4 addresses only when resolving host names
+ * @param {boolean} [opt.forceIpv6] - if {true} use IPv6 addresses only when resolving host names
+ *                                    Will be ignored if {opt.forceIpv4} is true
  *
  * @returns {Promise<object|string|undefined>} promise which will resolve to the body in case of success
  *                                             and will an throw an {Error} with the body/curl error as error message and following extra properties :
@@ -1304,6 +1318,65 @@ const multiCurl = async (list) => {
     data.push({ curl: list[i], result: r });
   });
   return data;
+};
+
+/**
+ * @param {number} exitCode
+ * @param {string} [message]
+ *
+ * @returns {never}
+ */
+export const exit = (exitCode, message) => {
+  if (message) {
+    std.err.puts(`${message.trim()}\n`);
+  }
+  std.exit(exitCode);
+};
+
+/**
+ * @typedef {Object} HandleCurlRequestErrorMapping
+ * @property {number} [network] - exit code in case of network error
+ * @property {Record<number | string, number>} [http] - exit codes for each HTTP error (use "default" key for default exit code)
+ */
+
+/**
+ * @param {Curl} curl
+ * @param {HandleCurlRequestErrorMapping} [errorMapping]
+ *
+ * @returns {never}
+ */
+const handleCurlRequestError = (curl, errorMapping) => {
+  if (!curl.failed) {
+    throw new Error('Request did not fail');
+  }
+
+  // default exit code
+  let exitCode = 1;
+
+  const { network: networkErrorCode = exitCode, http: httpErrorCodes = {} } =
+    errorMapping ?? {};
+  if (curl.curlFailed) {
+    exit(networkErrorCode ?? exitCode, curl.error);
+  }
+
+  if (httpErrorCodes['default']) {
+    exitCode = httpErrorCodes['default'];
+  }
+  const statusCode = String(curl.statusCode);
+  if (httpErrorCodes.hasOwnProperty(statusCode)) {
+    exitCode = httpErrorCodes[statusCode];
+  }
+
+  const body = curl.body;
+  if (body) {
+    if (body instanceof Object) {
+      exit(exitCode, JSON.stringify(body, null, 2));
+    } else {
+      exit(exitCode, `${statusCode} ${body}`);
+    }
+  } else {
+    exit(exitCode, curl.error);
+  }
 };
 
 /**
@@ -1444,4 +1517,4 @@ const parseSetCookieHeader = (value) => {
   return cookie;
 };
 
-export { Curl, multiCurl, curlRequest };
+export { Curl, multiCurl, curlRequest, handleCurlRequestError };
