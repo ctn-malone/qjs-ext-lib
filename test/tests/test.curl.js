@@ -503,6 +503,46 @@ export default () => {
     );
   });
 
+  tester.test('curl.Curl (force ipv4)', () => {
+    const c = new Curl('http://127.0.0.1', {
+      forceIpv4: true,
+    });
+    const expectedCmdline = `curl -D /dev/stderr -q -X GET -L --ipv4 --url http://127.0.0.1`;
+    const cmdline = c.cmdline;
+    tester.assertEq(
+      cmdline,
+      expectedCmdline,
+      `cmdline should match when forcing ipv4`
+    );
+  });
+
+  tester.test('curl.Curl (force ipv6)', () => {
+    const c = new Curl('http://127.0.0.1', {
+      forceIpv6: true,
+    });
+    const expectedCmdline = `curl -D /dev/stderr -q -X GET -L --ipv6 --url http://127.0.0.1`;
+    const cmdline = c.cmdline;
+    tester.assertEq(
+      cmdline,
+      expectedCmdline,
+      `cmdline should match when forcing ipv6`
+    );
+  });
+
+  tester.test('curl.Curl (force both ipv4 and ipv6)', () => {
+    const c = new Curl('http://127.0.0.1', {
+      forceIpv4: true,
+      forceIpv6: true,
+    });
+    const expectedCmdline = `curl -D /dev/stderr -q -X GET -L --ipv4 --url http://127.0.0.1`;
+    const cmdline = c.cmdline;
+    tester.assertEq(
+      cmdline,
+      expectedCmdline,
+      `cmdline should match when forcing both ipv4 and ipv6`
+    );
+  });
+
   tester.test(
     'curl.Curl (curl failure)',
     async (done) => {

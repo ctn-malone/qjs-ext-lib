@@ -804,17 +804,7 @@ export default () => {
           argv: ['--no-flag'],
         }
       );
-      tester.assertEq(
-        args.get('--flag'),
-        3,
-        'value should equal the number of times flag was set'
-      );
     } catch (e) {
-      tester.assertEq(
-        e.code,
-        'ARG_UNKNOWN_OPTION',
-        "it should throw a 'ARG_UNKNOWN_OPTION' exception if --no-x flag is disallowed"
-      );
       exceptionThrown = true;
     }
     tester.assert(

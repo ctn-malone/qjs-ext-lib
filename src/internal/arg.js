@@ -237,34 +237,20 @@ export const findHandler = (argName, handlers, aliases) => {
   const originalArgName = argName;
   let mainArgName = getMainArgName(argName, aliases);
   if (!(mainArgName in handlers)) {
-    /* 
-      It could be a --no-x flag
-      We need to search if a --x flag exists            
-     */
-    if (argName.startsWith('--no-')) {
-      const newArgName = getMainArgName(
-        `--${mainArgName.substring('--no-'.length)}`,
-        aliases
-      );
-      if (!(newArgName in handlers)) {
-        return undefined;
-      }
-      const [_type, _isFlag, _allowMany, argValidator] = handlers[newArgName];
-      if (argValidator && /** @type {any} */ (argValidator)._allowNoFlag) {
-        return {
-          argName: newArgName,
-          originalArgName,
-          isNoflag: true,
-          handler: handlers[newArgName],
-        };
-      }
-    }
     return undefined;
+  }
+  const isNoflag = originalArgName.startsWith('--no-');
+  if (isNoflag) {
+    // ignore if --no-x flag is not allowed
+    const [_type, _isFlag, _allowMany, argValidator] = handlers[mainArgName];
+    if (argValidator && !(/** @type {any} */ (argValidator)._allowNoFlag)) {
+      return undefined;
+    }
   }
   return {
     argName: mainArgName,
     originalArgName,
-    isNoflag: false,
+    isNoflag,
     handler: handlers[mainArgName],
   };
 };

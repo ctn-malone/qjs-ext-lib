@@ -28,6 +28,7 @@ A wrapper around *curl* binary
   - [Curl.context](#curlcontext)
   - [Curl.duration](#curlduration)
 - [curlRequest](#curlrequest)
+- [handleCurlRequestError](#handlecurlrequesterror)
 - [multiCurl](#multicurl)
 
 ## Curl
@@ -111,6 +112,9 @@ Constructor
     * will be ignored if one of (`opt.basicAuth`, `opt.bearerToken`) was set
   * opt.context (*any*) : user define context (can be used to identify *curl* request later by client code)
   * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by curl process (don't share the same *handle* between multiple instances !)
+  * opt.forceIpv4 (*boolean*) - if `true` use IPv4 addresses only when resolving host names
+  * opt.forceIpv6 (*boolean*) - if `true` use IPv6 addresses only when resolving host names
+    * will be ignored if `opt.forceIpv4` is `true`
 
 <u>Example</u>
 
@@ -176,12 +180,12 @@ Retrieves *curl* command line corresponding to the request. It's likely to be in
 
 ```js
 const c = new Curl('https://jsonplaceholder.typicode.com/posts', {
-    method:'post',
-    json: {
-        title: 'foo',
-        body: 'bar',
-        userId: 1
-    }
+  method:'post',
+  json: {
+    title: 'foo',
+    body: 'bar',
+    userId: 1
+  }
 });
 console.log(c.cmdline);
 ```
@@ -601,6 +605,9 @@ Perfoms a *curl* request and return the response's body
     * will be ignored if one of (`opt.basicAuth`, `opt.bearerToken`) was set
   * opt.stdin (*integer*) : if defined, sets the *stdin* handle used by curl process (don't share the same *handle* between multiple instances !)
   * opt.ignoreError (*boolean*):  if `true` promise will resolve to the response's body even if curl failed or HTTP failed
+  * opt.forceIpv4 (*boolean*) - if `true` use IPv4 addresses only when resolving host names
+  * opt.forceIpv6 (*boolean*) - if `true` use IPv6 addresses only when resolving host names
+    * will be ignored if `opt.forceIpv4` is `true`
 
 **return** *Promise* which resolves to the response's body
 
@@ -616,14 +623,53 @@ Following extra properties will be added to the exception
 
 ```js
 const body = await curlRequest('https://jsonplaceholder.typicode.com/posts', {
-    method:'post',
-    json: {
-        title: 'foo',
-        body: 'bar',
-        userId: 1
-    }
+  method:'post',
+  json: {
+    title: 'foo',
+    body: 'bar',
+    userId: 1
+  }
 });
 console.log(JSON.stringify(body, null, 4));
+```
+
+## handleCurlRequestError
+
+`handleCurlRequestError(curl, errorMapping)`
+
+* **curl** (*Curl*) : curl object
+* errorMapping (*HandleCurlRequestErrorMapping*) :  
+
+**return** *never* function will exit with an error code (default = `1`)
+
+```js
+/**
+ * @typedef {Object} HandleCurlRequestErrorMapping
+ * @property {number} [network] - exit code in case of network error
+ * @property {Record<number | string, number>} [http] - exit codes for each HTTP error (use "default" key for default exit code)
+ */
+```
+
+<u>NB</u>: it will throw an error if curl request did not fail. Be sure to set `failOnHttpError` to `true` if you want to fail on HTTP errors
+
+<u>Example</u>
+
+```js
+const curl = new Curl('https://www.google.com/invalid', {
+  failOnHttpError: true,
+});
+await curl.run();
+if (curl.failed) {
+  handleCurlRequestError(curl, {
+    network: 2,
+    http: {
+      default: 10,
+      401: 11,
+      403: 13,
+      404: 14,
+    },
+  });
+}
 ```
 
 ## multiCurl
