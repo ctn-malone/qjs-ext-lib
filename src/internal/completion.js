@@ -447,7 +447,7 @@ export const completeCmdLine = async (
           // without an ArgValidator we can do path completion
           if (!(argValidator instanceof ArgValidator)) {
             debug(() => `Path completion (${output.argName}) from ''`);
-            completions = ['@@QEL_PATH@@'];
+            completions = ['@QEL_PATH@'];
           } else {
             debug(
               () => `Argument value completion (${output.argName}) from ''`
@@ -539,7 +539,7 @@ export const completeCmdLine = async (
               () =>
                 `Path completion (${output.argName}) from '${curToken.content}'`
             );
-            completions = ['@@QEL_PATH@@'];
+            completions = ['@QEL_PATH@'];
           } else {
             debug(
               () =>
