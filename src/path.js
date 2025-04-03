@@ -10,15 +10,22 @@ import * as os from './os.js';
  * @returns {string}
  */
 export const getScriptDir = () => {
-  // @ts-ignore
-  const arr = scriptArgs[0].split(sep);
-  // only a single entry (ie: we're in the same directory) => return cwd
-  if (1 === arr.length) {
-    return os.getcwd()[0];
+  /*
+    Try using /proc in case we're running a compiled script
+   */
+  const pid = os.getpid();
+  const [procScriptPath, errno] = os.readlink(`/proc/${pid}/exe`);
+  if (errno === 0) {
+    const scriptName = getScriptName(false);
+    const obj = parse(procScriptPath);
+    if (scriptName === obj.base) {
+      return obj.dir;
+    }
   }
-  // remove last entry
-  arr.pop();
-  return arr.join(sep);
+  // fallback to scriptArgs
+  // @ts-ignore
+  const scriptPath = resolve(scriptArgs[0]);
+  return dirname(scriptPath);
 };
 
 /**
