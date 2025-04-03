@@ -1,5 +1,14 @@
 # Change Log
 
+## [0.14.2]
+* fix: fix `getScriptDir` function for compiled scripts (`path.js`)
+* fix: fix version comparison (`version.js`)
+* fix: fix a typo in completion (`arg.js`)
+  - Thanks https://github.com/nicolasduteil
+* fix: fix [gum](https://github.com/charmbracelet/gum) styling (ignored because of `stderr` redirection) (`gum.js`)
+* feat: the callback passed to `os.signal` will receive a `restoreHandler` callback which can be used to restore previous handler
+* refactor: improve compatibility with latest [gum](https://github.com/charmbracelet/gum) version (`v0.16.0`) (`gum.js`)
+
 ## [0.14.1]
 * fix: fix `--no-x` flag support (`arg.js`)
 * feat: add support for `--ipv4` and `--ipv6` flags (`curl.js`)
