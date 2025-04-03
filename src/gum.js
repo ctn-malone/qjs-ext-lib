@@ -15,6 +15,8 @@ import * as os from './os.js';
 import * as std from './std.js';
 
 import { ProcessSync, Process } from './process.js';
+import { notNull } from './types.js';
+import { version } from './version.js';
 
 /** @typedef {import('./process.js').ProcessState} ProcessState */
 
@@ -74,6 +76,15 @@ const defaultEnvironment = {};
  * @param {ProcessSync} process
  */
 const handleError = (process) => {
+  /*
+    This version introduced ESC to abort with exit code 1
+    See https://github.com/charmbracelet/gum/releases/tag/v0.15.0
+   */
+  if (versionGte('0.15.0')) {
+    if (process.exitCode === 1) {
+      return undefined;
+    }
+  }
   if (process.exitCode !== 130) {
     throw new Error(process.stderr);
   }
@@ -153,6 +164,42 @@ export const hasGum = () => {
   return getVersion() !== undefined;
 };
 
+/*
+  Helpers to check version compatibility
+ */
+
+/**
+ * @type {string | undefined}
+ */
+let gumVersion = undefined;
+/** @type {Record<string, boolean>} */
+const minVersions = {};
+/**
+ * @param {string} targetVersion
+ * @param {string} [dryRunVersion] - for testing purpose
+ *
+ * @returns {boolean}
+ */
+const versionGte = (targetVersion, dryRunVersion) => {
+  let currentVersion = dryRunVersion;
+  if (currentVersion === undefined) {
+    if (gumVersion === undefined) {
+      gumVersion = notNull(getVersion());
+    }
+    currentVersion = gumVersion;
+  }
+  /*
+    Don't use cache if a dryRun version was passed
+   */
+  if (dryRunVersion) {
+    return version.gte(targetVersion, currentVersion);
+  }
+  if (minVersions[currentVersion] === undefined) {
+    minVersions[targetVersion] = version.gte(targetVersion, currentVersion);
+  }
+  return minVersions[targetVersion];
+};
+
 /**
  * Override default gum environment variables (ex: colors)
  *
@@ -187,6 +234,7 @@ export const getDefaultEnv = () => {
  * @property {Record<string, string|number>} [env] - custom environment variables
  * @property {Record<string, string|number|undefined>} [args] - custom arguments
  * @property {DryRunCallback} [dryRunCb] - only used for unit testing
+ * @property {string} [dryRunVersion] - used to force a version in unit tests
  */
 
 /**
@@ -756,7 +804,6 @@ export const style = (text, opt) => {
     env,
     replaceEnv: false,
     trim: false,
-    passStderr: false,
   });
   if (!p.run()) {
     throw new Error(p.stderr);
@@ -897,7 +944,6 @@ export const renderTable = (columns, rows, opt) => {
     env,
     replaceEnv: false,
     input: extendedRows.map((row) => row.key).join('\n'),
-    passStderr: false,
   });
   if (!p.run()) {
     throw new Error(p.stderr);
@@ -1088,10 +1134,7 @@ export const chooseFile = (opt) => {
     replaceEnv: false,
   });
   if (!p.run()) {
-    if (p.exitCode === 130) {
-      return undefined;
-    }
-    throw new Error(p.stderr);
+    return handleError(p);
   }
   return p.stdout;
 };
@@ -1139,10 +1182,7 @@ export const chooseDirectory = (opt) => {
     replaceEnv: false,
   });
   if (!p.run()) {
-    if (p.exitCode === 130) {
-      return undefined;
-    }
-    throw new Error(p.stderr);
+    return handleError(p);
   }
   return p.stdout;
 };
@@ -1183,8 +1223,8 @@ const SPIN_DEFAULT_ALIGN = SpinAlign.LEFT;
  *
  * > gum spin ...
  *
- * @param {Promise} [promise] - promise to wait for
- * @param {object} [opt] - options
+ * @param {Promise<any>} promise - promise to wait for
+ * @param {Object} [opt] - options
  * @param {string} [opt.title="Loading..."] - title value (default = "Loading...") ($GUM_SPIN_TITLE)
  * @param {string} [opt.spinner="dot"] - spinner value (default = Spinner.DOT) ($GUM_SPIN_SPINNER)
  * @param {string} [opt.align="left"] - alignment of spinner with regard to the title (default = Align.LEFT) ($GUM_SPIN_ALIGN)
@@ -1193,6 +1233,95 @@ const SPIN_DEFAULT_ALIGN = SpinAlign.LEFT;
  * @returns {Promise<boolean>} whether or not spinner was cancelled (ie: using Ctrl+C)
  */
 export const spin = async (promise, opt) => {
+  if (!versionGte('0.15.1', opt?.custom?.dryRunVersion)) {
+    return spinLegacy(promise, opt);
+  }
+  opt = opt || {};
+  const cmdline = ['gum', 'spin', '--show-stdout'];
+  if (opt.title !== undefined) {
+    cmdline.push('--title', opt.title);
+  }
+  if (opt.spinner) {
+    cmdline.push('--spinner', opt.spinner);
+  }
+  if (opt.align) {
+    cmdline.push('--align', opt.align);
+  }
+
+  addCustomArguments(cmdline, opt.custom?.args, [
+    'show-output',
+    'show-error',
+    'show-stdout',
+    'show-stderr',
+    'timeout',
+  ]);
+  const env = getEnv(opt.custom?.env);
+
+  cmdline.push('--', 'tail', '-1');
+
+  if (opt.custom?.dryRunCb) {
+    opt.custom.dryRunCb(cmdline, env);
+    return true;
+  }
+
+  /** @type {Promise<boolean>} */
+  const spinnerPromise = new Promise(async (resolve, reject) => {
+    const pipe = notNull(os.pipe());
+    const spinProcess = new Process(cmdline, {
+      env,
+      replaceEnv: false,
+      passStderr: true,
+      stdin: pipe[0],
+    });
+
+    // stop spinner & wait until process is over
+    const stopSpinner = async () => {
+      // this will stop the spinner
+      os.close(pipe[1]);
+      // wait until spinner process is done
+      await spinProcess.wait();
+      os.close(pipe[0]);
+    };
+
+    // start spinner & setup exit handler
+    os.signal(os.SIGINT, (restoreHandler) => {
+      restoreHandler();
+    });
+    spinProcess.setEventListener('exit', (state) => {
+      if (state.exitCode === 130) {
+        resolve(true);
+      }
+    });
+    spinProcess.run();
+
+    // wait for promise to resolve
+    try {
+      await promise;
+    } catch (e) {
+      await stopSpinner();
+      return reject(e);
+    }
+    await stopSpinner();
+    return resolve(false);
+  });
+  return spinnerPromise;
+};
+
+/**
+ * Display a spinner while a promise is resolving (for versions < 0.15.1)
+ *
+ * > gum spin ...
+ *
+ * @param {Promise<any>} promise - promise to wait for
+ * @param {Object} [opt] - options
+ * @param {string} [opt.title="Loading..."] - title value (default = "Loading...") ($GUM_SPIN_TITLE)
+ * @param {string} [opt.spinner="dot"] - spinner value (default = Spinner.DOT) ($GUM_SPIN_SPINNER)
+ * @param {string} [opt.align="left"] - alignment of spinner with regard to the title (default = Align.LEFT) ($GUM_SPIN_ALIGN)
+ * @param {CustomOptions} [opt.custom]
+ *
+ * @returns {Promise<boolean>} whether or not spinner was cancelled (ie: using Ctrl+C)
+ */
+const spinLegacy = async (promise, opt) => {
   opt = opt || {};
   const cmdline = ['gum', 'spin'];
   if (opt.title !== undefined) {
@@ -1205,7 +1334,7 @@ export const spin = async (promise, opt) => {
     cmdline.push('--align', opt.align);
   }
 
-  addCustomArguments(cmdline, opt.custom?.args, ['show-output']);
+  addCustomArguments(cmdline, opt.custom?.args, ['show-output', 'timeout']);
   const env = getEnv(opt.custom?.env);
 
   cmdline.push('--', 'tail', '-f');
@@ -1216,24 +1345,36 @@ export const spin = async (promise, opt) => {
   }
 
   /** @type {Promise<boolean>} */
-  const spinnerPromise = new Promise(async (resolve) => {
-    // start spinner
+  const spinnerPromise = new Promise(async (resolve, reject) => {
     const spinProcess = new Process(cmdline, {
       env,
       replaceEnv: false,
       passStderr: true,
     });
+
+    // start spinner & setup exit handler
     spinProcess.setEventListener('exit', (state) => {
       if (state.exitCode === 130) {
         resolve(true);
       }
     });
     spinProcess.run();
+
+    // stop spinner & wait until process is over
+    const stopSpinner = async () => {
+      spinProcess.kill();
+      await spinProcess.wait();
+    };
+
     // wait for promise to resolve and stop spinner when it's done
-    await promise;
-    spinProcess.kill();
-    await spinProcess.wait();
-    resolve(false);
+    try {
+      await promise;
+    } catch (e) {
+      await stopSpinner();
+      return reject(e);
+    }
+    await stopSpinner();
+    return resolve(false);
   });
   return spinnerPromise;
 };
@@ -1318,7 +1459,10 @@ const WRITE_DEFAULT_CHAR_LIMIT = 400;
 const WRITE_DEFAULT_SHOW_LINE_NUMBERS = 'no';
 
 /**
- * Prompt for long-form text (press Ctrl+D or Esc to confirm)
+ * Prompt for long-form text
+ *
+ * < v0.14.0: press Ctrl+D or Esc to confirm
+ * >= v0.14.0: press Enter to confirm
  *
  * > gum write ...
  *
@@ -1450,7 +1594,6 @@ export const format = (text, opt) => {
     env,
     replaceEnv: false,
     trim: false,
-    passStderr: false,
   });
   if (!p.run()) {
     throw new Error(p.stderr);
@@ -1509,7 +1652,6 @@ export const join = (text, opt) => {
     env,
     replaceEnv: false,
     trim: false,
-    passStderr: false,
   });
   if (!p.run()) {
     throw new Error(p.stderr);

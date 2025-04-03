@@ -497,7 +497,7 @@ Display a spinner while a promise is resolving
 > gum spin ...
 ```
 
-* promise (*Promise*) : promise to wait for
+* **promise** (*Promise*) : promise to wait for
 * opt (*object*) : options
   * opt.title (*string*) : title value (default = `"Loading..."`) ($GUM_SPIN_TITLE)
   * opt.spinner (*string*) : spinner value (default = `Spinner.DOT`) ($GUM_SPIN_SPINNER)

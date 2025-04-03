@@ -5,6 +5,7 @@ import * as std from '../../src/std.js';
 
 import { wait } from '../../src/timers.js';
 import * as gum from '../../src/gum.js';
+import { version } from '../../src/version.js';
 
 /*
   Heavily inspired by https://github.com/charmbracelet/gum/blob/main/examples/demo.sh
@@ -64,11 +65,16 @@ const askName = async () => {
 
 const askSecret = async () => {
   gum.clear();
+  let validateHelp = '';
+  const gumVersion = gum.getVersion();
+  if (version.lte('0.14.0', gumVersion)) {
+    validateHelp = ` (validate with Ctrl-D)`;
+  }
   console.log(
     `Could you tell me a ${gum.style('secret', {
       foreground: '99',
       italic: true,
-    })} ? (validate with Ctrl-D)\n`
+    })} ?${validateHelp}\n`
   );
   const secret = gum.write({
     placeholder: `I'll keep it to myself, I promise!`,

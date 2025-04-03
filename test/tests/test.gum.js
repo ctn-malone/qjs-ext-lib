@@ -834,7 +834,7 @@ export default () => {
     });
   });
 
-  tester.test('gum.spin (without options)', () => {
+  tester.test('gum.spin (< 0.15.1, without options)', () => {
     gum.spin(Promise.resolve(), {
       custom: {
         dryRunCb: (cmdline, env) => {
@@ -845,11 +845,34 @@ export default () => {
             GUM_SPIN_ALIGN: gum.Align.LEFT,
           });
         },
+        dryRunVersion: '0.12.0',
       },
     });
   });
 
-  tester.test('gum.spin (with options)', () => {
+  tester.test('gum.spin (>= 0.15.1, without options)', () => {
+    gum.spin(Promise.resolve(), {
+      custom: {
+        dryRunCb: (cmdline, env) => {
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'spin',
+            '--show-stdout',
+            '--',
+            'tail',
+            '-1',
+          ]);
+          envShouldContain(env, {
+            GUM_SPIN_TITLE: 'Loading...',
+            GUM_SPIN_SPINNER: gum.Spinner.DOT,
+            GUM_SPIN_ALIGN: gum.Align.LEFT,
+          });
+        },
+      },
+    });
+  });
+
+  tester.test('gum.spin (>= 0.15.1, with options)', () => {
     gum.spin(Promise.resolve(), {
       title: 'Loading, please wait...',
       spinner: gum.Spinner.GLOBE,
@@ -867,6 +890,7 @@ export default () => {
           cmdlineShouldMatch(cmdline, [
             'gum',
             'spin',
+            '--show-stdout',
             '--title',
             'Loading, please wait...',
             '--spinner',
@@ -877,7 +901,7 @@ export default () => {
             'extra-arg',
             '--',
             'tail',
-            '-f',
+            '-1',
           ]);
           envShouldContain(env, {
             GUM_SPIN_TITLE: 'title-var',
