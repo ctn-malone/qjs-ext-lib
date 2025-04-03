@@ -10,7 +10,7 @@
   An exception will be thrown in case a non semver version is passed as argument
  */
 
-const VERSION = '0.14.1';
+const VERSION = '0.14.2';
 
 /**
  * Check whether or not a version is in semver format
@@ -48,8 +48,9 @@ const reduce = (v) => {
   const value = v.replace(/[-+].*$/g, '');
   const arr = value.split('.').map((e) => parseInt(e));
   let sum = 0;
+  const lastIndex = arr.length - 1;
   for (let i = 0; i < arr.length; ++i) {
-    sum += arr[i] * Math.pow(10, i);
+    sum += arr[lastIndex - i] * Math.pow(10, i);
   }
   return sum;
 };

@@ -111,6 +111,12 @@ export default () => {
     tester.assert(!version.lt(target, current), `not (${current} < ${target})`);
     current = '0.6.0';
     tester.assert(!version.lt(target, current), `not (${current} < ${target})`);
+    current = '0.15.1';
+    target = '0.16.0';
+    tester.assert(version.lt(target, current), `${current} < ${target}`);
+    target = '0.15.1';
+    current = '0.16.0';
+    tester.assert(!version.lt(target, current), `not (${current} < ${target})`);
   });
 
   tester.test('version (lte)', () => {
@@ -150,6 +156,12 @@ export default () => {
     current = '0.4.0';
     tester.assert(!version.gt(target, current), `not (${current} > ${target})`);
     current = '0.3.0';
+    tester.assert(!version.gt(target, current), `not (${current} > ${target})`);
+    target = '0.15.1';
+    current = '0.16.0';
+    tester.assert(version.gt(target, current), `${current} > ${target}`);
+    current = '0.15.1';
+    target = '0.16.0';
     tester.assert(!version.gt(target, current), `not (${current} > ${target})`);
   });
 
