@@ -350,20 +350,73 @@ export const setWriteHandler =
     os.setWriteHandler
   );
 
+/*
+  Use to keep track of existing signal handlers
+ */
+const IGNORE_HANDLER = Symbol(0);
+/** @type {Map<number, ((restoreHandler: () => void) => void) | null | IGNORE_HANDLER>} */
+const signalHandlers = new Map();
+
+/**
+ * @param {number} signal
+ * @param {((restoreHandler: () => void) => void) | null} [func]
+ */
+const saveSignalHandler = (signal, func) => {
+  if (func === undefined) {
+    signalHandlers.set(signal, IGNORE_HANDLER);
+  } else {
+    signalHandlers.set(signal, func);
+  }
+};
+
 /**
  * Call the function "func" when the signal "signal" happens.
+ * A "restoreHandler" function will be passed to "func", to restore previous handler.
  * Only a single handler per signal number is supported.
  * Use func = null to set the default handler.
  * Use func = undefined to ignore the signal.
  * Signal handlers can only be defined in the main thread.
  *
  * @param {number} signal
- * @param {(() => void) | null} [func]
+ * @param {((restoreHandler: () => void) => void) | null} [func]
  */
-export const signal =
-  /** @type {(signal: number, func?: (() => void) | null) => void} */ (
-    os.signal
-  );
+export const signal = (signal, func) => {
+  /*
+    - No previous handler => default one (ie: null)
+    - Symbol(IGNORE_HANDLER) => ignore handler
+   */
+  /** @type {((restoreHandler: () => void) => void) | null | IGNORE_HANDLER | undefined} */
+  let prevHandler = signalHandlers.get(signal) ?? null;
+  if (prevHandler === IGNORE_HANDLER) {
+    prevHandler = undefined;
+  }
+  saveSignalHandler(signal, func);
+
+  if (func === undefined || func === null) {
+    // it won't be possible to restore anything
+    os.signal(signal, func);
+    return;
+  }
+
+  os.signal(signal, () => {
+    const curHandler = signalHandlers.get(signal);
+    // callback used to restore previous handler
+    const restoreHandler = () => {
+      // do nothing if handler has changed
+      if (curHandler !== func) {
+        return;
+      }
+      saveSignalHandler(
+        signal,
+        /** @type {((restoreHandler: () => void) => void) | null | undefined} */ (
+          prevHandler
+        )
+      );
+      os.signal(signal, prevHandler);
+    };
+    func(restoreHandler);
+  });
+};
 
 /*
   POSIX signal numbers
