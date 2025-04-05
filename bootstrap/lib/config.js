@@ -12,6 +12,7 @@ export const CONFIG_FILE_NAME = 'qel.config.json';
  * @property {string} file
  * @property {boolean} [default=false]
  * @property {string[]} [runtimeDeps]
+ * @property {boolean} [completion=false]
  */
 
 /**
@@ -97,14 +98,15 @@ export const saveConfig = (config, configPath) => {
  * @param {string} scriptName
  * @param {Object} [options]
  * @param {string[]} [options.runtimeDeps]
+ * @param {boolean} [options.completion=false]
  *
  * @returns {Script}
  */
 export const addScript = (config, scriptName, options) => {
-  const { runtimeDeps } = options ?? {};
+  const { runtimeDeps, completion = false } = options ?? {};
 
   /** @type {Script} */
-  const newScript = { name: scriptName, file: `${scriptName}.js` };
+  const newScript = { name: scriptName, file: `${scriptName}.js`, completion };
   // first script becomes the default one
   if (!config.scripts.length) {
     newScript.default = true;

@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.14.3] **WIP**
+* chore: update `flake.nix` template
+* chore: add a _shebang_ to script templates
+* chore: indicate whether or not a script supports completion
+* fix: fix `qel-upgrade.sh` script
+  
 ## [0.14.2]
 * fix: fix `getScriptDir` function for compiled scripts (`path.js`)
 * fix: fix version comparison (`version.js`)

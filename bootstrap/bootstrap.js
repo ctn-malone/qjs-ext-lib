@@ -74,7 +74,7 @@ std.err.puts(
 std.err.puts(
   `- from within a ${bold('nix dev shell')} : ${highlight(
     `qjs.sh ${scriptRelativePath}`
-  )}\n`
+  )} or ${highlight(`./${scriptRelativePath}`)}\n`
 );
 std.err.puts(
   `- otherwise : ${highlight(

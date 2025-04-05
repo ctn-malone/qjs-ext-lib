@@ -9,6 +9,7 @@ import * as style from './style.js';
 import * as flake from './flake.js';
 import * as config from './config.js';
 import * as gum from '../ext/gum.js';
+import { execSync } from '../ext/process.js';
 import { abort, checkFile, writeFile, getRelativePath } from './utils.js';
 
 const SRC_DIR_NAME = 'src';
@@ -432,6 +433,7 @@ export const addScript = (repoRoot, configPath, templatesRootDir, extDir) => {
   const scriptName = askScriptName();
   const libModules = chooseLibModules();
   const runtimeDeps = getRuntimeDepsFromLibModules(libModules);
+  const completion = libModules.includes('arg');
 
   const updateConfigStepHeader = style.formatStepHeader(
     `Updating ${style.highlight(relativeConfigPath)}... `
@@ -466,8 +468,9 @@ export const addScript = (repoRoot, configPath, templatesRootDir, extDir) => {
       }
     }
     script.runtimeDeps = runtimeDeps;
+    script.completion = completion;
   } else {
-    script = config.addScript(cfg, scriptName, { runtimeDeps });
+    script = config.addScript(cfg, scriptName, { runtimeDeps, completion });
     scriptPath = `${srcDirPath}/${script.file}`;
   }
   const scriptRelativePath = getRelativePath(scriptPath, repoRoot);
@@ -503,6 +506,7 @@ export const addScript = (repoRoot, configPath, templatesRootDir, extDir) => {
   const content = /** @type {string} */ (std.loadFile(templatePath));
   try {
     writeFile(scriptPath, content);
+    execSync(`chmod +x ${scriptPath}`);
     git.addEntries(repoRoot, [scriptPath]);
   } catch (e) {
     std.err.puts(`${style.formatStepFailureEmoji()}\n`);
