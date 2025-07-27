@@ -1286,7 +1286,7 @@ _qel_completion() {
   # call command to get completions
   local output
   if [[ "${extension}" == 'js' ]]; then
-    output=$(COMP_LINE="${COMP_LINE}" COMP_POINT="${COMP_POINT}" qjs.sh --unhandled-rejection ${cmd})
+    output=$(COMP_LINE="${COMP_LINE}" COMP_POINT="${COMP_POINT}" qjs.sh ${cmd})
   else
     output=$(COMP_LINE="${COMP_LINE}" COMP_POINT="${COMP_POINT}" ${cmd})
   fi
@@ -1332,7 +1332,7 @@ _qel_completion() {
   # call command to get completions
   local output
   if [[ "${extension}" == 'js' ]]; then
-    output=$(QEL_COMPLETION_SHELL=zsh COMP_LINE="${cmd_line}" COMP_POINT="${CURSOR}" qjs.sh --unhandled-rejection ${cmd})
+    output=$(QEL_COMPLETION_SHELL=zsh COMP_LINE="${cmd_line}" COMP_POINT="${CURSOR}" qjs.sh ${cmd})
   else
     output=$(QEL_COMPLETION_SHELL=zsh COMP_LINE="${cmd_line}" COMP_POINT="${CURSOR}" ${cmd})
   fi

@@ -705,11 +705,11 @@ export const mkstemp =
  *
  * @param {string} template - template used to generate a unique temporary dirname.
  *                            It must end with XXXXXX
- * @param {{errno: number}} [errorObj] - if defined, set its "errno" property to the error code or to 0 if no error occured
+ * @param {{errno?: number}} [errorObj] - if defined, set its "errno" property to the error code or to 0 if no error occured
  *
  * @returns {string | null} temporary dirname or null on error
  */
 export const mkdtemp =
-  /** @type {(template: string | null, errorObj?: {errno: number}) => string} */ (
+  /** @type {(template: string | null, errorObj?: {errno?: number}) => string} */ (
     os.mkdtemp
   );

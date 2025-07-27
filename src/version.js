@@ -10,7 +10,7 @@
   An exception will be thrown in case a non semver version is passed as argument
  */
 
-const VERSION = '0.14.2';
+const VERSION = '0.15.0';
 
 /**
  * Check whether or not a version is in semver format

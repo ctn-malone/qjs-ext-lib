@@ -52,6 +52,56 @@ export const ensureGitRepo = (path) => {
 };
 
 /**
+ * @param {string} repoRoot
+ * @param {string} gitIgnoreRelativePath
+ * @param {string[]} entries
+ *
+ * @returns {string} file path
+ */
+export const ensureGitIgnore = (repoRoot, gitIgnoreRelativePath, entries) => {
+  /*
+    Check .gitignore
+   */
+  const gitIgnorePath = `${repoRoot}/${gitIgnoreRelativePath}`;
+  std.err.puts(
+    style.formatStepHeader(
+      `Checking ${style.highlight(gitIgnoreRelativePath)}... `
+    )
+  );
+
+  for (const searchLine of entries) {
+    const lines =
+      /** @type {string} */ (std.loadFile(gitIgnorePath))
+        ?.trim()
+        .split('\n')
+        .map((e) => e.trim()) ?? [];
+    if (!lines.includes(searchLine)) {
+      lines.push(searchLine);
+      try {
+        writeFile(gitIgnorePath, `${lines.join('\n')}\n`);
+      } catch (e) {
+        std.err.puts(`${style.formatStepFailureEmoji()}\n`);
+        std.err.puts(`  ${style.formatStepError(e.message)}\n`);
+        return abort(1);
+      }
+    }
+  }
+
+  // add ".gitignore"
+  try {
+    git.addEntries(repoRoot, [gitIgnorePath]);
+  } catch (e) {
+    std.err.puts(`${style.formatStepFailureEmoji()}\n`);
+    std.err.puts(`  ${style.formatStepError(e.message)}\n`);
+    return abort(1);
+  }
+  std.err.puts(`${style.formatStepSuccessEmoji()}\n`);
+  std.err.flush();
+
+  return gitIgnorePath;
+};
+
+/**
  * @returns {string} package name
  */
 export const askPackageName = () => {
@@ -69,7 +119,7 @@ export const askPackageName = () => {
     std.err.puts(`${style.formatAbortMessage()}\n`);
     return abort(1);
   }
-  return packageName.replace(' ', '-');
+  return packageName;
 };
 
 /**
@@ -114,6 +164,7 @@ export const askScriptName = () => {
     std.err.puts(`${style.formatAbortMessage()}\n`);
     return abort(1);
   }
+  scriptName = scriptName.toLocaleLowerCase().replaceAll(' ', '-');
   return scriptName;
 };
 
@@ -150,8 +201,10 @@ export const ensureConfig = (repoRoot, templatesRootDir) => {
   if (checkFile(configPath)) {
     return configPath;
   }
-  const packageName = askPackageName();
+  let packageName = askPackageName();
   ensureMainFlake(repoRoot, templatesRootDir, packageName);
+  // slugify package name after description has been choosen
+  packageName = packageName.toLowerCase().replaceAll(' ', '-');
   ensureQelFlake(repoRoot, templatesRootDir);
   // create config
   std.err.puts(
@@ -309,45 +362,9 @@ export const ensureSrcDirectory = (repoRoot, extDir) => {
     std.err.flush();
   }
 
-  /*
-    Check .gitignore
-   */
   const gitIgnorePath = `${srcDirPath}/.gitignore`;
   const gitIgnoreRelativePath = getRelativePath(gitIgnorePath, repoRoot);
-  std.err.puts(
-    style.formatStepHeader(
-      `Checking ${style.highlight(gitIgnoreRelativePath)}... `
-    )
-  );
-
-  // add "/ext" if needed
-  const searchLine = '/ext';
-  const lines =
-    /** @type {string} */ (std.loadFile(gitIgnorePath))
-      ?.trim()
-      .split('\n')
-      .map((e) => e.trim()) ?? [];
-  if (!lines.includes(searchLine)) {
-    lines.push(searchLine);
-    try {
-      writeFile(gitIgnorePath, `${lines.join('\n')}\n`);
-    } catch (e) {
-      std.err.puts(`${style.formatStepFailureEmoji()}\n`);
-      std.err.puts(`  ${style.formatStepError(e.message)}\n`);
-      return abort(1);
-    }
-  }
-
-  // add ".gitignore"
-  try {
-    git.addEntries(repoRoot, [gitIgnorePath]);
-  } catch (e) {
-    std.err.puts(`${style.formatStepFailureEmoji()}\n`);
-    std.err.puts(`  ${style.formatStepError(e.message)}\n`);
-    return abort(1);
-  }
-  std.err.puts(`${style.formatStepSuccessEmoji()}\n`);
-  std.err.flush();
+  ensureGitIgnore(repoRoot, gitIgnoreRelativePath, ['/ext']);
 
   return srcDirPath;
 };

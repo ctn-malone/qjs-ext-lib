@@ -1,4 +1,4 @@
-#!/usr/bin/env -S qjs.sh --unhandled-rejection -m
+#!/usr/bin/env -S qjs.sh -m
 /** @format */
 // @ts-check
 

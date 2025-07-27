@@ -1,10 +1,16 @@
 # Change Log
 
-## [0.14.3] **WIP**
+## [0.15.0]
 * chore: update `flake.nix` template
 * chore: add a _shebang_ to script templates
-* chore: indicate whether or not a script supports completion
+* chore: indicate whether or not a script supports completion in `qel.config.json`
+* chore: update `quickjs-cross-compiler` version in `flake.nix`
+* chore: add `qel-completion.sh` script to generate completion for both `bash` and `zsh`
+* chore: setup shell completion when entering `nix develop` shell
 * fix: fix `qel-upgrade.sh` script
+* fix: close file handle after ensuring a file exists (`args.js`)
+* fix: escape `:` when generating completions for `zsh`
+* refactor: make `errno` optional in `errorObj` (`std.js`, `os.js`)
   
 ## [0.14.2]
 * fix: fix `getScriptDir` function for compiled scripts (`path.js`)

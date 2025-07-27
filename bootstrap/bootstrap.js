@@ -51,10 +51,13 @@ const args = arg
   });
 
 const repoRoot = ui.ensureGitRepo(args.get('--dir'));
+ui.ensureGitIgnore(repoRoot, '.gitignore', ['/result']);
+
 const configPath = ui.ensureConfig(
   repoRoot,
   /** @type {string} */ (templatesRootDir)
 );
+
 const script = ui.addScript(
   repoRoot,
   configPath,
