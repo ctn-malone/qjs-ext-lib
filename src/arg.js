@@ -527,6 +527,8 @@ const arg = (specs, options) => {
    * Print usage and exit with code 2
    *
    * @param {string} [errMessage] - error message to print before usage
+   *
+   * @return {never}
    */
   result.usage = (errMessage) => {
     if (errMessage) {
@@ -563,6 +565,8 @@ const arg = (specs, options) => {
 
   /**
    * Print help and exit with code 0
+   *
+   * @return {never}
    */
   result.help = () => {
     std.out.puts(`${result.getHelp()}\n`);

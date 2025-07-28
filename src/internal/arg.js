@@ -1586,6 +1586,7 @@ export class PathArgValidator extends BaseStringArgValidator {
       if (fd < 0) {
         throw new Error(`could not create file - errCode: ${-fd}`);
       }
+      os.close(fd);
     });
     return this;
   }

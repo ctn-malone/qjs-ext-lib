@@ -868,6 +868,7 @@ export default () => {
             GUM_SPIN_ALIGN: gum.Align.LEFT,
           });
         },
+        dryRunVersion: '0.16.0',
       },
     });
   });
@@ -909,6 +910,7 @@ export default () => {
             GUM_SPIN_ALIGN: 'align-var',
           });
         },
+        dryRunVersion: '0.16.0',
       },
     });
   });

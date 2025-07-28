@@ -64,7 +64,7 @@ export const loadConfig = (configPath) => {
   const configFile = std.open(configPath, 'r', errObj);
   if (errObj !== undefined) {
     throw new Error(
-      `Could not open '${configPath}' for reading/writing (${std.strerror(
+      `Could not open '${configPath}' for reading (${std.strerror(
         errObj.errno
       )})`
     );

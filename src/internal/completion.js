@@ -2,8 +2,6 @@
 // @ts-check
 
 import * as std from '../std.js';
-import * as os from '../os.js';
-import * as path from '../path.js';
 import {
   findHandlers,
   parseCmdLine,
@@ -15,7 +13,6 @@ import {
   getAliasesMap,
   getMainArgName,
 } from './arg.js';
-import { Process } from '../process.js';
 
 export const DEFAULT_COMPLETION_SHELL = 'bash';
 
@@ -251,8 +248,7 @@ const findUnusedMainArgNames = (handlers, usedMainArgNames, options) => {
  * @returns {string[]}
  */
 export const quoteBashCompletions = (list, curToken) => {
-  let quotedList = list;
-  quotedList = list.map((str) => {
+  const quotedList = list.map((str) => {
     if (str.includes(' ')) {
       let quoteChar = curToken?.quoteChar || '"';
       return `${quoteChar}${str}${quoteChar}`;
@@ -260,6 +256,21 @@ export const quoteBashCompletions = (list, curToken) => {
     return str;
   });
   return quotedList;
+};
+
+/**
+ * @param {string[]} list
+ *
+ * @returns {string[]}
+ */
+export const escapeZshCompletions = (list) => {
+  const escapedList = list.map((str) => {
+    if (str.includes(':')) {
+      return str.replaceAll(':', '\\:');
+    }
+    return str;
+  });
+  return escapedList;
 };
 
 /**
@@ -406,8 +417,26 @@ export const completeCmdLine = async (
 
   // if we're inside a subshell, don't complete
   if (curToken.content.startsWith('$(')) {
-    debug(() => 'Inside a subshell (completion aborted)');
-    return [];
+    let insideSubshell = true;
+    // the command line of the subshell might be complete
+    if (curToken.content.endsWith(')')) {
+      // count opening and closing parentheses
+      let unmatchedOpeningParenthesis = 0;
+      for (const c of curToken.content) {
+        if (c === '(') {
+          ++unmatchedOpeningParenthesis;
+        } else if (c === ')') {
+          --unmatchedOpeningParenthesis;
+        }
+      }
+      if (unmatchedOpeningParenthesis === 0) {
+        insideSubshell = false;
+      }
+    }
+    if (insideSubshell) {
+      debug(() => 'Inside a subshell (completion aborted)');
+      return [];
+    }
   }
 
   if (cmdLineEndsWithSpace) {
@@ -453,6 +482,9 @@ export const completeCmdLine = async (
               () => `Argument value completion (${output.argName}) from ''`
             );
             completions = await completeArgValidatorValues(debug, argValidator);
+            if (completionShell === 'zsh') {
+              completions = escapeZshCompletions(completions);
+            }
           }
         }
       }
@@ -550,6 +582,9 @@ export const completeCmdLine = async (
               argValidator,
               curToken
             );
+            if (completionShell === 'zsh') {
+              completions = escapeZshCompletions(completions);
+            }
           }
         }
       }
