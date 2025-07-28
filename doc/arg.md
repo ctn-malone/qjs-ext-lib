@@ -53,6 +53,7 @@ Command-line parser based on https://github.com/vercel/arg/tree/5.0.0
   - [Completion functions](#completion-functions)
     - [bash](#bash)
     - [zsh](#zsh)
+  - [Generate completion](#generate-completion)
 - [Faq](#faq)
   - [Does it support sub commands ?](#does-it-support-sub-commands-)
   - [Does it support completion](#does-it-support-completion)
@@ -1364,6 +1365,56 @@ Scripts can then be registered like this
 ```shell
 # Register the completion function for your command
 compdef _qel_completion my-script
+```
+
+### Generate completion
+
+Both completions functions and completion registration can be generated using `qel-completion.sh` script _nix dev shell_
+
+```
+qel-completion.sh --help
+```
+
+```shell
+Output shell completion to stdout
+
+Usage: qel-completion.sh [ARG] ...
+
+  -c, --config FILE                 : path to the 'qel.config.json' file (by default, use the
+                                      'qel.config.json' file at the root of the git repository)
+  -s, --shell NAME                  : shell to generate completion for (default: bash)
+                                        - it can be one of [bash, zsh]
+                                        - it can be passed as 'QEL_COMPLETION_SHELL' environment variable
+  --function-name NAME              : name of the shell function used for completion (default:
+                                      _qel_completion)
+                                        - it can be passed as 'QEL_COMPLETION_FUNCTION_NAME' environment variable
+  --(no-)randomize-function-name    : if set, a randomize value will be added at the end of the function name
+                                      (set by default)
+                                        - it can be passed as 'QEL_COMPLETION_RANDOMIZE_FUNCTION_NAME' environment
+                                          variable
+  --(no-)function                   : if set, output completion function (set by default)
+                                        - it can be passed as 'QEL_COMPLETION_ENABLE_FUNCTION' environment
+                                          variable
+  --(no-)setup                      : if set, output completion setup for each script (set by default)
+                                        - it can be passed as 'QEL_COMPLETION_ENABLE_SETUP' environment variable
+  --(no-)release                    : if set, output completion setup for "release" (ie: compiled) scripts
+                                      (ignored if --setup is not set (set by default)
+                                        - it can be passed as 'QEL_COMPLETION_SETUP_FOR_RELEASE' environment
+                                          variable
+  --(no-)dev                        : if set, output completion setup for "dev" (ie: .js) scripts (ignored if
+                                      --setup is not set
+                                        - it can be passed as 'QEL_COMPLETION_SETUP_FOR_DEV' environment variable
+  -h, --help                        : print help
+
+EXAMPLES
+
+$ qel-completion.sh -s zsh
+
+$ qel-completion.sh -s zsh --dev
+
+$ qel-completion.sh --function-name _my_completion_function
+
+$ qel-completion.sh --no-setup
 ```
 
 ## Faq
