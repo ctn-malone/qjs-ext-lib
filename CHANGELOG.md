@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.15.1]
+* fix: escape some characters in `bash` completion (`args.js`)
+  
 ## [0.15.0]
 * chore: update `flake.nix` template
 * chore: add a _shebang_ to script templates

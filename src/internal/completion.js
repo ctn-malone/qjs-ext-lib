@@ -274,6 +274,21 @@ export const escapeZshCompletions = (list) => {
 };
 
 /**
+ * @param {string[]} list
+ *
+ * @returns {string[]}
+ */
+export const escapeBashCompletions = (list) => {
+  const escapedList = list.map((str) => {
+    if (str.includes(':')) {
+      return str.replaceAll(':', '\\:');
+    }
+    return str;
+  });
+  return escapedList;
+};
+
+/**
  * @param {string} argName
  *
  * @return {string}
@@ -482,7 +497,9 @@ export const completeCmdLine = async (
               () => `Argument value completion (${output.argName}) from ''`
             );
             completions = await completeArgValidatorValues(debug, argValidator);
-            if (completionShell === 'zsh') {
+            if (completionShell === 'bash') {
+              completions = escapeBashCompletions(completions);
+            } else if (completionShell === 'zsh') {
               completions = escapeZshCompletions(completions);
             }
           }
@@ -582,7 +599,9 @@ export const completeCmdLine = async (
               argValidator,
               curToken
             );
-            if (completionShell === 'zsh') {
+            if (completionShell === 'bash') {
+              completions = escapeBashCompletions(completions);
+            } else if (completionShell === 'zsh') {
               completions = escapeZshCompletions(completions);
             }
           }
