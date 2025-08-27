@@ -677,14 +677,17 @@ const ensureNumber = (name, value) => {
 
 export default arg;
 
-arg.str = (/** @type {string|undefined} */ defaultValue) =>
-  new StringArgValidator(defaultValue);
-arg.num = (/** @type {number|undefined} */ defaultValue) =>
-  new NumberArgValidator(defaultValue);
-arg.path = (/** @type {string|undefined} */ defaultValue) =>
-  new PathArgValidator(defaultValue);
-arg.flag = (/** @type {boolean|undefined} */ defaultValue) =>
-  new FlagArgValidator(defaultValue);
+/** @type {(defaultValue?: string) => StringArgValidator} */
+arg.str = (defaultValue) => new StringArgValidator(defaultValue);
+
+/** @type {(defaultValue?: number) => NumberArgValidator} */
+arg.num = (defaultValue) => new NumberArgValidator(defaultValue);
+
+/** @type {(defaultValue?: string) => PathArgValidator} */
+arg.path = (defaultValue) => new PathArgValidator(defaultValue);
+
+/** @type {(defaultValue?: boolean) => FlagArgValidator} */
+arg.flag = (defaultValue) => new FlagArgValidator(defaultValue);
 
 // Utility types
 arg.COUNT = arg.flag().count();

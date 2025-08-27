@@ -437,11 +437,17 @@ export const SIGCONT = os.SIGCONT;
 /** @type {number} - erroneous arithmetic operation */
 export const SIGFPE = os.SIGFPE;
 
+/** @type {number} - report that the user’s terminal is disconnected */
+export const SIGHUP = os.SIGHUP ?? 1;
+
 /** @type {number} - illegal instruction */
 export const SIGILL = os.SIGILL;
 
 /** @type {number} - interrupt from keyboard */
 export const SIGINT = os.SIGINT;
+
+/** @type {number} - immediate program termination */
+export const SIGKILL = os.SIGKILL ?? 9;
 
 /** @type {number} - write on a pipe with no one to read it */
 export const SIGPIPE = os.SIGPIPE;

@@ -59,17 +59,17 @@ const getSignalName = (signal) => {
     signal = -signal;
   }
   switch (signal) {
-    case 1:
+    case os.SIGHUP:
       return 'SIGHUP';
-    case 2:
+    case os.SIGINT:
       return 'SIGINT';
-    case 3:
+    case os.SIGQUIT:
       return 'SIGQUIT';
-    case 6:
+    case os.SIGABRT:
       return 'SIGABRT';
-    case 9:
+    case os.SIGKILL:
       return 'SIGKILL';
-    case 15:
+    case os.SIGTERM:
       return 'SIGTERM';
   }
 };
@@ -128,6 +128,12 @@ export const ProcessEvent =
  * }} ProcessEventPayloadMap
  */
 
+/**
+ * @typedef {Object} KillOptions
+ * @property {number} [signal=os.SIGTERM] - signal number to use (default = os.SIGTERM)
+ * @property {boolean} [recursive=false] - if true, kill child processes recursively (default = false)
+ */
+
 const DEFAULT_SHELL = '/bin/sh';
 const SETSID_BINARY = '/usr/bin/setsid';
 const DEFAULT_BUFFER_SIZE = 512;
@@ -155,7 +161,7 @@ class Process {
    * @param {boolean} [opt.trim=true] - if {true} stdout & stderr content will be trimmed (default = {true}) (does not apply to stdout & stderr event handlers)
    * @param {boolean} [opt.skipBlankLines=false] - if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
    * @param {number} [opt.timeout] - maximum number of seconds before killing child (if {undefined}, no timeout will be configured)
-   * @param {number} [opt.timeoutSignal=os.SIGTERM] - signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
+   * @param {number} [opt.timeoutSignal=os.SIGTERM] - signal to use when killing the child after timeout (default = os.SIGTERM, ignored if {opt.timeout} is not defined)
    * @param {number} [opt.stdin] - if defined, sets the stdin handle used by child process (it will be rewind)
    *                                NB: don't share the same handle between multiple instances
    * @param {string} [opt.input] - content which will be used as input (will be ignored if {stdin} is set)
@@ -995,7 +1001,12 @@ class Process {
        */
       if (undefined !== stdinPipe) {
         const bytesArray = strToBytesArray(/** @type {string} */ (this._input));
-        os.write(stdinPipe[1], bytesArray.buffer, 0, bytesArray.length);
+        os.write(
+          stdinPipe[1],
+          /** @type {ArrayBuffer} */ (bytesArray.buffer),
+          0,
+          bytesArray.length
+        );
         os.close(stdinPipe[1]);
       }
 
@@ -1063,9 +1074,9 @@ class Process {
   /**
    * Kill the child process
    *
-   * @param {number} [signal=os.SIGTERM] - signal number to use (default = SIGTERM)
+   * @param {number|KillOptions} [options] - signal number to use (default = {signal: SIGTERM, recursive: false})
    */
-  kill(signal = os.SIGTERM) {
+  kill(options) {
     // do nothing if process is not running
     if (!this._state.pid || this._didStop) {
       return;
@@ -1074,7 +1085,10 @@ class Process {
     if (this._paused) {
       os.kill(this._state.pid, os.SIGCONT);
     }
-    os.kill(this._state.pid, signal);
+    if (typeof options === 'number') {
+      options = { signal: options, recursive: false };
+    }
+    kill(this._state.pid, options);
   }
 
   /**
@@ -1098,6 +1112,92 @@ class Process {
     };
   }
 }
+
+/**
+ * Send a signal to a given process
+ *
+ * @param {number} pid - process ID to kill
+ * @param {KillOptions} [options] - options object
+ */
+const kill = (pid, options) => {
+  const { signal = os.SIGTERM, recursive = false } = options || {};
+
+  // see https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
+  let isTerminationSignal = false;
+  switch (signal) {
+    case os.SIGTERM:
+    case os.SIGINT:
+    case os.SIGQUIT:
+    case os.SIGKILL:
+      isTerminationSignal = true;
+  }
+
+  if (recursive) {
+    // pause main process before killing child processes
+    if (isTerminationSignal) {
+      os.kill(pid, os.SIGSTOP);
+    }
+
+    _killChildProcessesRecursively(pid, signal);
+    os.kill(pid, signal);
+
+    // unpause main process
+    if (isTerminationSignal && signal !== os.SIGKILL) {
+      os.kill(pid, os.SIGCONT);
+    }
+  } else {
+    os.kill(pid, signal);
+  }
+};
+
+/**
+ * Find and kill child processes recursively
+ *
+ * @param {number} parentPid - parent pid
+ * @param {number} signal - signal to use
+ */
+const _killChildProcessesRecursively = (parentPid, signal) => {
+  const allPids = _getProcessTree(parentPid);
+  // remove parent pid
+  allPids.unshift();
+  if (allPids.length === 0) {
+    return;
+  }
+  for (const pid of allPids) {
+    os.kill(pid, signal);
+  }
+};
+
+/**
+ * Get all processes in a process tree
+ *
+ * @param {number} parentPid - parent pid
+ *
+ * @returns {number[]} array of process IDs (including parent pid)
+ */
+const _getProcessTree = (parentPid) => {
+  const allPids = [parentPid];
+  const childrenPath = `/proc/${parentPid}/task/${parentPid}/children`;
+
+  const fd = std.open(childrenPath, 'r');
+  if (fd) {
+    const content = fd.readAsString().trim();
+    fd.close();
+    if (content) {
+      for (const part of content.split(' ')) {
+        const childPid = parseInt(part);
+        if (isNaN(childPid)) {
+          continue;
+        }
+        const list = _getProcessTree(childPid);
+        for (const pid of list) {
+          allPids.push(pid);
+        }
+      }
+    }
+  }
+  return allPids;
+};
 
 /**
  * Run a command and return its stdout
@@ -1124,7 +1224,7 @@ class Process {
  * @param {boolean} [opt.trim=true] - if {true} stdout & stderr content will be trimmed (default = {true})
  * @param {boolean} [opt.skipBlankLines=false] - if {true} empty lines will be ignored in both stdout & stderr content (default = {false})
  * @param {number} [opt.timeout] - maximum number of seconds before killing child (if {undefined}, no timeout will be configured)
- * @param {number} [opt.timeoutSignal=os.SIGTERM] - signal to use when killing the child after timeout (default = SIGTERM, ignored if {opt.timeout} is not defined)
+ * @param {number} [opt.timeoutSignal=os.SIGTERM] - signal to use when killing the child after timeout (default = os.SIGTERM, ignored if {opt.timeout} is not defined)
  * @param {number} [opt.stdin] - if defined, sets the stdin handle used by child process (it will be rewind)
  *                                NB: don't share the same handle between multiple instances
  * @param {string} [opt.input] - content which will be used as input (will be ignored if {stdin} is set)
@@ -1604,4 +1704,12 @@ const ensureProcessResult = (process) => {
 
 export default exec;
 
-export { Process, exec, waitpid, ProcessSync, execSync, ensureProcessResult };
+export {
+  Process,
+  exec,
+  waitpid,
+  kill,
+  ProcessSync,
+  execSync,
+  ensureProcessResult,
+};

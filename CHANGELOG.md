@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.15.2]
+* refactor: add `#compdef` line at the beginning of `zsh` completion file
+* feat: add support for killing a process recursively (`process.js`)
+* feat: define `os.SIGKILL` and `os.SIGHUP` (`os.js`)
+* refactor: improve typing of `arg` module (`arg.js`)
+
 ## [0.15.1]
 * fix: escape some characters in `bash` completion (`args.js`)
   

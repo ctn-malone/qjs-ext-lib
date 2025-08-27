@@ -70,13 +70,13 @@ const args = arg
     '--release': arg
       .flag(true)
       .desc(
-        'if set, output completion setup for "release" (ie: compiled) scripts (ignored if --setup is not set'
+        'if set, output completion setup for "release" (ie: compiled) scripts (ignored if --setup is not set)'
       )
       .env('QEL_COMPLETION_SETUP_FOR_RELEASE'),
     '--dev': arg
       .flag()
       .desc(
-        'if set, output completion setup for "dev" (ie: .js) scripts (ignored if --setup is not set'
+        'if set, output completion setup for "dev" (ie: .js) scripts (ignored if --setup is not set)'
       )
       .env('QEL_COMPLETION_SETUP_FOR_DEV'),
     '-c': '--config',
@@ -150,6 +150,7 @@ const generateSetup = (shell, functionName, commands) => {
 
 const main = async () => {
   const cfg = config.loadConfig(configFilePath);
+  const shell = args.get('--shell');
 
   /** @type {string[]} */
   const commands = [];
@@ -174,15 +175,17 @@ const main = async () => {
   }
 
   let content = '';
+  if (args.get('--setup')) {
+    // add comment on first line for zsh compinit
+    if (shell === 'zsh') {
+      content += `#compdef ${commands.join(' ')}\n`;
+    }
+  }
   if (args.get('--function')) {
-    content += `\n${generateFunction(args.get('--shell'), functionName)}\n`;
+    content += `\n${generateFunction(shell, functionName)}\n`;
   }
   if (args.get('--setup')) {
-    content += `\n${generateSetup(
-      args.get('--shell'),
-      functionName,
-      commands
-    )}\n`;
+    content += `\n${generateSetup(shell, functionName, commands)}\n`;
   }
   std.out.puts(`${content.trim()}\n`);
   std.exit(0);
