@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.15.3]
+* refactor: don't stream output for base64 functions (`strings.js`)
+* fix: correctly handle `byteOffset` in `strToBytesArray` (`strings.js`)
+* fix: correctly handle `byteOffset` in `base64EncodeBytesArray` (`strings.js`)
+
 ## [0.15.2]
 * refactor: add `#compdef` line at the beginning of `zsh` completion file
 * feat: add support for killing a process recursively (`process.js`)

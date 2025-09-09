@@ -131,7 +131,7 @@ const strToBytesArray = (str, opt) => {
       }
       bytesArray = new Uint8Array(
         opt.bytesArray.buffer,
-        fromIndex,
+        opt.bytesArray.byteOffset + fromIndex,
         toIndex - fromIndex
       );
       bytesArrayLastIndex = bytesArray.length - 1;
@@ -202,7 +202,11 @@ const strToBytesArray = (str, opt) => {
     return Uint8Array.from(regularArray);
   }
   // ensure we return a typed array with the exact required size
-  return new Uint8Array(bytesArray, 0, bytesArrayNextIndex);
+  return new Uint8Array(
+    bytesArray.buffer,
+    bytesArray.byteOffset,
+    bytesArrayNextIndex
+  );
 };
 
 /**
@@ -264,6 +268,8 @@ const getLines = (content, incompleteLine, skipBlankLines = false) => {
 const base64EncodeStr = async (plainStr) => {
   return exec(['base64', '-w', '0'], {
     input: plainStr,
+    // streaming stdout may trigger https://github.com/bellard/quickjs/issues/402
+    streamStdout: false,
   });
 };
 
@@ -277,7 +283,11 @@ const base64EncodeStr = async (plainStr) => {
 const base64EncodeBytesArray = async (bytesArray) => {
   const outputFile = /** @type {std.StdFile} */ (std.tmpfile());
   const inputFile = /** @type {std.StdFile} */ (std.tmpfile());
-  inputFile.write(bytesArray.buffer, 0, bytesArray.length);
+  inputFile.write(
+    /** @type {ArrayBuffer} */ (bytesArray.buffer),
+    bytesArray.byteOffset,
+    bytesArray.length
+  );
   inputFile.flush();
 
   const process = new Process(['base64', '-w', '0'], {
@@ -308,6 +318,8 @@ const base64EncodeBytesArray = async (bytesArray) => {
 const base64DecodeStr = async (base64Str) => {
   return exec(['base64', '-d', '-'], {
     input: base64Str,
+    // streaming stdout may trigger https://github.com/bellard/quickjs/issues/402
+    streamStdout: false,
     trim: false,
   });
 };
