@@ -228,7 +228,7 @@ class Curl {
     /**
      * By default, only write output if request succeeded
      *
-     * @param {object} curlInstance {Curl} instance
+     * @param {Curl} curlInstance {Curl} instance
      *
      * @returns {boolean}
      */
@@ -239,7 +239,7 @@ class Curl {
     // output
     /**
      * @private
-     * @type {object|undefined}
+     * @type {OutputFileOption|undefined}
      */
     this._outputFile = undefined;
     /** @private */
@@ -279,7 +279,7 @@ class Curl {
           }
         }
       }
-      if (!this._outputFile.conditionalOutput) {
+      if (this._outputFile && !this._outputFile.conditionalOutput) {
         this._curlArgs.push('-o');
         this._curlArgs.push(this._outputFile.filepath);
       }
@@ -741,9 +741,11 @@ class Curl {
     this._status = status;
 
     // headers
+    /** @type {Record<string,string | string[]>} */
     const responseHeaders = {};
+    /** @type {string[]} */
     const setCookieHeaders = [];
-    nonStatusHeaders.forEach((headerLine, i) => {
+    nonStatusHeaders.forEach((headerLine, _i) => {
       const pos = headerLine.indexOf(':');
       // invalid header
       if (-1 == pos) {
@@ -765,6 +767,7 @@ class Curl {
         if (undefined === responseHeaders[headerName]) {
           responseHeaders[headerName] = [];
         }
+        // @ts-ignore
         responseHeaders[headerName].push(value);
       }
       // return an array only if an header appears multiple time
@@ -1045,7 +1048,7 @@ class Curl {
    * Content type of response
    * Will be {undefined} if {run} was not called or if curl failed
    *
-   * @returns {object|undefined}
+   * @returns {string|undefined}
    */
   get contentType() {
     if (undefined === this._contentType) {

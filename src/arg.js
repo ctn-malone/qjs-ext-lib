@@ -255,12 +255,14 @@ const arg = (specs, options) => {
       );
     }
 
+    // @ts-ignore
     if (typeof specs[key] === 'string') {
       // @ts-ignore
       aliases[key] = specs[key];
       continue;
     }
 
+    // @ts-ignore
     let type = specs[key];
     let isFlag = false;
     let allowMany = false;
@@ -892,7 +894,9 @@ export const serializeFlagName = (argName, addNoFlag) => {
  * @returns {string}
  */
 const serializeArgNames = (argName, isFlag, options = {}) => {
+  /** @type {string[]} */
   const longNames = [];
+  /** @type {string[]} */
   const shortNames = [];
   for (const name of [argName, ...(options.aliases ?? [])]) {
     let names = name.startsWith('--') ? longNames : shortNames;

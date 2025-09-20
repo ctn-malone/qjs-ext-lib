@@ -75,6 +75,23 @@ const getSignalName = (signal) => {
 };
 
 /**
+ * @param {number} signal
+ *
+ * @returns  {boolean}
+ */
+const _isTerminationSignal = (signal) => {
+  // see https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
+  switch (signal) {
+    case os.SIGTERM:
+    case os.SIGINT:
+    case os.SIGQUIT:
+    case os.SIGKILL:
+      return true;
+  }
+  return false;
+};
+
+/**
  * @readonly
  * @enum {string}
  */
@@ -131,7 +148,7 @@ export const ProcessEvent =
 /**
  * @typedef {Object} KillOptions
  * @property {number} [signal=os.SIGTERM] - signal number to use (default = os.SIGTERM)
- * @property {boolean} [recursive=false] - if true, kill child processes recursively (default = false)
+ * @property {boolean} [recursive=false] - if true, send the signal to child processes recursively (default = false)
  */
 
 const DEFAULT_SHELL = '/bin/sh';
@@ -292,7 +309,10 @@ class Process {
       options
      */
     // qjs options
-    /** @private */
+    /**
+     * @private
+     * @type {import('./os.js').ExecOptions}
+     */
     this._qjsOpt = {
       block: false,
       // by default use PATH
@@ -571,7 +591,8 @@ class Process {
       }
 
       // used to detect timeout
-      let timer;
+      /** @type {Object | undefined} */
+      let timer = undefined;
 
       /*
         keep track of stream state for both stdout & stderr
@@ -587,12 +608,12 @@ class Process {
         endOfStderr = true;
       }
 
-      /** @typedef {[number, number] | undefined} */
-      let stdoutPipe = undefined;
-      /** @typedef {[number, number] | undefined} */
-      let stderrPipe = undefined;
-      /** @typedef {[number, number] | undefined} */
-      let stdinPipe = undefined;
+      /** @type {[number, number] | null} */
+      let stdoutPipe = null;
+      /** @type {[number, number] | null} */
+      let stderrPipe = null;
+      /** @type {[number, number] | null} */
+      let stdinPipe = null;
 
       /**
        * Executed after :
@@ -610,13 +631,13 @@ class Process {
         /*
           close pipes
          */
-        if (undefined !== stdoutPipe) {
+        if (null !== stdoutPipe) {
           os.close(stdoutPipe[0]);
         }
-        if (undefined !== stderrPipe) {
+        if (null !== stderrPipe) {
           os.close(stderrPipe[0]);
         }
-        if (undefined !== stdinPipe) {
+        if (null !== stdinPipe) {
           os.close(stdinPipe[1]);
         }
 
@@ -719,7 +740,7 @@ class Process {
 
           const timestamp = Date.now();
           const len = os.read(
-            stdoutPipe[0],
+            /** @type {[number, number]} */ (stdoutPipe)[0],
             stdoutBuffer.buffer,
             0,
             stdoutBuffer.length
@@ -727,7 +748,10 @@ class Process {
 
           // end of stream
           if (0 == len) {
-            os.setReadHandler(stdoutPipe[0], null);
+            os.setReadHandler(
+              /** @type {[number, number]} */ (stdoutPipe)[0],
+              null
+            );
             endOfStdout = true;
             // process incomplete line if needed
             if (undefined !== this._cb.stdout) {
@@ -817,13 +841,16 @@ class Process {
       /*
         process stderr
        */
-      let stderrBuffer;
+      /**
+       * @type {Uint8Array<ArrayBuffer> | undefined}
+       */
+      let stderrBuffer = undefined;
       if (!this._redirectStderr && !this._passStderr) {
         stderrPipe = os.pipe();
         if (null === stderrPipe) {
           // close stdout pipe (only if no stdout handle was passed to constructor)
           if (undefined !== this._qjsOpt.stdout) {
-            if (undefined !== stdoutPipe) {
+            if (null !== stdoutPipe) {
               os.setReadHandler(stdoutPipe[0], null);
               os.close(stdoutPipe[0]);
               os.close(stdoutPipe[1]);
@@ -840,15 +867,18 @@ class Process {
         os.setReadHandler(stderrPipe[0], () => {
           const timestamp = Date.now();
           const len = os.read(
-            stderrPipe[0],
-            stderrBuffer.buffer,
+            /** @type {[number, number]} */ (stderrPipe)[0],
+            /** @type {Uint8Array<ArrayBuffer>} */ (stderrBuffer).buffer,
             0,
-            stderrBuffer.length
+            /** @type {Uint8Array<ArrayBuffer>} */ (stderrBuffer).length
           );
 
           // end of stream
           if (0 == len) {
-            os.setReadHandler(stderrPipe[0], null);
+            os.setReadHandler(
+              /** @type {[number, number]} */ (stderrPipe)[0],
+              null
+            );
             endOfStderr = true;
             // process incomplete line if needed
             if (undefined !== this._cb.stderr) {
@@ -883,7 +913,10 @@ class Process {
           }
 
           // process data
-          const content = bytesArrayToStr(stderrBuffer, { from: 0, to: len });
+          const content = bytesArrayToStr(
+            /** @type {Uint8Array<ArrayBuffer>} */ (stderrBuffer),
+            { from: 0, to: len }
+          );
           gotStderrContent = true;
 
           // call callbacks
@@ -943,13 +976,13 @@ class Process {
         if (null === stdinPipe) {
           // close stdout pipe (only if no stdout handle was passed to constructor)
           if (undefined !== this._qjsOpt.stdout) {
-            if (undefined !== stdoutPipe) {
+            if (null !== stdoutPipe) {
               os.setReadHandler(stdoutPipe[0], null);
               os.close(stdoutPipe[0]);
               os.close(stdoutPipe[1]);
             }
           }
-          if (undefined !== stderrPipe) {
+          if (null !== stderrPipe) {
             os.close(stderrPipe[0]);
             os.close(stderrPipe[1]);
           }
@@ -962,7 +995,7 @@ class Process {
         create process
        */
       const qjsOpt = Object.assign({}, this._qjsOpt);
-      if (undefined !== stdinPipe) {
+      if (null !== stdinPipe) {
         qjsOpt.stdin = stdinPipe[0];
       }
       if (undefined !== this._qjsOpt.stdout) {
@@ -974,7 +1007,7 @@ class Process {
       if (!this._passStderr) {
         qjsOpt.stderr = qjsOpt.stdout;
       }
-      if (undefined !== stderrPipe) {
+      if (null !== stderrPipe) {
         qjsOpt.stderr = stderrPipe[1];
       }
       // rewind stdin file descriptor
@@ -988,18 +1021,18 @@ class Process {
        */
       // only close pipe if no stdout handle was passed to constructor
       if (undefined === this._qjsOpt.stdout) {
-        if (undefined !== stdoutPipe) {
+        if (null !== stdoutPipe) {
           os.close(stdoutPipe[1]);
         }
       }
-      if (undefined !== stderrPipe) {
+      if (null !== stderrPipe) {
         os.close(stderrPipe[1]);
       }
 
       /*
         send input
        */
-      if (undefined !== stdinPipe) {
+      if (null !== stdinPipe) {
         const bytesArray = strToBytesArray(/** @type {string} */ (this._input));
         os.write(
           stdinPipe[1],
@@ -1072,7 +1105,7 @@ class Process {
   }
 
   /**
-   * Kill the child process
+   * Kill the process
    *
    * @param {number|KillOptions} [options] - signal number to use (default = {signal: SIGTERM, recursive: false})
    */
@@ -1081,14 +1114,14 @@ class Process {
     if (!this._state.pid || this._didStop) {
       return;
     }
-    // resume process if it is paused
-    if (this._paused) {
-      os.kill(this._state.pid, os.SIGCONT);
-    }
     if (typeof options === 'number') {
       options = { signal: options, recursive: false };
     }
     kill(this._state.pid, options);
+    // resume process if it is paused
+    if (this._paused && _isTerminationSignal(options?.signal ?? os.SIGTERM)) {
+      os.kill(this._state.pid, os.SIGCONT);
+    }
   }
 
   /**
@@ -1114,6 +1147,114 @@ class Process {
 }
 
 /**
+ * @typedef {Object} GetChildPidsOptions
+ * @property {boolean} [direct=false] - if true, only list direct children (default = false)
+ */
+
+/**
+ * Find the children of a given process and return their pids
+ *
+ * @param {number} parentPid
+ * @param {GetChildPidsOptions} [options]
+ *
+ * @return {number[]}
+ */
+const getChildPids = (parentPid, options) => {
+  const { direct = false } = options ?? {};
+  /** @type {number[]} */
+  const childPids = [];
+  /** @type {Set<number>} */
+  const knownPids = new Set();
+  _getChildPidsRecursively(parentPid, childPids, knownPids, 1, direct ? 1 : 0);
+  return childPids;
+};
+
+/**
+ * @param {number} parentPid
+ * @param {number[]} allChildPids
+ * @param {Set<number>} knownPids
+ * @param {number} depth
+ * @param {number} maxDepth - set to 0 to ignore
+ */
+const _getChildPidsRecursively = (
+  parentPid,
+  allChildPids,
+  knownPids,
+  depth,
+  maxDepth
+) => {
+  const threadIds = _getThreadIds(parentPid);
+  for (const threadId of threadIds) {
+    const childPids = _getChildPidsForThread(parentPid, threadId);
+    for (const childPid of childPids) {
+      if (knownPids.has(childPid)) {
+        continue;
+      }
+      allChildPids.push(childPid);
+      knownPids.add(childPid);
+      if (maxDepth && depth >= maxDepth) {
+        continue;
+      }
+      _getChildPidsRecursively(
+        childPid,
+        allChildPids,
+        knownPids,
+        depth + 1,
+        maxDepth
+      );
+    }
+  }
+};
+
+/**
+ * @param {number} mainPid
+ */
+const _getThreadIds = (mainPid) => {
+  /** @type {number[]} */
+  const threadIds = [];
+  const taskDir = `/proc/${mainPid}/task`;
+  const [entries, err] = os.readdir(taskDir);
+
+  if (err === 0) {
+    for (const entry of entries) {
+      const id = parseInt(entry);
+      if (isNaN(id) || id < 1) {
+        continue;
+      }
+      threadIds.push(id);
+    }
+  }
+  return threadIds;
+};
+
+/**
+ * @param {number} mainPid
+ * @param {number} threadId
+ *
+ * @returns {number[]}
+ */
+const _getChildPidsForThread = (mainPid, threadId) => {
+  /** @type {number[]} */
+  const childPids = [];
+  const childrenFile = `/proc/${mainPid}/task/${threadId}/children`;
+  const fd = std.open(childrenFile, 'r');
+  if (fd) {
+    const content = fd.readAsString().trim();
+    fd.close();
+    if (content) {
+      for (const value of content.split(' ')) {
+        const pid = parseInt(value);
+        if (isNaN(pid) || pid < 1) {
+          continue;
+        }
+        childPids.push(pid);
+      }
+    }
+  }
+  return childPids;
+};
+
+/**
  * Send a signal to a given process
  *
  * @param {number} pid - process ID to kill
@@ -1122,81 +1263,43 @@ class Process {
 const kill = (pid, options) => {
   const { signal = os.SIGTERM, recursive = false } = options || {};
 
-  // see https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
-  let isTerminationSignal = false;
-  switch (signal) {
-    case os.SIGTERM:
-    case os.SIGINT:
-    case os.SIGQUIT:
-    case os.SIGKILL:
-      isTerminationSignal = true;
-  }
+  const isTerminationSignal = _isTerminationSignal(signal);
 
   if (recursive) {
-    // pause main process before killing child processes
+    // pause parent process before killing its children
     if (isTerminationSignal) {
       os.kill(pid, os.SIGSTOP);
     }
 
-    _killChildProcessesRecursively(pid, signal);
-    os.kill(pid, signal);
+    const childPids = getChildPids(pid, { direct: false });
+    if (childPids.length) {
+      // pause all children before killing them
+      if (isTerminationSignal) {
+        for (const pid of childPids) {
+          os.kill(pid, os.SIGSTOP);
+        }
+      }
+      // send the signal to each child in reverse order
+      for (let i = childPids.length - 1; i >= 0; --i) {
+        os.kill(childPids[i], signal);
+        // unpause child
+        if (isTerminationSignal && signal !== os.SIGKILL) {
+          os.kill(childPids[i], os.SIGCONT);
+        }
+      }
+    }
 
-    // unpause main process
+    // send signal to parent process and unpause if needed
+    os.kill(pid, signal);
     if (isTerminationSignal && signal !== os.SIGKILL) {
       os.kill(pid, os.SIGCONT);
     }
   } else {
     os.kill(pid, signal);
-  }
-};
-
-/**
- * Find and kill child processes recursively
- *
- * @param {number} parentPid - parent pid
- * @param {number} signal - signal to use
- */
-const _killChildProcessesRecursively = (parentPid, signal) => {
-  const allPids = _getProcessTree(parentPid);
-  // remove parent pid
-  allPids.unshift();
-  if (allPids.length === 0) {
-    return;
-  }
-  for (const pid of allPids) {
-    os.kill(pid, signal);
-  }
-};
-
-/**
- * Get all processes in a process tree
- *
- * @param {number} parentPid - parent pid
- *
- * @returns {number[]} array of process IDs (including parent pid)
- */
-const _getProcessTree = (parentPid) => {
-  const allPids = [parentPid];
-  const childrenPath = `/proc/${parentPid}/task/${parentPid}/children`;
-
-  const fd = std.open(childrenPath, 'r');
-  if (fd) {
-    const content = fd.readAsString().trim();
-    fd.close();
-    if (content) {
-      for (const part of content.split(' ')) {
-        const childPid = parseInt(part);
-        if (isNaN(childPid)) {
-          continue;
-        }
-        const list = _getProcessTree(childPid);
-        for (const pid of list) {
-          allPids.push(pid);
-        }
-      }
+    if (isTerminationSignal && signal !== os.SIGKILL) {
+      os.kill(pid, os.SIGCONT);
     }
   }
-  return allPids;
 };
 
 /**
@@ -1349,7 +1452,10 @@ class ProcessSync {
       options
      */
     // qjs options
-    /** @private */
+    /**
+     * @private
+     * @type {import('./os.js').ExecOptions}
+     */
     this._qjsOpt = {
       block: true,
       // by default use PATH
@@ -1657,7 +1763,7 @@ const execSync = (cmdline, opt) => {
  * @param {number} pid - process pid
  * @param {number} [pollDelay=250] - delay in ms between polling
  *
- * @returns {Promise} promise which will resolve once the process is gone
+ * @returns {Promise<void>} promise which will resolve once the process is gone
  */
 const waitpid = async (pid, pollDelay = 250) => {
   for (;;) {
@@ -1709,6 +1815,7 @@ export {
   exec,
   waitpid,
   kill,
+  getChildPids,
   ProcessSync,
   execSync,
   ensureProcessResult,

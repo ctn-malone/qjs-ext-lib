@@ -39,6 +39,7 @@ Executes external processes asynchronously and returns an object (named `Process
 - [exec(...)](#exec)
 - [waitpid(...)](#waitpid)
 - [kill(...)](#kill)
+- [getChildPids(...)](#getchildpids)
 - [ProcessSync](#processsync)
   - [ProcessSync.constructor(...)](#processsyncconstructor)
   - [ProcessSync.getSignalName(...)](#processsyncgetsignalname)
@@ -512,6 +513,22 @@ Send a signal to given process
  * @typedef {Object} KillOptions
  * @property {number} [signal=os.SIGTERM] - signal number to use (default = os.SIGTERM)
  * @property {boolean} [recursive=false] - if true, kill child processes recursively (default = false)
+ */
+```
+
+## getChildPids(...)
+
+`getChildPids(parentPid, options)`
+
+Find the children of a given process and return their pids
+
+* **parentPid** (*number*) : pid of the parent process
+* options (*GetChildPidsOptions*)
+
+```js
+/**
+ * @typedef {Object} GetChildPidsOptions
+ * @property {boolean} [direct=false] - if true, only list direct children (default = false)
  */
 ```
 

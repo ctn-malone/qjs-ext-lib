@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.15.4]
+* refactor: improve typing (`process.js`)
+* feat: add `getChildPids` function (`process.js`)
+* refactor: new implementation for `kill` function (`process.js`)
+* refactor: new implementation for `spin` function (`gum.js`)
+
 ## [0.15.3]
 * refactor: don't stream output for base64 functions (`strings.js`)
 * fix: correctly handle `byteOffset` in `strToBytesArray` (`strings.js`)
