@@ -92,11 +92,11 @@ const handleError = (process) => {
 };
 
 /**
- * @param {object} args - arguments to update
+ * @param {string[]} cmdline - command line to update
  * @param {object} [customArgs] - arguments to add to {args}
  * @param {string[]} [argsToIgnore] - arguments to ignore in {customArgs}, to ensure consistent behaviour
  */
-const addCustomArguments = (args, customArgs, argsToIgnore) => {
+const addCustomArguments = (cmdline, customArgs, argsToIgnore) => {
   if (!customArgs) {
     return;
   }
@@ -105,9 +105,9 @@ const addCustomArguments = (args, customArgs, argsToIgnore) => {
     if (argsToIgnore.includes(argName)) {
       continue;
     }
-    args.push(`--${argName}`);
+    cmdline.push(`--${argName}`);
     if (argValue !== undefined) {
-      args.push(argValue.toString());
+      cmdline.push(argValue.toString());
     }
   }
 };
@@ -1271,16 +1271,12 @@ export const spin = async (promise, opt) => {
       env,
       replaceEnv: false,
       passStderr: true,
-      stdin: pipe[0],
     });
 
     // stop spinner & wait until process is over
     const stopSpinner = async () => {
-      // this will stop the spinner
-      os.close(pipe[1]);
-      // wait until spinner process is done
+      spinProcess.kill({ recursive: true });
       await spinProcess.wait();
-      os.close(pipe[0]);
     };
 
     // start spinner & setup exit handler
