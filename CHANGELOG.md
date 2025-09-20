@@ -1,7 +1,7 @@
 # Change Log
 
 ## [0.15.4]
-* refactor: improve typing (`process.js`)
+* refactor: improve typing (`process.js`, `curl.js`)
 * feat: add `getChildPids` function (`process.js`)
 * refactor: new implementation for `kill` function (`process.js`)
 * refactor: new implementation for `spin` function (`gum.js`)

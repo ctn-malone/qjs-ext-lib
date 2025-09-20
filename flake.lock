@@ -72,17 +72,17 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1747314335,
-        "narHash": "sha256-0APZ9XO+1Pq5z0X9enUZgBWeCbSUeVfV/qsirou7pB8=",
+        "lastModified": 1758380383,
+        "narHash": "sha256-NBzi/xBTJW+afnHeCaQozsUpU0ziYRy/64wMK5wCgp8=",
         "owner": "ctn-malone",
         "repo": "quickjs-cross-compiler",
-        "rev": "36bc7985737c6b3e9e4701e2d369dfa17ed96c0b",
+        "rev": "30406108bc56155833b9234789a85255bda38500",
         "type": "github"
       },
       "original": {
         "owner": "ctn-malone",
         "repo": "quickjs-cross-compiler",
-        "rev": "36bc7985737c6b3e9e4701e2d369dfa17ed96c0b",
+        "rev": "30406108bc56155833b9234789a85255bda38500",
         "type": "github"
       }
     },
