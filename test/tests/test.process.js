@@ -29,7 +29,9 @@ export default () => {
       const opt = { trim: false };
       const cmdline = 'data/test1.sh 10';
       const p = new Process(cmdline, opt);
+      /** @type {string[]} */
       const stdoutLines = [];
+      /** @type {string[]} */
       const stderrLines = [];
       let stateFromEvent;
       let expectedContent, content, match;
@@ -98,6 +100,7 @@ export default () => {
       const opt = { trim: false };
       const cmdline = 'data/test1.sh 10';
       const p = new Process(cmdline, opt);
+      /** @type {string[]} */
       const stdoutLines = [];
       let expectedContent, content, match;
       p.setEventListener('stdout', (obj) => {
@@ -138,6 +141,7 @@ export default () => {
       const opt = { trim: false };
       const cmdline = 'data/test1.sh 10';
       const p = new Process(cmdline, opt);
+      /** @type {string[]} */
       const stderrLines = [];
       let expectedContent, content;
       p.setEventListener('stderr', (obj) => {
@@ -223,7 +227,10 @@ export default () => {
     'process.Process (line buffering)',
     async (done) => {
       let opt, cmdline, p;
-      let stdoutLines, stderrLines;
+      /** @type {string[]} */
+      let stdoutLines;
+      /** @type {string[]} */
+      let stderrLines;
       let expectedContent, content;
 
       /*
@@ -700,6 +707,7 @@ export default () => {
     'process.Process (pause/resume)',
     async (done) => {
       let opt, cmdline, p;
+      /** @type {string[]} */
       let stdoutLines = [];
       let content, finalContent;
 
@@ -924,7 +932,7 @@ export default () => {
       cmdline = 'data/test1.sh 10 2';
       try {
         await exec(cmdline, opt);
-      } catch (e) {
+      } catch (/** @type {any} */ e) {
         expectedContent = `1\n3\n5\n7\n9`;
         content = e.message;
         tester.assertEq(
@@ -1388,7 +1396,7 @@ export default () => {
     cmdline = 'data/test1.sh 10 2';
     try {
       execSync(cmdline, opt);
-    } catch (e) {
+    } catch (/** @type {any} */ e) {
       expectedContent = `1\n3\n5\n7\n9`;
       content = e.message;
       tester.assertEq(

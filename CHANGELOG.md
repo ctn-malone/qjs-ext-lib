@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.16.0]
+* feat: add support for [gum](https://github.com/charmbracelet/gum) version (`v0.17.0`) (`gum.js`)
+* refactor: use [gum](https://github.com/charmbracelet/gum) version (`v0.17.0`) in bootstrap
+
 ## [0.15.4]
 * refactor: improve typing (`process.js`, `curl.js`)
 * feat: add `getChildPids` function (`process.js`)

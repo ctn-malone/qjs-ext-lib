@@ -4,9 +4,8 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     qjsExtLib.url = "github:ctn-malone/qjs-ext-lib";
-    # pin gum to version 0.12
-    nixpkgs-gum.url =
-      "github:nixos/nixpkgs/5112417739f9b198047bedc352cebb41aa339e1d";
+    # pin gum to version 0.17.0
+    nixpkgs-gum.url = "github:nixos/nixpkgs/554be6495561ff07b6c724047bdd7e0716aa7b46";
   };
 
   outputs = { self, nixpkgs, flake-utils, qjsExtLib, nixpkgs-gum }:

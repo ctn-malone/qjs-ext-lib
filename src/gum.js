@@ -300,6 +300,10 @@ const findItems = (list, values) => {
 
 const CHOOSE_DEFAULT_HEIGHT = 10;
 const CHOOSE_DEFAULT_CURSOR = '> ';
+const CHOOSE_DEFAULT_PADDING_LEFT = 0;
+const CHOOSE_DEFAULT_PADDING_RIGHT = 0;
+const CHOOSE_DEFAULT_PADDING_TOP = 0;
+const CHOOSE_DEFAULT_PADDING_BOTTOM = 0;
 
 /**
  * Choose a single item from a list
@@ -313,6 +317,10 @@ const CHOOSE_DEFAULT_CURSOR = '> ';
  * @param {ListItem<T>|string} [opt.selected] - default item
  * @param {string} [opt.cursor="> "] - prefix to show on item that corresponds to the cursor position (default = "> ") ($GUM_CHOOSE_CURSOR)
  * @param {number} [opt.height=10] - height of the list (default = 10) ($GUM_CHOOSE_HEIGHT)
+ * @param {number} [opt.paddingLeft=0] - left padding (default = 0) ($GUM_CHOOSE_PADDING_LEFT) (>= v0.17.0)
+ * @param {number} [opt.paddingRight=0] - right padding (default = 0) ($GUM_CHOOSE_PADDING_RIGHT) (>= v0.17.0)
+ * @param {number} [opt.paddingTop=0] - top padding (default = 0) ($GUM_CHOOSE_PADDING_TOP) (>= v0.17.0)
+ * @param {number} [opt.paddingBottom=0] - bottom padding (default = 0) ($GUM_CHOOSE_PADDING_BOTTOM) (>= v0.17.0)
  * @param {CustomOptions} [opt.custom]
  *
  * @returns {ListItem<T>|undefined}
@@ -320,6 +328,13 @@ const CHOOSE_DEFAULT_CURSOR = '> ';
 export const chooseItemFromList = (list, opt) => {
   opt = opt || {};
   const items = buildItems(list);
+
+  /*
+    We retrieve environment first because merging padding
+    values relies on those environment variables as fallback
+   */
+  const env = getEnv(opt.custom?.env, ['PADDING']);
+
   const cmdline = ['gum', 'choose', '--limit', '1'];
   if (opt.header) {
     cmdline.push('--header', opt.header);
@@ -338,8 +353,25 @@ export const chooseItemFromList = (list, opt) => {
     cmdline.push('--height', opt.height.toString());
   }
 
-  addCustomArguments(cmdline, opt.custom?.args, ['limit', 'no-limit']);
-  const env = getEnv(opt.custom?.env);
+  if (versionGte('0.17.0', opt?.custom?.dryRunVersion)) {
+    cmdline.push(
+      '--padding',
+      mergePaddingValues(
+        env,
+        opt.paddingTop,
+        opt.paddingRight,
+        opt.paddingBottom,
+        opt.paddingLeft,
+        'GUM_CHOOSE_'
+      )
+    );
+  }
+
+  addCustomArguments(cmdline, opt.custom?.args, [
+    'limit',
+    'no-limit',
+    '--padding',
+  ]);
 
   if (opt.custom?.dryRunCb) {
     opt.custom.dryRunCb(cmdline, env);
@@ -379,6 +411,10 @@ const CHOOSE_DEFAULT_ORDERED = 'no';
  * @param {string} [opt.cursorPrefix="○ "] - prefix to show on the cursor item (default = "○ ") ($GUM_CHOOSE_CURSOR_PREFIX)
  * @param {string} [opt.selectedPrefix="◉ "] - prefix to show on selected items (default = "◉ ") ($GUM_CHOOSE_SELECTED_PREFIX)
  * @param {string} [opt.unselectedPrefix="○ "] - prefix to show on unselected items (default = "○ ") ($GUM_CHOOSE_UNSELECTED_PREFIX)
+ * @param {number} [opt.paddingLeft=0] - left padding (default = 0) ($GUM_CHOOSE_PADDING_LEFT) (>= v0.17.0)
+ * @param {number} [opt.paddingRight=0] - right padding (default = 0) ($GUM_CHOOSE_PADDING_RIGHT) (>= v0.17.0)
+ * @param {number} [opt.paddingTop=0] - top padding (default = 0) ($GUM_CHOOSE_PADDING_TOP) (>= v0.17.0)
+ * @param {number} [opt.paddingBottom=0] - bottom padding (default = 0) ($GUM_CHOOSE_PADDING_BOTTOM) (>= v0.17.0)
  * @param {CustomOptions} [opt.custom]
  *
  * @returns {ListItem<T>[]|undefined}
@@ -386,6 +422,13 @@ const CHOOSE_DEFAULT_ORDERED = 'no';
 export const chooseItemsFromList = (list, opt) => {
   opt = opt || {};
   const items = buildItems(list);
+
+  /*
+    We retrieve environment first because merging padding
+    values relies on those environment variables as fallback
+   */
+  const env = getEnv(opt.custom?.env, ['PADDING']);
+
   const cmdline = ['gum', 'choose'];
   if (opt.header) {
     cmdline.push('--header', opt.header);
@@ -430,8 +473,25 @@ export const chooseItemsFromList = (list, opt) => {
     cmdline.push(`--unselected-prefix=${opt.unselectedPrefix}`);
   }
 
-  addCustomArguments(cmdline, opt.custom?.args, ['limit', 'no-limit']);
-  const env = getEnv(opt.custom?.env);
+  if (versionGte('0.17.0', opt?.custom?.dryRunVersion)) {
+    cmdline.push(
+      '--padding',
+      mergePaddingValues(
+        env,
+        opt.paddingTop,
+        opt.paddingRight,
+        opt.paddingBottom,
+        opt.paddingLeft,
+        'GUM_CHOOSE_'
+      )
+    );
+  }
+
+  addCustomArguments(cmdline, opt.custom?.args, [
+    'limit',
+    'no-limit',
+    '--padding',
+  ]);
 
   if (opt.custom?.dryRunCb) {
     opt.custom.dryRunCb(cmdline, env);
@@ -457,6 +517,10 @@ const FILTER_DEFAULT_PLACEHOLDER = 'Filter...';
 const FILTER_DEFAULT_FUZZY = 'yes';
 const FILTER_DEFAULT_SORT = 'yes';
 const FILTER_DEFAULT_REVERSE = 'no';
+const FILTER_DEFAULT_PADDING_LEFT = 0;
+const FILTER_DEFAULT_PADDING_RIGHT = 0;
+const FILTER_DEFAULT_PADDING_TOP = 0;
+const FILTER_DEFAULT_PADDING_BOTTOM = 0;
 
 /**
  * Choose a single item by filtering a list
@@ -475,6 +539,10 @@ const FILTER_DEFAULT_REVERSE = 'no';
  * @param {boolean} [opt.fuzzy=true] - enable fuzzy search (default = true) ($GUM_FILTER_FUZZY)
  * @param {boolean} [opt.reverse=false] - display from the bottom of the screen (default = false) ($GUM_FILTER_REVERSE)
  * @param {boolean} [opt.sort=true] - sort the results (default = true) ($GUM_FILTER_SORT)
+ * @param {number} [opt.paddingLeft=0] - left padding (default = 0) ($GUM_FILTER_PADDING_LEFT) (>= v0.17.0)
+ * @param {number} [opt.paddingRight=0] - right padding (default = 0) ($GUM_FILTER_PADDING_RIGHT) (>= v0.17.0)
+ * @param {number} [opt.paddingTop=0] - top padding (default = 0) ($GUM_FILTER_PADDING_TOP) (>= v0.17.0)
+ * @param {number} [opt.paddingBottom=0] - bottom padding (default = 0) ($GUM_FILTER_PADDING_BOTTOM) (>= v0.17.0)
  * @param {CustomOptions} [opt.custom]
  *
  * @returns {ListItem<T>|undefined}
@@ -482,6 +550,13 @@ const FILTER_DEFAULT_REVERSE = 'no';
 export const filterItemFromList = (list, opt) => {
   opt = opt || {};
   const items = buildItems(list);
+
+  /*
+    We retrieve environment first because merging padding
+    values relies on those environment variables as fallback
+   */
+  const env = getEnv(opt.custom?.env, ['PADDING']);
+
   const cmdline = ['gum', 'filter', '--limit', '1'];
   if (opt.header) {
     cmdline.push('--header', opt.header);
@@ -511,8 +586,25 @@ export const filterItemFromList = (list, opt) => {
     cmdline.push(`--reverse=${opt.reverse ? 'yes' : 'no'}`);
   }
 
-  addCustomArguments(cmdline, opt.custom?.args, ['limit', 'no-limit']);
-  const env = getEnv(opt.custom?.env);
+  if (versionGte('0.17.0', opt?.custom?.dryRunVersion)) {
+    cmdline.push(
+      '--padding',
+      mergePaddingValues(
+        env,
+        opt.paddingTop,
+        opt.paddingRight,
+        opt.paddingBottom,
+        opt.paddingLeft,
+        'GUM_FILTER_'
+      )
+    );
+  }
+
+  addCustomArguments(cmdline, opt.custom?.args, [
+    'limit',
+    'no-limit',
+    '--padding',
+  ]);
 
   if (opt.custom?.dryRunCb) {
     opt.custom.dryRunCb(cmdline, env);
@@ -555,6 +647,10 @@ const FILTER_DEFAULT_UNSELECTED_PREFIX = ' ○ ';
  * @param {string} [opt.indicator="•"] - character for selection (default = "•") ($GUM_FILTER_INDICATOR)
  * @param {string} [opt.selectedPrefix=" ◉ "] - character to indicate selected items (default = " ◉ ") ($GUM_FILTER_SELECTED_PREFIX)
  * @param {string} [opt.unselectedPrefix=" ○ "] - character to indicate selected items (default = " ○ ") ($GUM_FILTER_UNSELECTED_PREFIX)
+ * @param {number} [opt.paddingLeft=0] - left padding (default = 0) ($GUM_FILTER_PADDING_LEFT) (>= v0.17.0)
+ * @param {number} [opt.paddingRight=0] - right padding (default = 0) ($GUM_FILTER_PADDING_RIGHT) (>= v0.17.0)
+ * @param {number} [opt.paddingTop=0] - top padding (default = 0) ($GUM_FILTER_PADDING_TOP) (>= v0.17.0)
+ * @param {number} [opt.paddingBottom=0] - bottom padding (default = 0) ($GUM_FILTER_PADDING_BOTTOM) (>= v0.17.0)
  * @param {CustomOptions} [opt.custom]
  *
  * @returns {ListItem<T>[]|undefined}
@@ -562,6 +658,13 @@ const FILTER_DEFAULT_UNSELECTED_PREFIX = ' ○ ';
 export const filterItemsFromList = (list, opt) => {
   opt = opt || {};
   const items = buildItems(list);
+
+  /*
+    We retrieve environment first because merging padding
+    values relies on those environment variables as fallback
+   */
+  const env = getEnv(opt.custom?.env, ['PADDING']);
+
   const cmdline = ['gum', 'filter'];
   if (opt.header) {
     cmdline.push('--header', opt.header);
@@ -605,8 +708,25 @@ export const filterItemsFromList = (list, opt) => {
     cmdline.push('--unselected-prefix', opt.unselectedPrefix);
   }
 
-  addCustomArguments(cmdline, opt.custom?.args, ['limit', 'no-limit']);
-  const env = getEnv(opt.custom?.env);
+  if (versionGte('0.17.0', opt?.custom?.dryRunVersion)) {
+    cmdline.push(
+      '--padding',
+      mergePaddingValues(
+        env,
+        opt.paddingTop,
+        opt.paddingRight,
+        opt.paddingBottom,
+        opt.paddingLeft,
+        'GUM_FILTER_'
+      )
+    );
+  }
+
+  addCustomArguments(cmdline, opt.custom?.args, [
+    'limit',
+    'no-limit',
+    '--padding',
+  ]);
 
   if (opt.custom?.dryRunCb) {
     opt.custom.dryRunCb(cmdline, env);
@@ -651,13 +771,16 @@ const STYLE_DEFAULT_FAINT = 'no';
  * @param {number|string} [right] - value for right margin
  * @param {number|string} [bottom] - value for top margin
  * @param {number|string} [left] - value for right margin
+ * @param {string} [prefix=""] - variable prefix
  *
  * @return {string}
  */
-const mergeMarginValues = (env, top, right, bottom, left) => {
-  return `${top ?? env['MARGIN_TOP']} ${right ?? env['MARGIN_RIGHT']} ${
-    bottom ?? env['MARGIN_BOTTOM']
-  } ${left ?? env['MARGIN_LEFT']}`;
+const mergeMarginValues = (env, top, right, bottom, left, prefix = '') => {
+  return `${top ?? env[`${prefix}MARGIN_TOP`]} ${
+    right ?? env[`${prefix}MARGIN_RIGHT`]
+  } ${bottom ?? env[`${prefix}MARGIN_BOTTOM`]} ${
+    left ?? env[`${prefix}MARGIN_LEFT`]
+  }`;
 };
 
 /**
@@ -668,13 +791,16 @@ const mergeMarginValues = (env, top, right, bottom, left) => {
  * @param {number|string} [right] - value for right padding
  * @param {number|string} [bottom] - value for top padding
  * @param {number|string} [left] - value for right padding
+ * @param {string} [prefix=""] - variable prefix
  *
  * @return {string}
  */
-const mergePaddingValues = (env, top, right, bottom, left) => {
-  return `${top ?? env['PADDING_TOP']} ${right ?? env['PADDING_RIGHT']} ${
-    bottom ?? env['PADDING_BOTTOM']
-  } ${left ?? env['PADDING_LEFT']}`;
+const mergePaddingValues = (env, top, right, bottom, left, prefix = '') => {
+  return `${top ?? env[`${prefix}PADDING_TOP`]} ${
+    right ?? env[`${prefix}PADDING_RIGHT`]
+  } ${bottom ?? env[`${prefix}PADDING_BOTTOM`]} ${
+    left ?? env[`${prefix}PADDING_LEFT`]
+  }`;
 };
 
 /**
@@ -890,6 +1016,10 @@ const findTableRow = (rows, key) => {
 
 const TABLE_DEFAULT_BORDER = Border.ROUNDED;
 const TABLE_DEFAULT_HEIGHT = 20;
+const TABLE_DEFAULT_PADDING_LEFT = 0;
+const TABLE_DEFAULT_PADDING_RIGHT = 0;
+const TABLE_DEFAULT_PADDING_TOP = 0;
+const TABLE_DEFAULT_PADDING_BOTTOM = 0;
 
 /**
  * Render a list of rows as a table
@@ -902,6 +1032,10 @@ const TABLE_DEFAULT_HEIGHT = 20;
  * @param {object} [opt] - options
  * @param {Border} [opt.border="rounded"] - border style (default = Border.ROUNDED)
  * @param {number[]} [opt.widths] - column widths
+ * @param {number} [opt.paddingLeft=0] - left padding (default = 0) ($GUM_TABLE_PADDING_LEFT) (>= v0.17.0)
+ * @param {number} [opt.paddingRight=0] - right padding (default = 0) ($GUM_TABLE_PADDING_RIGHT) (>= v0.17.0)
+ * @param {number} [opt.paddingTop=0] - top padding (default = 0) ($GUM_TABLE_PADDING_TOP) (>= v0.17.0)
+ * @param {number} [opt.paddingBottom=0] - bottom padding (default = 0) ($GUM_TABLE_PADDING_BOTTOM) (>= v0.17.0)
  * @param {CustomOptions} [opt.custom]
  *
  * @returns {string}
@@ -909,6 +1043,13 @@ const TABLE_DEFAULT_HEIGHT = 20;
 export const renderTable = (columns, rows, opt) => {
   opt = opt || {};
   const extendedRows = buildTableRows(rows);
+
+  /*
+    We retrieve environment first because merging padding
+    values relies on those environment variables as fallback
+   */
+  const env = getEnv(opt.custom?.env, ['PADDING']);
+
   const cmdline = [
     'gum',
     'table',
@@ -927,13 +1068,27 @@ export const renderTable = (columns, rows, opt) => {
     cmdline.push('--widths', opt.widths.join(','));
   }
 
+  if (versionGte('0.17.0', opt?.custom?.dryRunVersion)) {
+    cmdline.push(
+      '--padding',
+      mergePaddingValues(
+        env,
+        opt.paddingTop,
+        opt.paddingRight,
+        opt.paddingBottom,
+        opt.paddingLeft,
+        'GUM_TABLE_'
+      )
+    );
+  }
+
   addCustomArguments(cmdline, opt.custom?.args, [
     'separator',
     's',
     'file',
     'f',
+    '--padding',
   ]);
-  const env = getEnv(opt.custom?.env);
 
   if (opt.custom?.dryRunCb) {
     opt.custom.dryRunCb(cmdline, env);
@@ -962,6 +1117,10 @@ export const renderTable = (columns, rows, opt) => {
  * @param {object} [opt] - options
  * @param {number[]} [opt.widths] - column widths
  * @param {number} [opt.height=20] - table height (default = 20)
+ * @param {number} [opt.paddingLeft=0] - left padding (default = 0) ($GUM_TABLE_PADDING_LEFT) (>= v0.17.0)
+ * @param {number} [opt.paddingRight=0] - right padding (default = 0) ($GUM_TABLE_PADDING_RIGHT) (>= v0.17.0)
+ * @param {number} [opt.paddingTop=0] - top padding (default = 0) ($GUM_TABLE_PADDING_TOP) (>= v0.17.0)
+ * @param {number} [opt.paddingBottom=0] - bottom padding (default = 0) ($GUM_TABLE_PADDING_BOTTOM) (>= v0.17.0)
  * @param {CustomOptions} [opt.custom]
  *
  * @returns {TableRow<T>|undefined}
@@ -969,6 +1128,13 @@ export const renderTable = (columns, rows, opt) => {
 export const chooseRowFromTable = (columns, rows, opt) => {
   opt = opt || {};
   const extendedRows = buildTableRows(rows);
+
+  /*
+    We retrieve environment first because merging padding
+    values relies on those environment variables as fallback
+   */
+  const env = getEnv(opt.custom?.env, ['PADDING']);
+
   const widths = columns.map((column) => column.length);
   // build input and update column widths
   const input = extendedRows
@@ -997,6 +1163,20 @@ export const chooseRowFromTable = (columns, rows, opt) => {
     cmdline.push('--widths', widths.join(','));
   }
 
+  if (versionGte('0.17.0', opt?.custom?.dryRunVersion)) {
+    cmdline.push(
+      '--padding',
+      mergePaddingValues(
+        env,
+        opt.paddingTop,
+        opt.paddingRight,
+        opt.paddingBottom,
+        opt.paddingLeft,
+        'GUM_TABLE_'
+      )
+    );
+  }
+
   addCustomArguments(cmdline, opt.custom?.args, [
     'separator',
     's',
@@ -1004,8 +1184,8 @@ export const chooseRowFromTable = (columns, rows, opt) => {
     'p',
     'file',
     'f',
+    '--padding',
   ]);
-  const env = getEnv(opt.custom?.env);
 
   if (opt.custom?.dryRunCb) {
     opt.custom.dryRunCb(cmdline, env);
@@ -1023,6 +1203,10 @@ export const chooseRowFromTable = (columns, rows, opt) => {
 };
 
 const CONFIRM_DEFAULT_PROMPT = 'Are you sure?';
+const CONFIRM_DEFAULT_PADDING_LEFT = 0;
+const CONFIRM_DEFAULT_PADDING_RIGHT = 0;
+const CONFIRM_DEFAULT_PADDING_TOP = 0;
+const CONFIRM_DEFAULT_PADDING_BOTTOM = 0;
 
 /**
  * @readonly
@@ -1043,12 +1227,23 @@ export const ConfirmAnswer = {
  * @param {string} [opt.affirmative="Yes"] - affirmative answer (default = "Yes")
  * @param {string} [opt.negative="No"] - negative answer (default = "No")
  * @param {ConfirmAnswer} [opt.default="yes"] - default confirmation action (default = ConfirmAnswer.YES)
+ * @param {number} [opt.paddingLeft=0] - left padding (default = 0) ($GUM_CONFIRM_PADDING_LEFT) (>= v0.17.0)
+ * @param {number} [opt.paddingRight=0] - right padding (default = 0) ($GUM_CONFIRM_PADDING_RIGHT) (>= v0.17.0)
+ * @param {number} [opt.paddingTop=0] - top padding (default = 0) ($GUM_CONFIRM_PADDING_TOP) (>= v0.17.0)
+ * @param {number} [opt.paddingBottom=0] - bottom padding (default = 0) ($GUM_CONFIRM_PADDING_BOTTOM) (>= v0.17.0)
  * @param {CustomOptions} [opt.custom]
  *
  * @returns {boolean|undefined}
  */
 export const confirm = (opt) => {
   opt = opt || {};
+
+  /*
+    We retrieve environment first because merging padding
+    values relies on those environment variables as fallback
+   */
+  const env = getEnv(opt.custom?.env, ['PADDING']);
+
   const cmdline = [
     'gum',
     'confirm',
@@ -1060,12 +1255,26 @@ export const confirm = (opt) => {
     opt.prompt || CONFIRM_DEFAULT_PROMPT,
   ];
 
+  if (versionGte('0.17.0', opt?.custom?.dryRunVersion)) {
+    cmdline.push(
+      '--padding',
+      mergePaddingValues(
+        env,
+        opt.paddingTop,
+        opt.paddingRight,
+        opt.paddingBottom,
+        opt.paddingLeft,
+        'GUM_CONFIRM_'
+      )
+    );
+  }
+
   addCustomArguments(cmdline, opt.custom?.args, [
     'default',
     'affirmative',
     'negative',
+    '--padding',
   ]);
-  const env = getEnv(opt.custom?.env);
 
   if (opt.custom?.dryRunCb) {
     opt.custom.dryRunCb(cmdline, env);
@@ -1090,6 +1299,10 @@ export const confirm = (opt) => {
 
 const FILE_DEFAULT_HEIGHT = 50;
 const FILE_DEFAULT_CURSOR = '>';
+const FILE_DEFAULT_PADDING_LEFT = 0;
+const FILE_DEFAULT_PADDING_RIGHT = 0;
+const FILE_DEFAULT_PADDING_TOP = 0;
+const FILE_DEFAULT_PADDING_BOTTOM = 0;
 
 /**
  * Pick a file from a folder
@@ -1101,12 +1314,23 @@ const FILE_DEFAULT_CURSOR = '>';
  * @param {boolean} [opt.all=false] - if true, show hidden and 'dot' files
  * @param {string} [opt.cursor=">"] - the cursor character (default = ">") ($GUM_FILE_CURSOR)
  * @param {number} [opt.height=50] - maximum number of entries to display (default=50) ($GUM_FILE_HEIGHT)
+ * @param {number} [opt.paddingLeft=0] - left padding (default = 0) ($GUM_FILE_PADDING_LEFT) (>= v0.17.0)
+ * @param {number} [opt.paddingRight=0] - right padding (default = 0) ($GUM_FILE_PADDING_RIGHT) (>= v0.17.0)
+ * @param {number} [opt.paddingTop=0] - top padding (default = 0) ($GUM_FILE_PADDING_TOP) (>= v0.17.0)
+ * @param {number} [opt.paddingBottom=0] - bottom padding (default = 0) ($GUM_FILE_PADDING_BOTTOM) (>= v0.17.0)
  * @param {CustomOptions} [opt.custom]
  *
  * @returns {string|undefined}
  */
 export const chooseFile = (opt) => {
   opt = opt || {};
+
+  /*
+    We retrieve environment first because merging padding
+    values relies on those environment variables as fallback
+   */
+  const env = getEnv(opt.custom?.env, ['PADDING']);
+
   const cmdline = ['gum', 'file', '--file=true', '--directory=false'];
   if (opt.cursor !== undefined) {
     cmdline.push(`--cursor=${opt.cursor}`);
@@ -1121,8 +1345,25 @@ export const chooseFile = (opt) => {
     cmdline.push(opt.path);
   }
 
-  addCustomArguments(cmdline, opt.custom?.args, ['file', 'directory']);
-  const env = getEnv(opt.custom?.env);
+  if (versionGte('0.17.0', opt?.custom?.dryRunVersion)) {
+    cmdline.push(
+      '--padding',
+      mergePaddingValues(
+        env,
+        opt.paddingTop,
+        opt.paddingRight,
+        opt.paddingBottom,
+        opt.paddingLeft,
+        'GUM_FILE_'
+      )
+    );
+  }
+
+  addCustomArguments(cmdline, opt.custom?.args, [
+    'file',
+    'directory',
+    '--padding',
+  ]);
 
   if (opt.custom?.dryRunCb) {
     opt.custom.dryRunCb(cmdline, env);
@@ -1149,12 +1390,23 @@ export const chooseFile = (opt) => {
  * @param {boolean} [opt.all=false] - if true, show hidden and 'dot' files
  * @param {string} [opt.cursor=">"] - the cursor character (default = ">") ($GUM_FILE_CURSOR)
  * @param {number} [opt.height=50] - maximum number of entries to display (default=50) ($GUM_FILE_HEIGHT)
+ * @param {number} [opt.paddingLeft=0] - left padding (default = 0) ($GUM_FILE_PADDING_LEFT) (>= v0.17.0)
+ * @param {number} [opt.paddingRight=0] - right padding (default = 0) ($GUM_FILE_PADDING_RIGHT) (>= v0.17.0)
+ * @param {number} [opt.paddingTop=0] - top padding (default = 0) ($GUM_FILE_PADDING_TOP) (>= v0.17.0)
+ * @param {number} [opt.paddingBottom=0] - bottom padding (default = 0) ($GUM_FILE_PADDING_BOTTOM) (>= v0.17.0)
  * @param {CustomOptions} [opt.custom]
  *
  * @returns {string|undefined}
  */
 export const chooseDirectory = (opt) => {
   opt = opt || {};
+
+  /*
+    We retrieve environment first because merging padding
+    values relies on those environment variables as fallback
+   */
+  const env = getEnv(opt.custom?.env, ['PADDING']);
+
   const cmdline = ['gum', 'file', '--file=false', '--directory=true'];
   if (opt.cursor !== undefined) {
     cmdline.push(`--cursor=${opt.cursor}`);
@@ -1169,8 +1421,25 @@ export const chooseDirectory = (opt) => {
     cmdline.push(opt.path);
   }
 
-  addCustomArguments(cmdline, opt.custom?.args, ['file', 'directory']);
-  const env = getEnv(opt.custom?.env);
+  if (versionGte('0.17.0', opt?.custom?.dryRunVersion)) {
+    cmdline.push(
+      '--padding',
+      mergePaddingValues(
+        env,
+        opt.paddingTop,
+        opt.paddingRight,
+        opt.paddingBottom,
+        opt.paddingLeft,
+        'GUM_FILE_'
+      )
+    );
+  }
+
+  addCustomArguments(cmdline, opt.custom?.args, [
+    'file',
+    'directory',
+    '--padding',
+  ]);
 
   if (opt.custom?.dryRunCb) {
     opt.custom.dryRunCb(cmdline, env);
@@ -1217,6 +1486,10 @@ export const SpinAlign = {
 const SPIN_DEFAULT_SPINNER = Spinner.DOT;
 const SPIN_DEFAULT_TITLE = 'Loading...';
 const SPIN_DEFAULT_ALIGN = SpinAlign.LEFT;
+const SPIN_DEFAULT_PADDING_LEFT = 0;
+const SPIN_DEFAULT_PADDING_RIGHT = 0;
+const SPIN_DEFAULT_PADDING_TOP = 0;
+const SPIN_DEFAULT_PADDING_BOTTOM = 0;
 
 /**
  * Display a spinner while a promise is resolving
@@ -1228,6 +1501,10 @@ const SPIN_DEFAULT_ALIGN = SpinAlign.LEFT;
  * @param {string} [opt.title="Loading..."] - title value (default = "Loading...") ($GUM_SPIN_TITLE)
  * @param {string} [opt.spinner="dot"] - spinner value (default = Spinner.DOT) ($GUM_SPIN_SPINNER)
  * @param {string} [opt.align="left"] - alignment of spinner with regard to the title (default = Align.LEFT) ($GUM_SPIN_ALIGN)
+ * @param {number} [opt.paddingLeft=0] - left padding (default = 0) ($GUM_SPIN_PADDING_LEFT) (>= v0.17.0)
+ * @param {number} [opt.paddingRight=0] - right padding (default = 0) ($GUM_SPIN_PADDING_RIGHT) (>= v0.17.0)
+ * @param {number} [opt.paddingTop=0] - top padding (default = 0) ($GUM_SPIN_PADDING_TOP) (>= v0.17.0)
+ * @param {number} [opt.paddingBottom=0] - bottom padding (default = 0) ($GUM_SPIN_PADDING_BOTTOM) (>= v0.17.0)
  * @param {CustomOptions} [opt.custom]
  *
  * @returns {Promise<boolean>} whether or not spinner was cancelled (ie: using Ctrl+C)
@@ -1237,6 +1514,13 @@ export const spin = async (promise, opt) => {
     return spinLegacy(promise, opt);
   }
   opt = opt || {};
+
+  /*
+    We retrieve environment first because merging padding
+    values relies on those environment variables as fallback
+   */
+  const env = getEnv(opt.custom?.env, ['PADDING']);
+
   const cmdline = ['gum', 'spin', '--show-stdout'];
   if (opt.title !== undefined) {
     cmdline.push('--title', opt.title);
@@ -1248,14 +1532,28 @@ export const spin = async (promise, opt) => {
     cmdline.push('--align', opt.align);
   }
 
+  if (versionGte('0.17.0', opt?.custom?.dryRunVersion)) {
+    cmdline.push(
+      '--padding',
+      mergePaddingValues(
+        env,
+        opt.paddingTop,
+        opt.paddingRight,
+        opt.paddingBottom,
+        opt.paddingLeft,
+        'GUM_SPIN_'
+      )
+    );
+  }
+
   addCustomArguments(cmdline, opt.custom?.args, [
     'show-output',
     'show-error',
     'show-stdout',
     'show-stderr',
     'timeout',
+    '--padding',
   ]);
-  const env = getEnv(opt.custom?.env);
 
   cmdline.push('--', 'tail', '-1');
 
@@ -1380,6 +1678,10 @@ const INPUT_DEFAULT_WIDTH = 0;
 const INPUT_DEFAULT_PLACEHOLDER = 'Type something...';
 const INPUT_DEFAULT_PROMPT = '> ';
 const INPUT_DEFAULT_CURSOR_MODE = CursorMode.BLINK;
+const INPUT_DEFAULT_PADDING_LEFT = 0;
+const INPUT_DEFAULT_PADDING_RIGHT = 0;
+const INPUT_DEFAULT_PADDING_TOP = 0;
+const INPUT_DEFAULT_PADDING_BOTTOM = 0;
 
 /**
  * Prompt for some input
@@ -1395,12 +1697,23 @@ const INPUT_DEFAULT_CURSOR_MODE = CursorMode.BLINK;
  * @param {boolean} [opt.password=false] - mask input characters (default = false)
  * @param {number} [opt.charLimit=400] - maximum value length (default = 400, 0 for no limit)
  * @param {number} [opt.width=0] - input width (0 = terminal width) ($GUM_INPUT_WIDTH)
+ * @param {number} [opt.paddingLeft=0] - left padding (default = 0) ($GUM_INPUT_PADDING_LEFT) (>= v0.17.0)
+ * @param {number} [opt.paddingRight=0] - right padding (default = 0) ($GUM_INPUT_PADDING_RIGHT) (>= v0.17.0)
+ * @param {number} [opt.paddingTop=0] - top padding (default = 0) ($GUM_INPUT_PADDING_TOP) (>= v0.17.0)
+ * @param {number} [opt.paddingBottom=0] - bottom padding (default = 0) ($GUM_INPUT_PADDING_BOTTOM) (>= v0.17.0)
  * @param {CustomOptions} [opt.custom]
  *
  * @returns {string|undefined}
  */
 export const input = (opt) => {
   opt = opt || {};
+
+  /*
+    We retrieve environment first because merging padding
+    values relies on those environment variables as fallback
+   */
+  const env = getEnv(opt.custom?.env, ['PADDING']);
+
   const cmdline = ['gum', 'input'];
   if (opt.header) {
     cmdline.push('--header', opt.header);
@@ -1428,8 +1741,21 @@ export const input = (opt) => {
     cmdline.push('--cursor.mode', opt.cursorMode);
   }
 
-  addCustomArguments(cmdline, opt.custom?.args);
-  const env = getEnv(opt.custom?.env);
+  if (versionGte('0.17.0', opt?.custom?.dryRunVersion)) {
+    cmdline.push(
+      '--padding',
+      mergePaddingValues(
+        env,
+        opt.paddingTop,
+        opt.paddingRight,
+        opt.paddingBottom,
+        opt.paddingLeft,
+        'GUM_INPUT_'
+      )
+    );
+  }
+
+  addCustomArguments(cmdline, opt.custom?.args, ['--padding']);
 
   if (opt.custom?.dryRunCb) {
     opt.custom.dryRunCb(cmdline, env);
@@ -1453,6 +1779,10 @@ const WRITE_DEFAULT_PROMPT = '┃ ';
 const WRITE_DEFAULT_CURSOR_MODE = CursorMode.BLINK;
 const WRITE_DEFAULT_CHAR_LIMIT = 400;
 const WRITE_DEFAULT_SHOW_LINE_NUMBERS = 'no';
+const WRITE_DEFAULT_PADDING_LEFT = 0;
+const WRITE_DEFAULT_PADDING_RIGHT = 0;
+const WRITE_DEFAULT_PADDING_TOP = 0;
+const WRITE_DEFAULT_PADDING_BOTTOM = 0;
 
 /**
  * Prompt for long-form text
@@ -1472,12 +1802,23 @@ const WRITE_DEFAULT_SHOW_LINE_NUMBERS = 'no';
  * @param {number} [opt.width=50] - input width (default = 50, 0 for no limit) ($GUM_WRITE_WIDTH)
  * @param {number} [opt.height=10] - input height (default = 10) ($GUM_WRITE_HEIGHT)
  * @param {boolean} [opt.showLineNumbers=false] - show line numbers (default = false) ($GUM_WRITE_SHOW_LINE_NUMBERS)
+ * @param {number} [opt.paddingLeft=0] - left padding (default = 0) ($GUM_WRITE_PADDING_LEFT) (>= v0.17.0)
+ * @param {number} [opt.paddingRight=0] - right padding (default = 0) ($GUM_WRITE_PADDING_RIGHT) (>= v0.17.0)
+ * @param {number} [opt.paddingTop=0] - top padding (default = 0) ($GUM_WRITE_PADDING_TOP) (>= v0.17.0)
+ * @param {number} [opt.paddingBottom=0] - bottom padding (default = 0) ($GUM_WRITE_PADDING_BOTTOM) (>= v0.17.0)
  * @param {CustomOptions} [opt.custom]
  *
  * @returns {string|undefined}
  */
 export const write = (opt) => {
   opt = opt || {};
+
+  /*
+    We retrieve environment first because merging padding
+    values relies on those environment variables as fallback
+   */
+  const env = getEnv(opt.custom?.env, ['PADDING']);
+
   const cmdline = ['gum', 'write'];
   if (opt.header) {
     cmdline.push('--header', opt.header);
@@ -1508,8 +1849,21 @@ export const write = (opt) => {
     cmdline.push(`--show-line-numbers=${opt.showLineNumbers ? 'yes' : 'no'}`);
   }
 
-  addCustomArguments(cmdline, opt.custom?.args);
-  const env = getEnv(opt.custom?.env);
+  if (versionGte('0.17.0', opt?.custom?.dryRunVersion)) {
+    cmdline.push(
+      '--padding',
+      mergePaddingValues(
+        env,
+        opt.paddingTop,
+        opt.paddingRight,
+        opt.paddingBottom,
+        opt.paddingLeft,
+        'GUM_WRITE_'
+      )
+    );
+  }
+
+  addCustomArguments(cmdline, opt.custom?.args, ['--padding']);
 
   if (opt.custom?.dryRunCb) {
     opt.custom.dryRunCb(cmdline, env);
@@ -1660,6 +2014,11 @@ export const join = (text, opt) => {
   return output;
 };
 
+const PAGER_DEFAULT_PADDING_LEFT = 0;
+const PAGER_DEFAULT_PADDING_RIGHT = 0;
+const PAGER_DEFAULT_PADDING_TOP = 0;
+const PAGER_DEFAULT_PADDING_BOTTOM = 0;
+
 /**
  * Scroll through content
  *
@@ -1669,20 +2028,45 @@ export const join = (text, opt) => {
  * @param {object} [opt] - options
  * @param {boolean} [opt.showLineNumbers=true] - show line numbers (default = true)
  * @param {boolean} [opt.softWrap=false] - soft wrap lines (default = false)
+ * @param {number} [opt.paddingLeft=0] - left padding (default = 0) ($GUM_PAGER_PADDING_LEFT) (>= v0.17.0)
+ * @param {number} [opt.paddingRight=0] - right padding (default = 0) ($GUM_PAGER_PADDING_RIGHT) (>= v0.17.0)
+ * @param {number} [opt.paddingTop=0] - top padding (default = 0) ($GUM_PAGER_PADDING_TOP) (>= v0.17.0)
+ * @param {number} [opt.paddingBottom=0] - bottom padding (default = 0) ($GUM_PAGER_PADDING_BOTTOM) (>= v0.17.0)
  * @param {CustomOptions} [opt.custom]
  */
 export const pager = (content, opt) => {
   opt = opt || {};
+
+  /*
+    We retrieve environment first because merging padding
+    values relies on those environment variables as fallback
+   */
+  const baseEnv = getEnv(opt.custom?.env, ['PADDING']);
+
   const cmdline = ['gum', 'pager', content];
   cmdline.push(
     `--show-line-numbers=${opt.showLineNumbers !== false ? 'yes' : 'no'}`
   );
   cmdline.push(`--soft-wrap=${opt.softWrap ? 'yes' : 'no'}`);
 
-  addCustomArguments(cmdline, opt.custom?.args);
+  if (versionGte('0.17.0', opt?.custom?.dryRunVersion)) {
+    cmdline.push(
+      '--padding',
+      mergePaddingValues(
+        baseEnv,
+        opt.paddingTop,
+        opt.paddingRight,
+        opt.paddingBottom,
+        opt.paddingLeft,
+        'GUM_PAGER_'
+      )
+    );
+  }
+
+  addCustomArguments(cmdline, opt.custom?.args, ['--padding']);
   const env = {
     ...std.getenviron(),
-    ...getEnv(opt.custom?.env),
+    ...baseEnv,
   };
 
   if (opt.custom?.dryRunCb) {
@@ -1714,6 +2098,14 @@ defaultEnvironment['GUM_CHOOSE_SELECTED_PREFIX'] =
 defaultEnvironment['GUM_CHOOSE_UNSELECTED_PREFIX'] =
   CHOOSE_DEFAULT_UNSELECTED_PREFIX;
 defaultEnvironment['GUM_CHOOSE_ORDERED'] = CHOOSE_DEFAULT_ORDERED;
+defaultEnvironment['GUM_CHOOSE_PADDING_LEFT'] =
+  CHOOSE_DEFAULT_PADDING_LEFT.toString();
+defaultEnvironment['GUM_CHOOSE_PADDING_RIGHT'] =
+  CHOOSE_DEFAULT_PADDING_RIGHT.toString();
+defaultEnvironment['GUM_CHOOSE_PADDING_TOP'] =
+  CHOOSE_DEFAULT_PADDING_TOP.toString();
+defaultEnvironment['GUM_CHOOSE_PADDING_BOTTOM'] =
+  CHOOSE_DEFAULT_PADDING_BOTTOM.toString();
 
 // filter
 defaultEnvironment['GUM_FILTER_HEIGHT'] = FILTER_DEFAULT_HEIGHT.toString();
@@ -1728,21 +2120,73 @@ defaultEnvironment['GUM_FILTER_UNSELECTED_PREFIX'] =
 defaultEnvironment['GUM_FILTER_FUZZY'] = FILTER_DEFAULT_FUZZY;
 defaultEnvironment['GUM_FILTER_SORT'] = FILTER_DEFAULT_SORT;
 defaultEnvironment['GUM_FILTER_REVERSE'] = FILTER_DEFAULT_REVERSE;
+defaultEnvironment['GUM_FILTER_PADDING_LEFT'] =
+  FILTER_DEFAULT_PADDING_LEFT.toString();
+defaultEnvironment['GUM_FILTER_PADDING_RIGHT'] =
+  FILTER_DEFAULT_PADDING_RIGHT.toString();
+defaultEnvironment['GUM_FILTER_PADDING_TOP'] =
+  FILTER_DEFAULT_PADDING_TOP.toString();
+defaultEnvironment['GUM_FILTER_PADDING_BOTTOM'] =
+  FILTER_DEFAULT_PADDING_BOTTOM.toString();
+
+// table
+defaultEnvironment['GUM_TABLE_PADDING_LEFT'] =
+  TABLE_DEFAULT_PADDING_LEFT.toString();
+defaultEnvironment['GUM_TABLE_PADDING_RIGHT'] =
+  TABLE_DEFAULT_PADDING_RIGHT.toString();
+defaultEnvironment['GUM_TABLE_PADDING_TOP'] =
+  TABLE_DEFAULT_PADDING_TOP.toString();
+defaultEnvironment['GUM_TABLE_PADDING_BOTTOM'] =
+  TABLE_DEFAULT_PADDING_BOTTOM.toString();
+
+// confirm
+defaultEnvironment['GUM_CONFIRM_PADDING_LEFT'] =
+  CONFIRM_DEFAULT_PADDING_LEFT.toString();
+defaultEnvironment['GUM_CONFIRM_PADDING_RIGHT'] =
+  CONFIRM_DEFAULT_PADDING_RIGHT.toString();
+defaultEnvironment['GUM_CONFIRM_PADDING_TOP'] =
+  CONFIRM_DEFAULT_PADDING_TOP.toString();
+defaultEnvironment['GUM_CONFIRM_PADDING_BOTTOM'] =
+  CONFIRM_DEFAULT_PADDING_BOTTOM.toString();
 
 // file
 defaultEnvironment['GUM_FILE_CURSOR'] = FILE_DEFAULT_CURSOR;
 defaultEnvironment['GUM_FILE_HEIGHT'] = FILE_DEFAULT_HEIGHT.toString();
+defaultEnvironment['GUM_FILE_PADDING_LEFT'] =
+  FILE_DEFAULT_PADDING_LEFT.toString();
+defaultEnvironment['GUM_FILE_PADDING_RIGHT'] =
+  FILE_DEFAULT_PADDING_RIGHT.toString();
+defaultEnvironment['GUM_FILE_PADDING_TOP'] =
+  FILE_DEFAULT_PADDING_TOP.toString();
+defaultEnvironment['GUM_FILE_PADDING_BOTTOM'] =
+  FILE_DEFAULT_PADDING_BOTTOM.toString();
 
 // spin
 defaultEnvironment['GUM_SPIN_TITLE'] = SPIN_DEFAULT_TITLE;
 defaultEnvironment['GUM_SPIN_SPINNER'] = SPIN_DEFAULT_SPINNER;
 defaultEnvironment['GUM_SPIN_ALIGN'] = SPIN_DEFAULT_ALIGN;
+defaultEnvironment['GUM_SPIN_PADDING_LEFT'] =
+  SPIN_DEFAULT_PADDING_LEFT.toString();
+defaultEnvironment['GUM_SPIN_PADDING_RIGHT'] =
+  SPIN_DEFAULT_PADDING_RIGHT.toString();
+defaultEnvironment['GUM_SPIN_PADDING_TOP'] =
+  SPIN_DEFAULT_PADDING_TOP.toString();
+defaultEnvironment['GUM_SPIN_PADDING_BOTTOM'] =
+  SPIN_DEFAULT_PADDING_BOTTOM.toString();
 
 // input
 defaultEnvironment['GUM_INPUT_CURSOR_MODE'] = INPUT_DEFAULT_CURSOR_MODE;
 defaultEnvironment['GUM_INPUT_PLACEHOLDER'] = INPUT_DEFAULT_PLACEHOLDER;
 defaultEnvironment['GUM_INPUT_PROMPT'] = INPUT_DEFAULT_PROMPT;
 defaultEnvironment['GUM_INPUT_WIDTH'] = INPUT_DEFAULT_WIDTH.toString();
+defaultEnvironment['GUM_INPUT_PADDING_LEFT'] =
+  INPUT_DEFAULT_PADDING_LEFT.toString();
+defaultEnvironment['GUM_INPUT_PADDING_RIGHT'] =
+  INPUT_DEFAULT_PADDING_RIGHT.toString();
+defaultEnvironment['GUM_INPUT_PADDING_TOP'] =
+  INPUT_DEFAULT_PADDING_TOP.toString();
+defaultEnvironment['GUM_INPUT_PADDING_BOTTOM'] =
+  INPUT_DEFAULT_PADDING_BOTTOM.toString();
 
 // write
 defaultEnvironment['GUM_WRITE_CURSOR_MODE'] = WRITE_DEFAULT_CURSOR_MODE;
@@ -1752,6 +2196,14 @@ defaultEnvironment['GUM_WRITE_WIDTH'] = WRITE_DEFAULT_WIDTH.toString();
 defaultEnvironment['GUM_WRITE_HEIGHT'] = WRITE_DEFAULT_HEIGHT.toString();
 defaultEnvironment['GUM_WRITE_SHOW_LINE_NUMBERS'] =
   WRITE_DEFAULT_SHOW_LINE_NUMBERS;
+defaultEnvironment['GUM_WRITE_PADDING_LEFT'] =
+  WRITE_DEFAULT_PADDING_LEFT.toString();
+defaultEnvironment['GUM_WRITE_PADDING_RIGHT'] =
+  WRITE_DEFAULT_PADDING_RIGHT.toString();
+defaultEnvironment['GUM_WRITE_PADDING_TOP'] =
+  WRITE_DEFAULT_PADDING_TOP.toString();
+defaultEnvironment['GUM_WRITE_PADDING_BOTTOM'] =
+  WRITE_DEFAULT_PADDING_BOTTOM.toString();
 
 // style
 defaultEnvironment['BORDER'] = STYLE_DEFAULT_BORDER;
@@ -1775,3 +2227,13 @@ defaultEnvironment['FAINT'] = STYLE_DEFAULT_FAINT;
 // format
 defaultEnvironment['GUM_FORMAT_TYPE'] = FORMAT_DEFAULT_TYPE;
 defaultEnvironment['GUM_FORMAT_THEME'] = FORMAT_DEFAULT_THEME;
+
+// pager
+defaultEnvironment['GUM_PAGER_PADDING_LEFT'] =
+  PAGER_DEFAULT_PADDING_LEFT.toString();
+defaultEnvironment['GUM_PAGER_PADDING_RIGHT'] =
+  PAGER_DEFAULT_PADDING_RIGHT.toString();
+defaultEnvironment['GUM_PAGER_PADDING_TOP'] =
+  PAGER_DEFAULT_PADDING_TOP.toString();
+defaultEnvironment['GUM_PAGER_PADDING_BOTTOM'] =
+  PAGER_DEFAULT_PADDING_BOTTOM.toString();
