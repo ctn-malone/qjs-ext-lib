@@ -194,7 +194,7 @@ const versionGte = (targetVersion, dryRunVersion) => {
   if (dryRunVersion) {
     return version.gte(targetVersion, currentVersion);
   }
-  if (minVersions[currentVersion] === undefined) {
+  if (minVersions[targetVersion] === undefined) {
     minVersions[targetVersion] = version.gte(targetVersion, currentVersion);
   }
   return minVersions[targetVersion];
