@@ -2,6 +2,7 @@
 
 ## [0.16.1]
 * fix: fix typo in version comparison (`gum.js`)
+* fix: rename ignored variables for padding (`gum.js`)
 
 ## [0.16.0]
 * feat: add support for [gum](https://github.com/charmbracelet/gum) version (`v0.17.0`) (`gum.js`)

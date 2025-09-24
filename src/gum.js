@@ -333,7 +333,7 @@ export const chooseItemFromList = (list, opt) => {
     We retrieve environment first because merging padding
     values relies on those environment variables as fallback
    */
-  const env = getEnv(opt.custom?.env, ['PADDING']);
+  const env = getEnv(opt.custom?.env, ['GUM_CHOOSE_PADDING']);
 
   const cmdline = ['gum', 'choose', '--limit', '1'];
   if (opt.header) {
@@ -427,7 +427,7 @@ export const chooseItemsFromList = (list, opt) => {
     We retrieve environment first because merging padding
     values relies on those environment variables as fallback
    */
-  const env = getEnv(opt.custom?.env, ['PADDING']);
+  const env = getEnv(opt.custom?.env, ['GUM_CHOOSE_PADDING']);
 
   const cmdline = ['gum', 'choose'];
   if (opt.header) {
@@ -555,7 +555,7 @@ export const filterItemFromList = (list, opt) => {
     We retrieve environment first because merging padding
     values relies on those environment variables as fallback
    */
-  const env = getEnv(opt.custom?.env, ['PADDING']);
+  const env = getEnv(opt.custom?.env, ['GUM_FILTER_PADDING']);
 
   const cmdline = ['gum', 'filter', '--limit', '1'];
   if (opt.header) {
@@ -663,7 +663,7 @@ export const filterItemsFromList = (list, opt) => {
     We retrieve environment first because merging padding
     values relies on those environment variables as fallback
    */
-  const env = getEnv(opt.custom?.env, ['PADDING']);
+  const env = getEnv(opt.custom?.env, ['GUM_FILTER_PADDING']);
 
   const cmdline = ['gum', 'filter'];
   if (opt.header) {
@@ -1048,7 +1048,7 @@ export const renderTable = (columns, rows, opt) => {
     We retrieve environment first because merging padding
     values relies on those environment variables as fallback
    */
-  const env = getEnv(opt.custom?.env, ['PADDING']);
+  const env = getEnv(opt.custom?.env, ['GUM_TABLE_PADDING']);
 
   const cmdline = [
     'gum',
@@ -1133,7 +1133,7 @@ export const chooseRowFromTable = (columns, rows, opt) => {
     We retrieve environment first because merging padding
     values relies on those environment variables as fallback
    */
-  const env = getEnv(opt.custom?.env, ['PADDING']);
+  const env = getEnv(opt.custom?.env, ['GUM_TABLE_PADDING']);
 
   const widths = columns.map((column) => column.length);
   // build input and update column widths
@@ -1242,7 +1242,7 @@ export const confirm = (opt) => {
     We retrieve environment first because merging padding
     values relies on those environment variables as fallback
    */
-  const env = getEnv(opt.custom?.env, ['PADDING']);
+  const env = getEnv(opt.custom?.env, ['GUM_CONFIRM_PADDING']);
 
   const cmdline = [
     'gum',
@@ -1329,7 +1329,7 @@ export const chooseFile = (opt) => {
     We retrieve environment first because merging padding
     values relies on those environment variables as fallback
    */
-  const env = getEnv(opt.custom?.env, ['PADDING']);
+  const env = getEnv(opt.custom?.env, ['GUM_FILE_PADDING']);
 
   const cmdline = ['gum', 'file', '--file=true', '--directory=false'];
   if (opt.cursor !== undefined) {
@@ -1405,7 +1405,7 @@ export const chooseDirectory = (opt) => {
     We retrieve environment first because merging padding
     values relies on those environment variables as fallback
    */
-  const env = getEnv(opt.custom?.env, ['PADDING']);
+  const env = getEnv(opt.custom?.env, ['GUM_FILE_PADDING']);
 
   const cmdline = ['gum', 'file', '--file=false', '--directory=true'];
   if (opt.cursor !== undefined) {
@@ -1519,7 +1519,7 @@ export const spin = async (promise, opt) => {
     We retrieve environment first because merging padding
     values relies on those environment variables as fallback
    */
-  const env = getEnv(opt.custom?.env, ['PADDING']);
+  const env = getEnv(opt.custom?.env, ['GUM_SPIN_PADDING']);
 
   const cmdline = ['gum', 'spin', '--show-stdout'];
   if (opt.title !== undefined) {
@@ -1712,7 +1712,7 @@ export const input = (opt) => {
     We retrieve environment first because merging padding
     values relies on those environment variables as fallback
    */
-  const env = getEnv(opt.custom?.env, ['PADDING']);
+  const env = getEnv(opt.custom?.env, ['GUM_INPUT_PADDING']);
 
   const cmdline = ['gum', 'input'];
   if (opt.header) {
@@ -1817,7 +1817,7 @@ export const write = (opt) => {
     We retrieve environment first because merging padding
     values relies on those environment variables as fallback
    */
-  const env = getEnv(opt.custom?.env, ['PADDING']);
+  const env = getEnv(opt.custom?.env, ['GUM_WRITE_PADDING']);
 
   const cmdline = ['gum', 'write'];
   if (opt.header) {
@@ -2041,7 +2041,7 @@ export const pager = (content, opt) => {
     We retrieve environment first because merging padding
     values relies on those environment variables as fallback
    */
-  const baseEnv = getEnv(opt.custom?.env, ['PADDING']);
+  const baseEnv = getEnv(opt.custom?.env, ['GUM_PAGER_PADDING']);
 
   const cmdline = ['gum', 'pager', content];
   cmdline.push(
