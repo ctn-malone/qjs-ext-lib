@@ -109,6 +109,10 @@ Choose a single item from a list
   * opt.selected (*ListItem<T>|string*) : default item
   * opt.cursor (*string*) : prefix to show on item that corresponds to the cursor position (default = `"> "`) ($GUM_CHOOSE_CURSOR)
   * opt.height (*number*) : height of the list (default = `10`) ($GUM_CHOOSE_HEIGHT)
+  * opt.paddingLeft (*number*) : left padding (default = `0`) ($GUM_CHOOSE_PADDING_LEFT)
+  * opt.paddingRight (*number*) : right padding (default = `0`) ($GUM_CHOOSE_PADDING_RIGHT)
+  * opt.paddingTop (*number*) : top padding (default = `0`) ($GUM_CHOOSE_PADDING_TOP)
+  * opt.paddingBottom (*number*) : bottom padding (default = `0`) ($GUM_CHOOSE_PADDING_BOTTOM)
   * opt.custom (*CustomOptions*)
 
 **returns** *ListItem<T>|undefined*
@@ -152,6 +156,10 @@ Choose multiple items from a list (press `Space` to select / unselect an item, `
   * opt.cursorPrefix (*string*) : prefix to show on the cursor item (default = `"○ "`) ($GUM_CHOOSE_CURSOR_PREFIX)
   * opt.selectedPrefix (*string*) : prefix to show on selected items (default = `"◉ "`) ($GUM_CHOOSE_SELECTED_PREFIX)
   * opt.unselectedPrefix (*string*) : prefix to show on unselected items (default = `"○ "`) ($GUM_CHOOSE_UNSELECTED_PREFIX)
+  * opt.paddingLeft (*number*) : left padding (default = `0`) ($GUM_CHOOSE_PADDING_LEFT)
+  * opt.paddingRight (*number*) : right padding (default = `0`) ($GUM_CHOOSE_PADDING_RIGHT)
+  * opt.paddingTop (*number*) : top padding (default = `0`) ($GUM_CHOOSE_PADDING_TOP)
+  * opt.paddingBottom (*number*) : bottom padding (default = `0`) ($GUM_CHOOSE_PADDING_BOTTOM)
   * opt.custom (*CustomOptions*)
 
 **returns** *ListItem<T>[]|undefined*
@@ -197,6 +205,10 @@ Choose a single item by filtering a list
   * opt.fuzzy (*boolean*) : enable fuzzy search (default = `true`) ($GUM_FILTER_FUZZY)
   * opt.reverse (*boolean*) : display from the bottom of the screen (default = `false`) ($GUM_FILTER_REVERSE)
   * opt.sort (*boolean*) : sort the results (default = `true`) ($GUM_FILTER_SORT)
+  * opt.paddingLeft (*number*) : left padding (default = `0`) ($GUM_FILTER_PADDING_LEFT)
+  * opt.paddingRight (*number*) : right padding (default = `0`) ($GUM_FILTER_PADDING_RIGHT)
+  * opt.paddingTop (*number*) : top padding (default = `0`) ($GUM_FILTER_PADDING_TOP)
+  * opt.paddingBottom (*number*) : bottom padding (default = `0`) ($GUM_FILTER_PADDING_BOTTOM)
   * opt.custom (*CustomOptions*)
 
 **returns** *ListItem<T>|undefined*
@@ -240,6 +252,10 @@ Choose multiple items by filtering a list (press `Ctrl+Space` to select/unselect
   * opt.indicator (*string*) : character for selection (default = `"•"`) ($GUM_FILTER_INDICATOR)
   * opt.selectedPrefix (*string*) : character to indicate selected items (default = `" ◉ "`) ($GUM_FILTER_SELECTED_PREFIX)
   * opt.unselectedPrefix (*string*) : character to indicate selected items (default = `" ○ "`) ($GUM_FILTER_UNSELECTED_PREFIX)
+  * opt.paddingLeft (*number*) : left padding (default = `0`) ($GUM_FILTER_PADDING_LEFT)
+  * opt.paddingRight (*number*) : right padding (default = `0`) ($GUM_FILTER_PADDING_RIGHT)
+  * opt.paddingTop (*number*) : top padding (default = `0`) ($GUM_FILTER_PADDING_TOP)
+  * opt.paddingBottom (*number*) : bottom padding (default = `0`) ($GUM_FILTER_PADDING_BOTTOM)
   * opt.custom (*CustomOptions*)
 
 **returns** *ListItem<T>[]|undefined*
@@ -331,6 +347,10 @@ Render a list of rows as a table
 * opt (*object*) : options
   * opt.border (*Border*) : border style (default = `Border.ROUNDED`)
   * opt.widths (*number[]*) : column widths
+  * opt.paddingLeft (*number*) : left padding (default = `0`) ($GUM_TABLE_PADDING_LEFT)
+  * opt.paddingRight (*number*) : right padding (default = `0`) ($GUM_TABLE_PADDING_RIGHT)
+  * opt.paddingTop (*number*) : top padding (default = `0`) ($GUM_TABLE_PADDING_TOP)
+  * opt.paddingBottom (*number*) : bottom padding (default = `0`) ($GUM_TABLE_PADDING_BOTTOM)
   * opt.custom (*CustomOptions*)
 
 **returns** *string*
@@ -369,6 +389,10 @@ Choose a row from a table
 * opt (*object*) : options
   * opt.widths (*number[]*) : column widths
   * opt.height (*number*) : table height (default = `20`)
+  * opt.paddingLeft (*number*) : left padding (default = `0`) ($GUM_TABLE_PADDING_LEFT)
+  * opt.paddingRight (*number*) : right padding (default = `0`) ($GUM_TABLE_PADDING_RIGHT)
+  * opt.paddingTop (*number*) : top padding (default = `0`) ($GUM_TABLE_PADDING_TOP)
+  * opt.paddingBottom (*number*) : bottom padding (default = `0`) ($GUM_TABLE_PADDING_BOTTOM)
   * opt.custom (*CustomOptions*)
 
 **returns** *TableRow<T>|undefined*
@@ -404,6 +428,10 @@ Ask user to confirm an action
   * opt.affirmative (*string*) : affirmative answer (default = `"Yes"`)
   * opt.negative (*string*) : negative answer (default = `"No"`)
   * opt.default (*ConfirmAnswer*) : default confirmation action (default = `ConfirmAnswer.YES`)
+  * opt.paddingLeft (*number*) : left padding (default = `0`) ($GUM_CONFIRM_PADDING_LEFT)
+  * opt.paddingRight (*number*) : right padding (default = `0`) ($GUM_CONFIRM_PADDING_RIGHT)
+  * opt.paddingTop (*number*) : top padding (default = `0`) ($GUM_CONFIRM_PADDING_TOP)
+  * opt.paddingBottom (*number*) : bottom padding (default = `0`) ($GUM_CONFIRM_PADDING_BOTTOM)
   * opt.custom (*CustomOptions*)
 
 **returns** *boolean|undefined*
@@ -438,6 +466,10 @@ Pick a file from a folder
   * opt.all (*boolean*) : if true, show hidden and 'dot' files
   * opt.cursor (*string*) : the cursor character (default = `">"`) ($GUM_FILE_CURSOR)
   * opt.height (*number*) : maximum number of entries to display (default = `50`) ($GUM_FILE_HEIGHT)
+  * opt.paddingLeft (*number*) : left padding (default = `0`) ($GUM_FILE_PADDING_LEFT)
+  * opt.paddingRight (*number*) : right padding (default = `0`) ($GUM_FILE_PADDING_RIGHT)
+  * opt.paddingTop (*number*) : top padding (default = `0`) ($GUM_FILE_PADDING_TOP)
+  * opt.paddingBottom (*number*) : bottom padding (default = `0`) ($GUM_FILE_PADDING_BOTTOM)
   * opt.custom (*CustomOptions*)
 
 **returns** *string|undefined*
@@ -470,6 +502,10 @@ Pick a directory from a folder
   * opt.all (*boolean*) : if true, show hidden and 'dot' files
   * opt.cursor (*string*) : the cursor character (default = `">"`) ($GUM_FILE_CURSOR)
   * opt.height (*number*) : maximum number of entries to display (default = `50`) ($GUM_FILE_HEIGHT)
+  * opt.paddingLeft (*number*) : left padding (default = `0`) ($GUM_FILE_PADDING_LEFT)
+  * opt.paddingRight (*number*) : right padding (default = `0`) ($GUM_FILE_PADDING_RIGHT)
+  * opt.paddingTop (*number*) : top padding (default = `0`) ($GUM_FILE_PADDING_TOP)
+  * opt.paddingBottom (*number*) : bottom padding (default = `0`) ($GUM_FILE_PADDING_BOTTOM)
   * opt.custom (*CustomOptions*)
 
 **returns** *string|undefined*
@@ -502,6 +538,10 @@ Display a spinner while a promise is resolving
   * opt.title (*string*) : title value (default = `"Loading..."`) ($GUM_SPIN_TITLE)
   * opt.spinner (*string*) : spinner value (default = `Spinner.DOT`) ($GUM_SPIN_SPINNER)
   * opt.align (*string*) : alignment of spinner with regard to the title (default = `Align.LEFT`) ($GUM_SPIN_ALIGN)
+  * opt.paddingLeft (*number*) : left padding (default = `0`) ($GUM_SPIN_PADDING_LEFT)
+  * opt.paddingRight (*number*) : right padding (default = `0`) ($GUM_SPIN_PADDING_RIGHT)
+  * opt.paddingTop (*number*) : top padding (default = `0`) ($GUM_SPIN_PADDING_TOP)
+  * opt.paddingBottom (*number*) : bottom padding (default = `0`) ($GUM_SPIN_PADDING_BOTTOM)
   * opt.custom (*CustomOptions*)
 
 **returns** *Promise<boolean>* whether or not spinner was cancelled (ie: using Ctrl+C)
@@ -540,6 +580,10 @@ Prompt for some input
   * opt.password (*boolean*) : mask input characters (default = `false`)
   * opt.charLimit (*number*) : maximum value length (default = `400, 0 for no limit`)
   * opt.width (*number*) : input width (default = `40, 0 for terminal width`) ($GUM_INPUT_WIDTH)
+  * opt.paddingLeft (*number*) : left padding (default = `0`) ($GUM_INPUT_PADDING_LEFT)
+  * opt.paddingRight (*number*) : right padding (default = `0`) ($GUM_INPUT_PADDING_RIGHT)
+  * opt.paddingTop (*number*) : top padding (default = `0`) ($GUM_INPUT_PADDING_TOP)
+  * opt.paddingBottom (*number*) : bottom padding (default = `0`) ($GUM_INPUT_PADDING_BOTTOM)
   * opt.custom (*CustomOptions*)
 
 **returns** *string|undefined*
@@ -585,6 +629,10 @@ Prompt for long-form text (press `Ctrl+D` or `Esc` to confirm)
   * opt.width (*number*) : input width (default = `50, 0 for no limit`) ($GUM_WRITE_WIDTH)
   * opt.height (*number*) : input height (default = `10`) ($GUM_WRITE_HEIGHT)
   * opt.showLineNumbers (*boolean*) : show line numbers (default = `false`) ($GUM_WRITE_SHOW_LINE_NUMBERS)
+  * opt.paddingLeft (*number*) : left padding (default = `0`) ($GUM_WRITE_PADDING_LEFT)
+  * opt.paddingRight (*number*) : right padding (default = `0`) ($GUM_WRITE_PADDING_RIGHT)
+  * opt.paddingTop (*number*) : top padding (default = `0`) ($GUM_WRITE_PADDING_TOP)
+  * opt.paddingBottom (*number*) : bottom padding (default = `0`) ($GUM_WRITE_PADDING_BOTTOM)
   * opt.custom (*CustomOptions*)
 
 **returns** *string|undefined*
@@ -712,6 +760,10 @@ Scroll through content
 * opt (*object*) : options
   * opt.showLineNumbers (*boolean*) : show line numbers (default = `true`)
   * opt.softWrap (*boolean*) : soft wrap lines (default = `false`)
+  * opt.paddingLeft (*number*) : left padding (default = `0`) ($GUM_PAGER_PADDING_LEFT)
+  * opt.paddingRight (*number*) : right padding (default = `0`) ($GUM_PAGER_PADDING_RIGHT)
+  * opt.paddingTop (*number*) : top padding (default = `0`) ($GUM_PAGER_PADDING_TOP)
+  * opt.paddingBottom (*number*) : bottom padding (default = `0`) ($GUM_PAGER_PADDING_BOTTOM)
   * opt.custom (*CustomOptions*)
 
 **returns** *string*

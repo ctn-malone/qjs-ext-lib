@@ -68,6 +68,7 @@ export default () => {
             GUM_CHOOSE_CURSOR: '> ',
           });
         },
+        dryRunVersion: '0.16.0',
       },
     });
   });
@@ -109,6 +110,46 @@ export default () => {
             GUM_CHOOSE_CURSOR: 'cursor-var',
           });
         },
+        dryRunVersion: '0.16.0',
+      },
+    });
+  });
+
+  tester.test('gum.chooseItemFromList (with padding options)', () => {
+    gum.chooseItemFromList(['a', 'b', 'c'], {
+      header: 'header',
+      selected: 'a',
+      cursor: '>>',
+      height: 100,
+      paddingLeft: 1,
+      paddingRight: 2,
+      paddingTop: 3,
+      paddingBottom: 4,
+      custom: {
+        dryRunCb: (cmdline, env) => {
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'choose',
+            '--limit',
+            '1',
+            '--header',
+            'header',
+            '--selected',
+            'a',
+            '--cursor=>>',
+            '--height',
+            '100',
+            '--padding',
+            '3 2 4 1',
+          ]);
+          envShouldContain(env, {
+            GUM_CHOOSE_PADDING_LEFT: '0',
+            GUM_CHOOSE_PADDING_RIGHT: '0',
+            GUM_CHOOSE_PADDING_TOP: '0',
+            GUM_CHOOSE_PADDING_BOTTOM: '0',
+          });
+        },
+        dryRunVersion: '0.17.0',
       },
     });
   });
@@ -123,6 +164,7 @@ export default () => {
             GUM_CHOOSE_CURSOR: '> ',
           });
         },
+        dryRunVersion: '0.16.0',
       },
     });
   });
@@ -173,6 +215,49 @@ export default () => {
             GUM_CHOOSE_CURSOR: 'cursor-var',
           });
         },
+        dryRunVersion: '0.16.0',
+      },
+    });
+  });
+
+  tester.test('gum.chooseItemsFromList (with padding options)', () => {
+    gum.chooseItemsFromList(['a', 'b', 'c'], {
+      header: 'header',
+      selected: ['a', 'b'],
+      cursor: '>>',
+      height: 100,
+      limit: 50,
+      ordered: true,
+      paddingLeft: 1,
+      paddingRight: 2,
+      paddingTop: 3,
+      paddingBottom: 4,
+      custom: {
+        dryRunCb: (cmdline, env) => {
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'choose',
+            '--header',
+            'header',
+            '--selected',
+            'a,b',
+            '--cursor=>>',
+            '--height',
+            '100',
+            '--limit',
+            '50',
+            '--ordered=yes',
+            '--padding',
+            '3 2 4 1',
+          ]);
+          envShouldContain(env, {
+            GUM_CHOOSE_PADDING_LEFT: '0',
+            GUM_CHOOSE_PADDING_RIGHT: '0',
+            GUM_CHOOSE_PADDING_TOP: '0',
+            GUM_CHOOSE_PADDING_BOTTOM: '0',
+          });
+        },
+        dryRunVersion: '0.17.0',
       },
     });
   });
@@ -192,6 +277,7 @@ export default () => {
             GUM_FILTER_HEIGHT: '50',
           });
         },
+        dryRunVersion: '0.16.0',
       },
     });
   });
@@ -256,6 +342,59 @@ export default () => {
             GUM_FILTER_HEIGHT: '101',
           });
         },
+        dryRunVersion: '0.16.0',
+      },
+    });
+  });
+
+  tester.test('gum.filterItemFromList (with padding options)', () => {
+    gum.filterItemFromList(['a', 'b', 'c'], {
+      header: 'header',
+      placeholder: 'this is a placeholder',
+      width: 100,
+      height: 100,
+      prompt: '>>',
+      value: 'a',
+      fuzzy: false,
+      reverse: true,
+      sort: false,
+      paddingLeft: 1,
+      paddingRight: 2,
+      paddingTop: 3,
+      paddingBottom: 4,
+      custom: {
+        dryRunCb: (cmdline, env) => {
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'filter',
+            '--limit',
+            '1',
+            '--header',
+            'header',
+            '--placeholder',
+            'this is a placeholder',
+            '--width',
+            '100',
+            '--height',
+            '100',
+            '--prompt',
+            '>>',
+            '--value',
+            'a',
+            '--no-fuzzy',
+            '--no-sort',
+            '--reverse=yes',
+            '--padding',
+            '3 2 4 1',
+          ]);
+          envShouldContain(env, {
+            GUM_FILTER_PADDING_LEFT: '0',
+            GUM_FILTER_PADDING_RIGHT: '0',
+            GUM_FILTER_PADDING_TOP: '0',
+            GUM_FILTER_PADDING_BOTTOM: '0',
+          });
+        },
+        dryRunVersion: '0.17.0',
       },
     });
   });
@@ -278,6 +417,7 @@ export default () => {
             GUM_FILTER_HEIGHT: '50',
           });
         },
+        dryRunVersion: '0.16.0',
       },
     });
   });
@@ -347,6 +487,58 @@ export default () => {
             GUM_FILTER_UNSELECTED_PREFIX: 'unselected-prefix-var',
           });
         },
+        dryRunVersion: '0.16.0',
+      },
+    });
+  });
+
+  tester.test('gum.filterItemsFromList (with padding options)', () => {
+    gum.filterItemsFromList(['a', 'b', 'c'], {
+      header: 'header',
+      placeholder: 'this is a placeholder',
+      width: 100,
+      height: 100,
+      prompt: '>>',
+      value: 'a',
+      fuzzy: false,
+      reverse: true,
+      sort: false,
+      paddingLeft: 1,
+      paddingRight: 2,
+      paddingTop: 3,
+      paddingBottom: 4,
+      custom: {
+        dryRunCb: (cmdline, env) => {
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'filter',
+            '--header',
+            'header',
+            '--placeholder',
+            'this is a placeholder',
+            '--width',
+            '100',
+            '--height',
+            '100',
+            '--prompt',
+            '>>',
+            '--value',
+            'a',
+            '--no-fuzzy',
+            '--no-sort',
+            '--reverse=yes',
+            '--no-limit',
+            '--padding',
+            '3 2 4 1',
+          ]);
+          envShouldContain(env, {
+            GUM_FILTER_PADDING_LEFT: '0',
+            GUM_FILTER_PADDING_RIGHT: '0',
+            GUM_FILTER_PADDING_TOP: '0',
+            GUM_FILTER_PADDING_BOTTOM: '0',
+          });
+        },
+        dryRunVersion: '0.17.0',
       },
     });
   });
@@ -571,6 +763,7 @@ export default () => {
               'rounded',
             ]);
           },
+          dryRunVersion: '0.16.0',
         },
       }
     );
@@ -607,6 +800,51 @@ export default () => {
               'extra-arg',
             ]);
           },
+          dryRunVersion: '0.16.0',
+        },
+      }
+    );
+  });
+
+  tester.test('gum.renderTable (with padding options)', () => {
+    gum.renderTable(
+      ['col1', 'col2', 'col3'],
+      [
+        ['a1', 'b1', 'c1'],
+        ['a2', 'b2', 'c2'],
+      ],
+      {
+        border: gum.Border.DOUBLE,
+        widths: [10, 20, 30],
+        paddingLeft: 1,
+        paddingRight: 2,
+        paddingTop: 3,
+        paddingBottom: 4,
+        custom: {
+          dryRunCb: (cmdline, env) => {
+            cmdlineShouldMatch(cmdline, [
+              'gum',
+              'table',
+              '--print',
+              '--separator',
+              ',',
+              '--columns',
+              'col1,col2,col3',
+              '--border',
+              'double',
+              '--widths',
+              '10,20,30',
+              '--padding',
+              '3 2 4 1',
+            ]);
+            envShouldContain(env, {
+              GUM_TABLE_PADDING_LEFT: '0',
+              GUM_TABLE_PADDING_RIGHT: '0',
+              GUM_TABLE_PADDING_TOP: '0',
+              GUM_TABLE_PADDING_BOTTOM: '0',
+            });
+          },
+          dryRunVersion: '0.17.0',
         },
       }
     );
@@ -635,6 +873,7 @@ export default () => {
               '4,4,4',
             ]);
           },
+          dryRunVersion: '0.16.0',
         },
       }
     );
@@ -670,6 +909,50 @@ export default () => {
               'extra-arg',
             ]);
           },
+          dryRunVersion: '0.16.0',
+        },
+      }
+    );
+  });
+
+  tester.test('gum.chooseRowFromTable (with padding options)', () => {
+    gum.chooseRowFromTable(
+      ['col1', 'col2', 'col3'],
+      [
+        ['a1', 'b1', 'c1'],
+        ['a2', 'b2', 'c2'],
+      ],
+      {
+        height: 100,
+        widths: [10, 20, 30],
+        paddingLeft: 1,
+        paddingRight: 2,
+        paddingTop: 3,
+        paddingBottom: 4,
+        custom: {
+          dryRunCb: (cmdline, env) => {
+            cmdlineShouldMatch(cmdline, [
+              'gum',
+              'table',
+              '--separator',
+              ',',
+              '--columns',
+              'col1,col2,col3',
+              '--height',
+              '100',
+              '--widths',
+              '10,20,30',
+              '--padding',
+              '3 2 4 1',
+            ]);
+            envShouldContain(env, {
+              GUM_TABLE_PADDING_LEFT: '0',
+              GUM_TABLE_PADDING_RIGHT: '0',
+              GUM_TABLE_PADDING_TOP: '0',
+              GUM_TABLE_PADDING_BOTTOM: '0',
+            });
+          },
+          dryRunVersion: '0.17.0',
         },
       }
     );
@@ -690,6 +973,7 @@ export default () => {
             'Are you sure?',
           ]);
         },
+        dryRunVersion: '0.16.0',
       },
     });
   });
@@ -718,6 +1002,43 @@ export default () => {
             'extra-arg',
           ]);
         },
+        dryRunVersion: '0.16.0',
+      },
+    });
+  });
+
+  tester.test('gum.confirm (with padding options)', () => {
+    gum.confirm({
+      prompt: 'Are you really sure?',
+      affirmative: 'Yes!',
+      negative: 'No!',
+      default: 'no',
+      paddingLeft: 1,
+      paddingRight: 2,
+      paddingTop: 3,
+      paddingBottom: 4,
+      custom: {
+        dryRunCb: (cmdline, env) => {
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'confirm',
+            '--default=no',
+            '--affirmative',
+            'Yes!',
+            '--negative',
+            'No!',
+            'Are you really sure?',
+            '--padding',
+            '3 2 4 1',
+          ]);
+          envShouldContain(env, {
+            GUM_CONFIRM_PADDING_LEFT: '0',
+            GUM_CONFIRM_PADDING_RIGHT: '0',
+            GUM_CONFIRM_PADDING_TOP: '0',
+            GUM_CONFIRM_PADDING_BOTTOM: '0',
+          });
+        },
+        dryRunVersion: '0.17.0',
       },
     });
   });
@@ -737,6 +1058,7 @@ export default () => {
             GUM_FILE_HEIGHT: '50',
           });
         },
+        dryRunVersion: '0.16.0',
       },
     });
   });
@@ -774,6 +1096,44 @@ export default () => {
             GUM_FILE_HEIGHT: '101',
           });
         },
+        dryRunVersion: '0.16.0',
+      },
+    });
+  });
+
+  tester.test('gum.chooseFile (with padding options)', () => {
+    gum.chooseFile({
+      path: '/tmp',
+      cursor: '>>',
+      height: 100,
+      all: true,
+      paddingLeft: 1,
+      paddingRight: 2,
+      paddingTop: 3,
+      paddingBottom: 4,
+      custom: {
+        dryRunCb: (cmdline, env) => {
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'file',
+            '--file=true',
+            '--directory=false',
+            '--cursor=>>',
+            '--all',
+            '--height',
+            '100',
+            '/tmp',
+            '--padding',
+            '3 2 4 1',
+          ]);
+          envShouldContain(env, {
+            GUM_FILE_PADDING_LEFT: '0',
+            GUM_FILE_PADDING_RIGHT: '0',
+            GUM_FILE_PADDING_TOP: '0',
+            GUM_FILE_PADDING_BOTTOM: '0',
+          });
+        },
+        dryRunVersion: '0.17.0',
       },
     });
   });
@@ -793,6 +1153,7 @@ export default () => {
             GUM_FILE_HEIGHT: '50',
           });
         },
+        dryRunVersion: '0.16.0',
       },
     });
   });
@@ -830,6 +1191,44 @@ export default () => {
             GUM_FILE_HEIGHT: '101',
           });
         },
+        dryRunVersion: '0.16.0',
+      },
+    });
+  });
+
+  tester.test('gum.chooseDirectory (with padding options)', () => {
+    gum.chooseDirectory({
+      path: '/tmp',
+      cursor: '>>',
+      height: 100,
+      all: true,
+      paddingLeft: 1,
+      paddingRight: 2,
+      paddingTop: 3,
+      paddingBottom: 4,
+      custom: {
+        dryRunCb: (cmdline, env) => {
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'file',
+            '--file=false',
+            '--directory=true',
+            '--cursor=>>',
+            '--all',
+            '--height',
+            '100',
+            '/tmp',
+            '--padding',
+            '3 2 4 1',
+          ]);
+          envShouldContain(env, {
+            GUM_FILE_PADDING_LEFT: '0',
+            GUM_FILE_PADDING_RIGHT: '0',
+            GUM_FILE_PADDING_TOP: '0',
+            GUM_FILE_PADDING_BOTTOM: '0',
+          });
+        },
+        dryRunVersion: '0.17.0',
       },
     });
   });
@@ -915,6 +1314,45 @@ export default () => {
     });
   });
 
+  tester.test('gum.spin (with padding options)', () => {
+    gum.spin(Promise.resolve(), {
+      title: 'Loading, please wait...',
+      spinner: gum.Spinner.GLOBE,
+      align: gum.Align.RIGHT,
+      paddingLeft: 1,
+      paddingRight: 2,
+      paddingTop: 3,
+      paddingBottom: 4,
+      custom: {
+        dryRunCb: (cmdline, env) => {
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'spin',
+            '--show-stdout',
+            '--title',
+            'Loading, please wait...',
+            '--spinner',
+            gum.Spinner.GLOBE,
+            '--align',
+            gum.Align.RIGHT,
+            '--padding',
+            '3 2 4 1',
+            '--',
+            'tail',
+            '-1',
+          ]);
+          envShouldContain(env, {
+            GUM_SPIN_PADDING_LEFT: '0',
+            GUM_SPIN_PADDING_RIGHT: '0',
+            GUM_SPIN_PADDING_TOP: '0',
+            GUM_SPIN_PADDING_BOTTOM: '0',
+          });
+        },
+        dryRunVersion: '0.17.0',
+      },
+    });
+  });
+
   tester.test('gum.input (without options)', () => {
     gum.input({
       custom: {
@@ -927,6 +1365,7 @@ export default () => {
             GUM_INPUT_PROMPT: '> ',
           });
         },
+        dryRunVersion: '0.16.0',
       },
     });
   });
@@ -980,6 +1419,56 @@ export default () => {
             GUM_INPUT_PROMPT: 'prompt-var',
           });
         },
+        dryRunVersion: '0.16.0',
+      },
+    });
+  });
+
+  tester.test('gum.input (with padding options)', () => {
+    gum.input({
+      header: 'header',
+      placeholder: 'this is a placeholder',
+      cursorMode: gum.CursorMode.STATIC,
+      prompt: '>>',
+      charLimit: 401,
+      width: 100,
+      value: 'initial value',
+      password: true,
+      paddingLeft: 1,
+      paddingRight: 2,
+      paddingTop: 3,
+      paddingBottom: 4,
+      custom: {
+        dryRunCb: (cmdline, env) => {
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'input',
+            '--header',
+            'header',
+            '--placeholder',
+            'this is a placeholder',
+            '--prompt',
+            '>>',
+            '--value',
+            'initial value',
+            '--password',
+            '--char-limit',
+            '401',
+            '--width',
+            '100',
+            '--cursor.mode',
+            'static',
+            '--padding',
+            '3 2 4 1',
+          ]);
+          envShouldContain(env, {
+            GUM_INPUT_PADDING_LEFT: '0',
+            GUM_INPUT_PADDING_RIGHT: '0',
+            GUM_INPUT_PADDING_TOP: '0',
+            GUM_INPUT_PADDING_BOTTOM: '0',
+          });
+        },
+        dryRunVersion: '0.17.0',
       },
     });
   });
@@ -998,6 +1487,7 @@ export default () => {
             GUM_WRITE_SHOW_LINE_NUMBERS: 'no',
           });
         },
+        dryRunVersion: '0.16.0',
       },
     });
   });
@@ -1055,6 +1545,56 @@ export default () => {
             GUM_WRITE_SHOW_LINE_NUMBERS: 'no-var',
           });
         },
+        dryRunVersion: '0.16.0',
+      },
+    });
+  });
+
+  tester.test('gum.write (with padding options)', () => {
+    gum.write({
+      header: 'header',
+      placeholder: 'this is a placeholder',
+      cursorMode: gum.CursorMode.STATIC,
+      prompt: '>>',
+      charLimit: 401,
+      width: 100,
+      height: 100,
+      showLineNumbers: true,
+      paddingLeft: 1,
+      paddingRight: 2,
+      paddingTop: 3,
+      paddingBottom: 4,
+      custom: {
+        dryRunCb: (cmdline, env) => {
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'write',
+            '--header',
+            'header',
+            '--placeholder',
+            'this is a placeholder',
+            '--prompt',
+            '>>',
+            '--char-limit',
+            '401',
+            '--width',
+            '100',
+            '--height',
+            '100',
+            '--cursor.mode',
+            'static',
+            '--show-line-numbers=yes',
+            '--padding',
+            '3 2 4 1',
+          ]);
+          envShouldContain(env, {
+            GUM_WRITE_PADDING_LEFT: '0',
+            GUM_WRITE_PADDING_RIGHT: '0',
+            GUM_WRITE_PADDING_TOP: '0',
+            GUM_WRITE_PADDING_BOTTOM: '0',
+          });
+        },
+        dryRunVersion: '0.17.0',
       },
     });
   });
@@ -1167,6 +1707,7 @@ export default () => {
             '--soft-wrap=no',
           ]);
         },
+        dryRunVersion: '0.16.0',
       },
     });
   });
@@ -1190,6 +1731,38 @@ export default () => {
             'extra-arg',
           ]);
         },
+        dryRunVersion: '0.16.0',
+      },
+    });
+  });
+
+  tester.test('gum.pager (with padding options)', () => {
+    gum.pager('content', {
+      showLineNumbers: false,
+      softWrap: true,
+      paddingLeft: 1,
+      paddingRight: 2,
+      paddingTop: 3,
+      paddingBottom: 4,
+      custom: {
+        dryRunCb: (cmdline, env) => {
+          cmdlineShouldMatch(cmdline, [
+            'gum',
+            'pager',
+            'content',
+            '--show-line-numbers=no',
+            '--soft-wrap=yes',
+            '--padding',
+            '3 2 4 1',
+          ]);
+          envShouldContain(env, {
+            GUM_PAGER_PADDING_LEFT: '0',
+            GUM_PAGER_PADDING_RIGHT: '0',
+            GUM_PAGER_PADDING_TOP: '0',
+            GUM_PAGER_PADDING_BOTTOM: '0',
+          });
+        },
+        dryRunVersion: '0.17.0',
       },
     });
   });
