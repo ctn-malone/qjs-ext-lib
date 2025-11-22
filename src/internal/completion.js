@@ -726,7 +726,7 @@ const addZshDescriptionsForArgNames = (completions, handlers, aliases) => {
     if (argValidator instanceof ArgValidator) {
       description = /** @type {any} */ (argValidator)._description;
       if (description) {
-        description = description.replaceAll('\n', ' ');
+        description = description.split('\n')[0];
       }
       const defaultValue = /** @type {any} */ (argValidator)._defaultValue;
       if (defaultValue) {
@@ -748,7 +748,7 @@ const addZshDescriptionsForArgNames = (completions, handlers, aliases) => {
  */
 const addZshDescriptionsForArgValues = (completions, descByValue) => {
   return completions.map((val) => {
-    const description = descByValue[val]?.replaceAll('\n', ' ');
+    const description = descByValue[val]?.split('\n')[0];
     if (!description) {
       return val;
     }
@@ -781,7 +781,7 @@ const addBashDescriptionsForArgNames = (completions, handlers, aliases) => {
     if (argValidator instanceof ArgValidator) {
       description = /** @type {any} */ (argValidator)._description;
       if (description) {
-        description = description.replaceAll('\n', ' ');
+        description = description.split('\n')[0];
       }
       const defaultValue = /** @type {any} */ (argValidator)._defaultValue;
       if (defaultValue) {
@@ -812,7 +812,7 @@ const addBashDescriptionsForArgValues = (completions, descByValue) => {
     }
   }
   return completions.map((val) => {
-    const description = descByValue[val]?.replaceAll('\n', ' ');
+    const description = descByValue[val]?.split('\n')[0];
     if (!description) {
       return val;
     }
