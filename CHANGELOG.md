@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.17.0]
+* feat: add descriptions to bash _completions_ (`arg.js`)
+* feat: add descriptions for enum _completions_ (`arg.js`)
+* fix: fix completion when both `--arg` and `--arg-ex` exist (`arg.js`)
+* refactor: use `parseAsync` in bootstrap templates
+* docs(type): improve type documentation for `Curl` functions (`curl.js`)
+
 ## [0.16.1]
 * fix: fix typo in version comparison (`gum.js`)
 * fix: rename ignored variables for padding (`gum.js`)

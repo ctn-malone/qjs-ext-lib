@@ -16,7 +16,7 @@ import * as gum from './ext/gum.js';
   - render markdown content
  */
 
-const args = arg
+const args = await arg
   .parser({
     '--command': arg
       .str()
@@ -30,7 +30,7 @@ const args = arg
   })
   .desc('Execute 3 possible commands')
   .ex(['-c date', '-c uptime --verbose'])
-  .parse();
+  .parseAsync();
 
 if (args.get('--verbose')) {
   std.err.puts(`Executing ${args.get('--command')}...\n`);
