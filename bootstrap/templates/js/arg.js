@@ -10,7 +10,7 @@ import arg from './ext/arg.js';
   Read a json file and pretty print it
  */
 
-const args = arg
+const args = await arg
   .parser({
     '--input': arg
       .path('-')
@@ -34,7 +34,7 @@ const args = arg
   })
   .desc('Read a json file and pretty print it')
   .ex(['--indent 4', '-o /tmp/out.json -q'])
-  .parse();
+  .parseAsync();
 
 const formattedContent = JSON.stringify(
   args.get('--input'),

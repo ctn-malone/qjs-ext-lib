@@ -15,7 +15,7 @@ import * as gum from './ext/gum.js';
 
 const BASE_URL = 'https://api.github.com';
 
-const args = arg
+const args = await arg
   .parser({
     '--format': arg.str().req().enum(['json', 'table']).desc('output format'),
     '--count': arg.num(5).min(1).max(10).desc('number of repositories (1..10)'),
@@ -28,7 +28,7 @@ const args = arg
   .desc(
     'Retrieve the N most popular repositories on github, let user choose one and output some of its informations'
   )
-  .parse();
+  .parseAsync();
 
 if (args.get('--verbose')) {
   std.err.puts(

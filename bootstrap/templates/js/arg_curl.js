@@ -13,7 +13,7 @@ import { curlRequest } from './ext/curl.js';
 
 const BASE_URL = 'https://api.github.com';
 
-const args = arg
+const args = await arg
   .parser({
     '--format': arg.str().req().enum(['json', 'text']).desc('output format'),
     '--count': arg.num(5).min(1).max(10).desc('number of repositories (1..10)'),
@@ -25,7 +25,7 @@ const args = arg
   })
   .desc('Output the N most popular repositories on github as json or text')
   .ex(['-f json', '-f text -c 10'])
-  .parse();
+  .parseAsync();
 
 if (args.get('--verbose')) {
   std.err.puts(

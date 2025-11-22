@@ -221,7 +221,7 @@ const arg = (specs, options) => {
     scriptName = path.getScriptName();
   }
 
-  /** @type {ArgOutput<T>} */
+  /** @type {ArgOutput<T> & Record<string, any>} */
   // @ts-ignore
   const result = {
     /** @type {string[]} */
@@ -278,7 +278,7 @@ const arg = (specs, options) => {
       const [fn] = type;
       // legacy handler
       if (typeof fn === 'function') {
-        type = (value, name, prev = [], index) => {
+        type = /** @type {ArgHandler} */ (value, name, prev = [], index) => {
           prev.push(fn(value, name, prev[prev.length - 1], index));
           return prev;
         };
@@ -287,7 +287,7 @@ const arg = (specs, options) => {
       else {
         const isRequired = /** @type {ArgValidator} */ (type[0]).isRequired();
         argValidator = fn;
-        type = (value, name, prev = [], _index) => {
+        type = /** @type {ArgHandler} */ (value, name, prev = [], _index) => {
           if (value !== undefined || isRequired) {
             prev.push(fn.validate(value, name, prev));
           }
@@ -304,7 +304,8 @@ const arg = (specs, options) => {
     else if (type instanceof ArgValidator) {
       argValidator = type;
       const _argValidator = argValidator;
-      type = (value, name, prev) => _argValidator.validate(value, name, prev);
+      type = /** @type {ArgHandler} */ (value, name, prev) =>
+        _argValidator.validate(value, name, prev);
       isFlag = false;
     } else {
       throw new ArgError(

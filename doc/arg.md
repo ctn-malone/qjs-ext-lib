@@ -63,9 +63,9 @@ Command-line parser based on https://github.com/vercel/arg/tree/5.0.0
 ```js
 import arg from 'ext/arg.js';
 
-const MOODS = ['happy', 'hangry', 'bored'];
+const MOODS = ['happy', 'hangry', 'bored', {value: 'mad', desc: 'Use this if you are REALLY angry'}];
 
-const args = arg
+const args = await arg
   .parser({
     '--email': arg.str().fmt('email').req().desc('user email'),
     '--mood': arg.str('happy').enum(MOODS).desc('greeting mood'),
@@ -82,7 +82,7 @@ const args = arg
     '--email john@gmail.com --random'
   ])
   .ver('0.1.0')
-  .parse();
+  .parseAsync();
 
 let mood = args.get('--mood');
 if (args.get('--random')) {
@@ -249,7 +249,7 @@ const args = arg.parser({
 
 ### ArgParser.parseAsync(...)
 
-Same as [ArgParser.parse](#argparserparse) but return a _Promise_ instead
+Same as [ArgParser.parse](#argparserparse) but returns a _Promise_ instead
 
 ```js
 const args = await arg.parser({
@@ -294,11 +294,11 @@ In order to indicate that an argument can be set multiple times, the validator s
 In below example, argument `--num` can be set only once (only the last value will be kept)
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--num': arg.num().pos().int(),
   })
-  .parse();
+  .parseAsync();
 /*
   $ program --num 5 --num 6
   => 6
@@ -309,11 +309,11 @@ console.log(JSON.stringify(args.get('--num')));
 In below example, argument `--num` can be set multiple times
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--num': [arg.num().pos().int()],
   })
-  .parse();
+  .parseAsync();
 /*
   $ program --num 5 --num 6
   => [5,6]
@@ -336,9 +336,9 @@ Indicates whether or not argument value should be trimmed
 <u>Example</u>
 
 ```js
-const args = arg.parser({
+const args = await arg.parser({
   '--name': arg.str().trim(),
-}).parse();
+}).parseAsync();
 ```
 
 #### StringArgValidator.reg(...)
@@ -356,11 +356,11 @@ Indicates argument value should match a regular expression
 Below example accepts `john`, `john1` and `john2`
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--name': arg.str().reg(/^john[12]?$/),
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### StringArgValidator.min(...)
@@ -376,11 +376,11 @@ Defines the minimum length of the argument value
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--pass': arg.str().req().min(20),
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### StringArgValidator.max(...)
@@ -396,11 +396,11 @@ Defines the maximum length of the argument value
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--pass': arg.str().req().max(25),
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### StringArgValidator.fmt(...)
@@ -418,11 +418,11 @@ Ensures argument value matches a given format (ex: `email`)
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--email': arg.str().fmt('email'),
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### StringArgValidator.enum(...)
@@ -431,7 +431,7 @@ const args = arg
 
 Defines the list of possible values
 
-* **possibleValues** (*string[]*)
+* **possibleValues** (*(string[]{value: string, desc?: string})[]*)
 * message (*string*) : message to display before enum values in usage (default = `it can be one of`)
 
 <u>NB</u> : possible values will be listed in usage
@@ -441,11 +441,11 @@ Defines the list of possible values
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--cmd': arg.str().enum(['date', 'uptime']),
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### Register new formats
@@ -458,11 +458,11 @@ Below example registers a new format using a *RegExp*
 
 ```js
 arg.registerFormat('test', /^test1|test2$/);
-const args = arg
+const args = await arg
   .parser({
     '--val': arg.str().fmt('test'),
   })
-  .parse();
+  .parseAsync();
 ```
 
 Below example registers a new format using a *FormatValidatorFunc*
@@ -480,11 +480,11 @@ Below example registers a new format using a *FormatValidatorFunc*
 arg.registerFormat('test', (value) => {
   return ['test1', 'test2'].includes(value);
 });
-const args = arg
+const args = await arg
   .parser({
     '--val': arg.str().fmt('test'),
   })
-  .parse();
+  .parseAsync();
 ```
 
 ### PathArgValidator
@@ -504,21 +504,21 @@ Indicates whether or not path should exists
 Below example returns an error if path does not exist
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '-p': arg.path().check(),
   })
-  .parse();
+  .parseAsync();
 ```
 
 Below example returns an error if path exists
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '-p': arg.path().check(false),
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### PathArgValidator.checkParent(...)
@@ -534,11 +534,11 @@ Indicates parent directory should exists
 Below example returns an error if parent directory does not exist
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '-p': arg.path().checkParent(),
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### PathArgValidator.dir(...)
@@ -556,11 +556,11 @@ Indicates whether or not path represents a directory
 Below example returns an error if path does not exist or is not a directory
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '-d': arg.path().check().dir(),
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### PathArgValidator.ensure(...)
@@ -574,11 +574,11 @@ Ensures path exists and create it (and all its ancestors) if needed
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '-p': arg.path().ensure(),
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### PathArgValidator.ensureParent(...)
@@ -592,11 +592,11 @@ Ensures parent directory exists and create it (and all its ancestors) if needed
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '-p': arg.path().ensureParent(),
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### PathArgValidator.read(...)
@@ -616,11 +616,11 @@ Reads file content at the end of validation
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '-f': arg.path().read({ json: true }),
   })
-  .parse();
+  .parseAsync();
 console.log(typeof args.get('-f'));
 ```
 
@@ -639,11 +639,11 @@ Allows reading from *stdin* and writing to *stdout* using `-`
 Below example parses the content of *stdin* as *json* and puts the result in `args['-f']`
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '-f': arg.path().std().read({ json: true }),
   })
-  .parse();
+  .parseAsync();
 ```
 
 ### NumberArgValidator
@@ -663,11 +663,11 @@ Indicates whether or not number should be positive
 Below example returns an error if argument value is `<= 0`
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--num': arg.num().pos()
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### NumberArgValidator.neg(...)
@@ -687,11 +687,11 @@ Below example returns an error if argument value is `>= 0`
 <u>NB</u> : program should be called using `--num='-1.5'`, not `--num -1.5`
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--num': arg.num().neg()
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### NumberArgValidator.min(...)
@@ -707,11 +707,11 @@ Defines the minimum argument value
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--num': arg.num().min(5),
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### NumberArgValidator.max(...)
@@ -727,11 +727,11 @@ Defines the maximum argument value
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--num': arg.num().max(5),
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### NumberArgValidator.int(...)
@@ -745,11 +745,11 @@ Indicates that argument value should be an *integer*
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--num': arg.num().int(),
   })
-  .parse();
+  .parseAsync();
 ```
 
 ### FlagArgValidator
@@ -769,22 +769,22 @@ Indicates whether or not `--no-x` flag version should be allowed (allowed by def
 Below example accepts both `--verbose` and `--no-verbose` flags
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--verbose': arg.flag()
   })
-  .parse();
+  .parseAsync();
 console.log(`Flag is ${args.get('--verbose') ? 'enabled' : 'disabled'}`);
 ```
 
 Below example only accepts `--verbose` flag
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--verbose': arg.flag().no(false)
   })
-  .parse();
+  .parseAsync();
 console.log(`Flag is ${args.get('--verbose') ? 'enabled' : 'disabled'}`);
 ```
 
@@ -799,11 +799,11 @@ Returns the number of times flag was set at the end of validation
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '-v': [arg.flag().count()]
   })
-  .parse();
+  .parseAsync();
 console.log(`Flag was set ${args.get('-v')} times`);
 ```
 
@@ -822,9 +822,9 @@ Updates default value (can also be defined directly in *constructor*)
 <u>Example</u>
 
 ```js
-const args = arg.parser({
+const args = await arg.parser({
   '--name': arg.str('john').def('jane'),
-}).parse();
+}).parseAsync();
 ```
 
 #### ArgValidator.env(...)
@@ -842,13 +842,13 @@ Defines the environment variable to retrieve argument value from
 Below example accepts both `program --name john` and `NAME=john program`
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--name': arg
       .str()
       .env('NAME')
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### ArgValidator.desc(...)
@@ -864,13 +864,13 @@ Defines the description to use when displaying usage
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--name': arg
       .str()
       .desc('user name')
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### ArgValidator.err(...)
@@ -886,7 +886,7 @@ Used to override the error message upon validation failure
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--pass': arg
       .str()
@@ -898,7 +898,7 @@ const args = arg
       .err('wrong password')
       .desc('user password')
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### ArgValidator.val(...)
@@ -914,14 +914,14 @@ Defines the text which will be displayed after argument names in usage. By defau
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--name': arg
       .str()
       .val('NAME')
       .desc('user name')
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### ArgValidator.req(...)
@@ -937,13 +937,13 @@ Indicates whether or not an argument is required
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--name': arg
       .str()
       .req()
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### ArgValidator.cust(...)
@@ -979,20 +979,20 @@ A custom validator is a function which takes the argument value as first argumen
 Below example accepts `john`, `jane` or an empty string
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--name': arg
       .str()
       .cust((value) => (!value ? false : undefined))
       .enum(['john', 'jane']),
   })
-  .parse();
+  .parseAsync();
 ```
 
 Below example accepts a number `< 5` or `> 6`
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--num': arg
       .num()
@@ -1003,7 +1003,7 @@ const args = arg
         throw new Error('value should be < 5 or > 6');
       }),
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### ArgValidator.map(...)
@@ -1031,13 +1031,13 @@ A mapping function is a function which takes the argument value as first argumen
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--name': arg
       .str()
       .map((value) => ({name: value}))
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### ArgValidator.clone(...)
@@ -1053,12 +1053,12 @@ Clones an existing validator (deep copy)
 ```js
 const validator1 = arg.str('john').min(4);
 const validator2 = validator1.clone().def('jane').min(3);
-const args = arg
+const args = await arg
   .parser({
     '--name1': validator1,
     '--name2': validator2
   })
-  .parse();
+  .parseAsync();
 ```
 
 #### ArgValidator.comp(...)
@@ -1089,7 +1089,7 @@ A custom completion function can be used to provide a list of completions for a 
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--age': arg
       .num()
@@ -1102,7 +1102,7 @@ const args = arg
         return values.filter((v) => v.startsWith(content));
       })
   })
-  .parse();
+  .parseAsync();
 ```
 
 ## Describe usage
@@ -1133,7 +1133,7 @@ When `QEL_DESCRIBE_USAGE` environment variable is set, program will output a *js
 <u>Example</u>
 
 ```js
-const args = arg
+const args = await arg
   .parser({
     '--age': arg.num().pos().int().req().desc('user age'),
     '--name': arg
@@ -1146,7 +1146,7 @@ const args = arg
     '-a': '--age',
     '-v': '--verbose',
   })
-  .parse();
+  .parseAsync();
 ```
 
 Running above program using `QEL_DESCRIBE_USAGE=1 program` will output the following

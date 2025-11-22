@@ -1193,7 +1193,7 @@ export class StringArgValidator extends BaseStringArgValidator {
 
     /**
      * @private
-     * @type {string[]|undefined}
+     * @type {{value: string, desc?: string}[]|undefined}
      */
     this._enum = undefined;
   }
@@ -1263,7 +1263,7 @@ export class StringArgValidator extends BaseStringArgValidator {
   /**
    * Ensure value is one of possible values
    *
-   * @param {string[]} possibleValues
+   * @param {(string | {value: string, desc?: string})[]} possibleValues
    * @param {string} [message="it can be one of"]
    *
    * @returns {this}
@@ -1277,15 +1277,20 @@ export class StringArgValidator extends BaseStringArgValidator {
       throw new Error("Argument 'enum' cannot be an empty array");
     }
     for (const value of possibleValues) {
-      if (typeof value !== 'string') {
+      if (typeof value !== 'string' && value.value === undefined) {
         throw new Error(
-          `Argument 'enum' should be an array of strings (${value})`
+          `Argument 'enum' should be an array of strings or {value: string} objects (${value})`
         );
       }
     }
     message = message?.trim() || DEFAULT_USAGE_ENUM_MESSAGE;
-    this._enum = [...possibleValues];
-    const values = /** @type {const} */ this._enum;
+    this._enum = possibleValues.map((e) => {
+      if (typeof e === 'string') {
+        return { value: e };
+      }
+      return e;
+    });
+    const values = /** @type {const} */ this._enum.map((e) => e.value);
     const description = `${message} [${values.join(', ')}]`;
     this.setValidator(
       ValueValidatorType.ENUM,
@@ -1363,7 +1368,7 @@ export class StringArgValidator extends BaseStringArgValidator {
       output.format = this._format;
     }
     if (this._enum) {
-      output.values = [...this._enum];
+      output.values = this._enum.map((e) => e.value);
     }
     return output;
   }

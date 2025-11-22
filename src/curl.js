@@ -10,6 +10,7 @@ import { Process } from './process.js';
 
 import * as os from './os.js';
 import * as std from './std.js';
+import { notNull } from './types.js';
 
 // in case of timeout, curl process will exit with this error code
 const CURL_ERR_TIMEOUT = 28;
@@ -27,26 +28,32 @@ const CONDITIONAL_OUTPUT_BUFFER_SIZE = 1024 * 1024 * 10;
 /**
  * @typedef {Object} OutputFileOption
  * @property {string} filepath - path of the output file
- * @property {boolean} [conditionalOutput=false] - if {true}, output file will only be written if {opt.outputFile.onCheckCondition}
- *                                                 returns {true} (default = {false})
- * @property {OnCheckCondition} [onCheckCondition] - function which take a {Curl} instance as single parameter
- *                                                   It should return {true} if case output file should be written, {false} otherwise
- *                                                   Default implementation returns {true} if curl request succeeded
+ * @property {boolean} [conditionalOutput=false] - if `true`, output file will only be written if `onCheckCondition`
+ *                                                 returns `true` (default = `false`)
+ * @property {OnCheckCondition} [onCheckCondition] - function which take a `Curl` instance as single parameter
+ *                                                   It should return `true` if case output file should be written, `false` otherwise
+ *                                                   Default implementation returns `true` if curl request succeeded
  */
 
 /**
  * @typedef {Object} FileOption
  * @property {string} filepath - path of the local file
- * @property {string} [name="file"] - name of the form parameter (default = {"file"})
+ * @property {string} [name="file"] - name of the form parameter (default = `"file"`)
  * @property {string} [filename] - name of the file (defaults to the name of the local file)
- * @property {string} [contentType] - file content type (will be set by curl automatically if not provided)
+ * @property {string} [contentType] - file content type (it will be set by curl automatically if not provided)
  * @property {object} [formData] - extra form data
  */
 
 /**
  * @typedef {Object} BodyFileOption
  * @property {string} filepath - path of the local file
- * @property {boolean} [binary=false] - if {true}, disable extra processing on the file (--data-binary) (default = {false})
+ * @property {boolean} [binary=false] - if `true`, disable extra processing on the file (`--data-binary`) (default = `false`)
+ */
+
+/**
+ * @typedef {Object} BasicAuthOption
+ * @property {string} username
+ * @property {string} password
  */
 
 /**
@@ -55,70 +62,85 @@ const CONDITIONAL_OUTPUT_BUFFER_SIZE = 1024 * 1024 * 10;
  * @property {string} text - HTTP status text
  */
 
+/**
+ * @typedef {Object} Cookie
+ * @property {string} name
+ * @property {string} value
+ * @property {Date} [expires]
+ * @property {number} [maxAge]
+ * @property {boolean} [secure]
+ * @property {boolean} [httpOnly]
+ * @property {string} [sameSite]
+ */
+
+/**
+ * @typedef {Object} CurlOptions
+ * @property {string} [method="GET"] - HTTP method (default = "GET")
+ * @property {string} [userAgent]
+ * @property {boolean} [insecure=false] - if true ignore SSL errors (default = `false`)
+ * @property {Record<string, string | string[]>} [headers] - dictionary of extra headers (each value can be a `string` or a `string[]`)
+ * @property {Record<string, string | {value: string}>} [cookies] - dictionary of cookies (each value should be a `string` or a `{value: string}` object)
+ * @property {boolean} [followRedirects=true] - whether or not HTTP redirects should be followed (default = `true`)
+ * @property {number} [maxRedirects] - maximum number of HTTP redirects to follow (by default, use curl default)
+ *                                     It will be ignored if `followRedirects` is `false`
+ * @property {number} [stdout] - if defined, sets the stdout handle used by child process (it will be rewind)
+ *                               NB: don't share the same handle between multiple instances
+ * @property {string|OutputFileOption} [outputFile] - if set, output will be redirected to this file
+ *                                                    When using a `string`, `outputFile` should be the path of the output file
+ *                                                    It will be ignored if `stdout` was set
+ * @property {number} [connectTimeout] - maximum number of seconds allowed for connection
+ * @property {number} [maxTime] - maximum number of seconds allowed for the transfer
+ * @property {any} [data] - data to send as `application/x-www-form-urlencoded`
+ *                          Content type will automatically be set to `application/x-www-form-urlencoded`
+ *                          Will be ignored unless `method` is one of [`"PUT", "POST", "DELETE", "PATCH"`]
+ * @property {any} [json] - data to send as `application/json`
+ *                          Content type will automatically be set to `application/json`
+ *                          It will be ignored unless `method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
+ *                          It will be ignored if `data` was set
+ * @property {string} [jsonFile] - file containing data to send as `application/json`
+ *                                 Content type will automatically be set to `application/json`
+ *                                 Use `"-"` for stdin
+ *                                 It will be ignored unless `method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
+ *                                 It will be ignored if one of (`data`, `json`) was set
+ * @property {string|FileOption} [file] - used to upload a file
+ *                                        Content type will automatically be set to `multipart/form-data`
+ *                                        It will be ignored unless `method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
+ *                                        It will be ignored if one of (`data`, `json`, `jsonFile`) was set
+ *                                        When using a `string`, `file` should be the path of the file to upload
+ * @property {string} [body] - body to send
+ *                             It will be ignored unless `method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
+ *                             It will be ignored if one of (`data`, `json`, `jsonFile`, `file`) was set
+ * @property {string|BodyFileOption} [bodyFile] - file containing the body to send
+ *                                                Use `"-""` for stdin
+ *                                                It will be ignored unless `method` is one of `["PUT", "POST", "DELETE", "PATCH"]`
+ *                                                It will be ignored if one of (`data`, `json`, `jsonFile`, `file`, `body`) was set
+ *                                                When using a `string`, `bodyFile` should be the path of the file containing the body
+ * @property {Object} [params] - parameters to add as query string
+ * @property {boolean} [useBracketsForParams=true] - if `true`, use `param[]=value1&param[]=value2` if a query string parameter is defined multiple times (default = `true`)
+ * @property {boolean} [normalizeHeaders=true] - if `true`, header names in response will be converted to lower case (default = `true`)
+ * @property {'string' | 'array' | 'auto'} [returnHeadersAs="string"] - indicates how response headers should be returned (default = `"string"`)
+ *                                                                        + `"string"` (default) : if an header appears multiple times, only the first value will be kept
+ *                                                                        + `"array"` : always return an array of values for each header
+ *                                                                        + `"auto"` : return an array of values only for headers which appear multiple times
+ * @property {boolean} [parseJson=true] - if `true`, automatically parse JSON in responses (default = `true`)
+ * @property {boolean} [failOnHttpError=false] - if `true`, `run` method will return `false` in case status code is not in `[200, 299]` (default = `false`)
+ * @property {BasicAuthOption} [basicAuth] - basic HTTP authentication `{"username":"string", "password":"string"}`
+ * @property {string} [bearerToken] - bearer token to use. It <ill be ignored if `basicAuth` was set
+ * @property {string} [jwt] - JWT token to use (with or without JWT prefix). It Will be ignored if one (`basicAuth`, `bearerToken`) was set
+ * @property {any} [context] - user define context (can be used to identify curl request later by client code)
+ * @property {number} [stdin] - if defined, sets the stdin handle used by curl process (it will be rewind)
+ *                              NB: don't share the same handle between multiple instances
+ * @property {boolean} [forceIpv4] - if `true` use IPv4 addresses only when resolving host names
+ * @property {boolean} [forceIpv6] - if `true` use IPv6 addresses only when resolving host names
+ *                                   It will be ignored if `forceIpv4` is true
+ */
+
 class Curl {
   /**
    * Constructor
    *
    * @param {string} url
-   * @param {object} [opt] - options
-   * @param {string} [opt.method="GET"] - HTTP method (default = "GET")
-   * @param {string} [opt.userAgent]
-   * @param {boolean} [opt.insecure=false] - if {true} ignore SSL errors (default = {false})
-   * @param {object} [opt.headers] - dictionary of extra headers (each value can be a {string} or a {string[]})
-   * @param {object} [opt.cookies] - dictionary of cookies (each value should be a {string} or an {object} with a {value} property))
-   * @param {boolean} [opt.followRedirects=true] - whether or not HTTP redirects should be followed (default = {true})
-   * @param {number} [opt.maxRedirects] - maximum number of HTTP redirects to follow (by default, use curl default)
-   *                                      Will be ignored if {opt.followRedirects} is {false}
-   * @param {number} [opt.stdout] - if defined, sets the stdout handle used by child process (it will be rewind)
-   *                                NB: - don't share the same handle between multiple instances
-   * @param {string|OutputFileOption} [opt.outputFile] - if set, output will be redirected to this file
-   *                                                     When using a {string}, {opt.outputFile} should be the path of the output file
-   *                                                     Will be ignored if {opt.stdout} was set
-   * @param {number} [opt.connectTimeout] - maximum number of seconds allowed for connection
-   * @param {number} [opt.maxTime] - maximum number of seconds allowed for the transfer
-   * @param {object} [opt.data] - data to send as application/x-www-form-urlencoded
-   *                              Content type will automatically be set to application/x-www-form-urlencoded
-   *                              Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
-   * @param {any} [opt.json] - data to send as application/json
-   *                           Content type will automatically be set to application/json
-   *                           Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
-   *                           Will be ignored if {opt.data} was set
-   * @param {string} [opt.jsonFile] - file containing data to send as application/json
-   *                                  Content type will automatically be set to application/json
-   *                                  Use '-' for stdin
-   *                                  Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
-   *                                  Will be ignored if one of ({opt.data}, {opt.json}) was set
-   * @param {string|FileOption} [opt.file] - used to upload a file
-   *                                         Content type will automatically be set to multipart/form-data
-   *                                         Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
-   *                                         Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}) was set
-   *                                         When using a {string}, {opt.file} should be the path of the file to upload
-   * @param {string} [opt.body] - body to send
-   *                              Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
-   *                              Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}) was set
-   * @param {string|BodyFileOption} [opt.bodyFile] - file containing the body to send
-   *                                                 Use '-' for stdin
-   *                                                 Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
-   *                                                 Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
-   *                                                 When using a {string}, {opt.bodyFile} should be the path of the file containing the body
-   * @param {object} [opt.params] - parameters to add as query string
-   * @param {boolean} [opt.useBracketsForParams=true] - if {true}, use "param[]=value1&param[]=value2" if a query string parameter is defined multiple times (default = {true})
-   * @param {boolean} [opt.normalizeHeaders=true] - if {true}, header names in response will be converted to lower case (default = {true})
-   * @param {string} [opt.returnHeadersAs="string"] - indicates how response headers should be returned
-   *                                                   + "string" (default) : if an header appears multiple times, only the first value will be kept
-   *                                                   + "array" : always return an array of values for each header
-   *                                                   + "auto" : return an array of values only for headers which appear multiple times
-   * @param {boolean} [opt.parseJson=true] - if {true}, automatically parse JSON in responses (default = {true})
-   * @param {boolean} [opt.failOnHttpError=false] - if {true}, {run} method will return {false} in case status code is not in [200, 299] (default = {false})
-   * @param {object} [opt.basicAuth] - basic HTTP authentication {"username":"string", "password":"string"}
-   * @param {string} [opt.bearerToken] - bearer token to use. Will be ignored if {opt.basicAuth} was set
-   * @param {string} [opt.jwt] - JWT token to use (with or without JWT prefix). Will be ignored if one ({opt.basicAuth}, {opt.bearerToken}) was set
-   * @param {any} [opt.context] - user define context (can be used to identify curl request later by client code)
-   * @param {number} [opt.stdin] - if defined, sets the stdin handle used by curl process (it will be rewind)
-   *                               NB: don't share the same handle between multiple instances
-   * @param {boolean} [opt.forceIpv4] - if {true} use IPv4 addresses only when resolving host names
-   * @param {boolean} [opt.forceIpv6] - if {true} use IPv6 addresses only when resolving host names
-   *                                    Will be ignored if {opt.forceIpv4} is true
+   * @param {CurlOptions} [opt] - options
    */
   constructor(url, opt) {
     if (undefined === opt) {
@@ -813,7 +835,7 @@ class Curl {
       }
       // check condition
       else if (undefined !== conditionalOutputTmpFile) {
-        const canWrite = this._outputFile.onCheckCondition(this);
+        const canWrite = notNull(this._outputFile.onCheckCondition)(this);
         if (canWrite) {
           /** @type {any} */
           let errObj;
@@ -850,9 +872,9 @@ class Curl {
    * Cancel curl process
    *
    * @param {object} [opt] - options
-   * @param {number} [opt.signal=os.SIGINT] - signal to use (default = {SIGINT})
+   * @param {number} [opt.signal=os.SIGINT] - signal to use (default = `SIGINT`)
    *
-   * @returns {boolean} {true} if process was successfully cancelled, {false} otherwise
+   * @returns {boolean} `true` if process was successfully cancelled, `false` otherwise
    */
   cancel(opt) {
     if (undefined === this._process) {
@@ -878,7 +900,7 @@ class Curl {
    *
    * @param {string} statusLine
    *
-   * @returns {CurlStatus|undefined} {"code":integer, "text":string}
+   * @returns {CurlStatus|undefined} `{"code":integer, "text":string}`
    */
   _getStatus(statusLine) {
     const arr = statusLine.split(' ');
@@ -907,15 +929,19 @@ class Curl {
    *
    * @param {string|string[]} values - array of set-cookie headers values
    *
-   * @returns {object} cookies
+   * @returns {Record<string, Cookie>} cookies
    */
   _parseSetCookieHeaders(values) {
+    /** @type {Record<string, Cookie>} */
     const cookies = {};
     const arr = Array.isArray(values) ? values : [values];
     for (const value of arr) {
       const cookiesStrings = splitCookiesString(value);
       for (const cookieString of cookiesStrings) {
         const cookie = parseSetCookieHeader(cookieString);
+        if (!cookie) {
+          continue;
+        }
         cookies[cookie.name] = cookie;
       }
     }
@@ -976,8 +1002,8 @@ class Curl {
   }
 
   /**
-   * Indicate whether or not HTTP request failed (ie: statusCode in [200, 299])
-   * Will be {true} if {run} was not called or curl failed
+   * Indicate whether or not HTTP request failed (ie: statusCode in `[200, 299]`)
+   * It will be `true` if `run` was not called or curl failed
    *
    * @returns {boolean}
    */
@@ -1074,12 +1100,13 @@ class Curl {
    * Retrieve all response cookies (deep copy)
    * Will be {undefined} if {run} was not called or if curl failed
    *
-   * @returns {object|undefined} cookies
+   * @returns {Record<string, Cookie>|undefined} cookies
    */
   get cookies() {
     if (undefined === this._responseCookies) {
       return undefined;
     }
+    /** @type {Record<string, Cookie>} */
     const result = {};
     for (const cookie of Object.values(this._responseCookies)) {
       result[cookie.name] = Object.assign({}, cookie);
@@ -1093,7 +1120,7 @@ class Curl {
    *
    * @param {string} name - cookie name
    *
-   * @returns {object|undefined} cookie
+   * @returns {Cookie|undefined} cookie
    */
   getCookie(name) {
     if (undefined === this._responseCookies) {
@@ -1151,7 +1178,7 @@ class Curl {
    * Return HTTP code & text
    * Will be {undefined} if {run} was not called or if curl failed
    *
-   * @returns {CurlStatus|undefined} {"code":integer, "text":string}
+   * @returns {CurlStatus|undefined} `{"code":integer, "text":string}`
    */
   get status() {
     if (undefined === this._status) {
@@ -1194,6 +1221,7 @@ class Curl {
     this._isBeingCancelled = false;
     this._wasCancelled = false;
     this._responseHeaders = undefined;
+    /** @type {Record<string, Cookie> | undefined} */
     this._responseCookies = undefined;
     this._body = undefined;
     this._status = undefined;
@@ -1204,73 +1232,29 @@ class Curl {
 }
 
 /**
+ * @typedef {Object} CurlRequestExtraOptions
+ * @property {boolean} [ignoreError=false] - if `true`, promise will resolve to the response's body even if curl failed or HTTP failed (default = `false`)
+ */
+
+/**
+ * @typedef {CurlOptions & CurlRequestExtraOptions} CurlRequestOptions
+ */
+
+/**
  * Run a curl request and return body
  *
  * @param {string} url
- * @param {object} [opt] - options
- * @param {string} [opt.method="GET"] - HTTP method (default = "GET")
- * @param {string} [opt.userAgent]
- * @param {boolean} [opt.insecure=false] - if {true} ignore SSL errors (default = {false})
- * @param {object} [opt.headers] - dictionary of extra headers (each value can be a {string} or a {string[]})
- * @param {object} [opt.cookies] - dictionary of cookies (each value should be a {string} or an {object} with a {value} property))
- * @param {boolean} [opt.followRedirects=true] - whether or not HTTP redirects should be followed (default = {true})
- * @param {number} [opt.maxRedirects] - maximum number of HTTP redirects to follow (by default, use curl default)
- *                                      Will be ignored if {opt.followRedirects} is {false}
- * @param {number} [opt.stdout] - if defined, sets the stdout handle used by child process (it will be rewind)
- *                                NB: - don't share the same handle between multiple instances
- * @param {string|OutputFileOption} [opt.outputFile] - if set, output will be redirected to this file
- *                                                     When using a {string}, {opt.outputFile} should be the path of the output file
- *                                                     Will be ignored if {opt.stdout} was set
- * @param {number} [opt.connectTimeout] - maximum number of seconds allowed for connection
- * @param {number} [opt.maxTime] - maximum number of seconds allowed for the transfer
- * @param {object} [opt.data] - data to send as application/x-www-form-urlencoded
- *                              Content type will automatically be set to application/x-www-form-urlencoded
- *                              Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
- * @param {any} [opt.json] - data to send as application/json
- *                           Content type will automatically be set to application/json
- *                           Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
- *                           Will be ignored if {opt.data} was set
- * @param {string} [opt.jsonFile] - file containing data to send as application/json
- *                                  Content type will automatically be set to application/json
- *                                  Use '-' for stdin
- *                                  Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
- *                                  Will be ignored if one of ({opt.data}, {opt.json}) was set
- * @param {string|FileOption} [opt.file] - used to upload a file
- *                                         Content type will automatically be set to multipart/form-data
- *                                         Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
- *                                         Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}) was set
- *                                         When using a {string}, {opt.file} should be the path of the file to upload
- * @param {string} [opt.body] - body to send
- *                              Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
- *                              Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}) was set
- * @param {string|BodyFileOption} [opt.bodyFile] - file containing the body to send
- *                                                 Use '-' for stdin
- *                                                 Will be ignored unless {opt.method} is one of ("PUT", "POST", "DELETE", "PATCH")
- *                                                 Will be ignored if one of ({opt.data}, {opt.json}, {opt.jsonFile}, {opt.file}, {opt.body}) was set
- *                                                 When using a {string}, {opt.bodyFile} should be the path of the file containing the body
- * @param {object} [opt.params] - parameters to add as query string
- * @param {boolean} [opt.useBracketsForParams=true] - if {true}, use "param[]=value1&param[]=value2" if a query string parameter is defined multiple times (default = {true})
- * @param {boolean} [opt.parseJson=true] - if {true}, automatically parse JSON in responses (default = {true})
- * @param {boolean} [opt.failOnHttpError=false] - if {true}, {run} method will return {false} in case status code is not in [200, 299] (default = {false})
- * @param {object} [opt.basicAuth] - basic HTTP authentication {"username":"string", "password":"string"}
- * @param {string} [opt.bearerToken] - bearer token to use. Will be ignored if {opt.basicAuth} was set
- * @param {string} [opt.jwt] - JWT token to use (with or without JWT prefix). Will be ignored if one ({opt.basicAuth}, {opt.bearerToken}) was set
- * @param {number} [opt.stdin] - if defined, sets the stdin handle used by curl process (it will be rewind)
- *                               NB: don't share the same handle between multiple instances
- * @param {boolean} [opt.ignoreError=false] - if {true}, promise will resolve to the response's body even if curl failed or HTTP failed (default = {false})
- * @param {boolean} [opt.forceIpv4] - if {true} use IPv4 addresses only when resolving host names
- * @param {boolean} [opt.forceIpv6] - if {true} use IPv6 addresses only when resolving host names
- *                                    Will be ignored if {opt.forceIpv4} is true
+ * @param {CurlRequestOptions} [opt] - options
  *
- * @returns {Promise<object|string|undefined>} promise which will resolve to the body in case of success
+ * @returns {Promise<Object|string|undefined>} promise which will resolve to the body in case of success
  *                                             and will an throw an {Error} with the body/curl error as error message and following extra properties :
- *                                             - {status} : CurlStatus|undefined as returned by {status} property
- *                                             - {body} : string|object|undefined as returned by {body} property
+ *                                               - `status` : `CurlStatus|undefined` as returned by `status` property
+ *                                               - `body` : `string|Object|undefined` as returned by `body` property
  */
 const curlRequest = async (url, opt) => {
   const options = Object.assign({}, opt);
   const ignoreError = true === options.ignoreError;
-  delete options.ignoreError;
+  delete (/** @type {any} */ (options).ignoreError);
   const c = new Curl(url, opt);
   const success = await c.run();
   if (success) {
@@ -1308,14 +1292,16 @@ const curlRequest = async (url, opt) => {
  *
  * @param {Curl[]} list - array of {Curl} objects
  *
- * @returns {Promise<MultiCurlResponseItem[]>} array of {"curl":Curl,"result":boolean}
+ * @returns {Promise<MultiCurlResponseItem[]>} `{"curl":Curl,"result":boolean}[]`
  */
 const multiCurl = async (list) => {
+  /** @type {Promise<boolean>[]} */
   const promises = [];
   list.forEach((item, i) => {
     promises.push(item.run());
   });
   const results = await Promise.all(promises);
+  /** @type {{curl: Curl, result: boolean}[]} */
   const data = [];
   results.forEach((r, i) => {
     data.push({ curl: list[i], result: r });
@@ -1468,18 +1454,21 @@ const splitCookiesString = (cookiesString) => {
  *
  * @param {string} value - set-cookie header value
  *
- * @returns {object} cookie
+ * @returns {Cookie | undefined} cookie
  */
 const parseSetCookieHeader = (value) => {
   const parts = value
     .split(';')
     .filter((str) => 'string' == typeof str && !!str.trim());
   if (0 === parts.length) {
-    return {};
+    return undefined;
   }
   // @ts-ignore
   const nameValue = parts.shift().split('=');
   const name = nameValue.shift();
+  if (!name) {
+    return undefined;
+  }
   let val = nameValue.join('='); // everything after the first =, joined by a "=" if there was more than one part
 
   try {
@@ -1488,6 +1477,7 @@ const parseSetCookieHeader = (value) => {
     // ignore error
   }
 
+  /** @type {Cookie} */
   const cookie = {
     name: name, // grab everything before the first =
     value: val,
@@ -1509,7 +1499,7 @@ const parseSetCookieHeader = (value) => {
     } else if (key === 'samesite') {
       cookie.sameSite = value;
     } else {
-      cookie[key] = value;
+      /** @type {Record<string, any>} */ (cookie)[key] = value;
     }
     // remove {expires}
     if (0 === cookie.maxAge) {
