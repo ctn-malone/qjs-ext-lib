@@ -431,19 +431,30 @@ const args = await arg
 
 Defines the list of possible values
 
-* **possibleValues** (*(string[]{value: string, desc?: string})[]*)
+* **possibleValues** (*(string[]|{value: string, desc?: string})[]*)
 * message (*string*) : message to display before enum values in usage (default = `it can be one of`)
 
 <u>NB</u> : possible values will be listed in usage
 
 **returns** *self*
 
-<u>Example</u>
+<u>Examples</u>
 
 ```js
 const args = await arg
   .parser({
     '--cmd': arg.str().enum(['date', 'uptime']),
+  })
+  .parseAsync();
+```
+
+```js
+const args = await arg
+  .parser({
+    '--cmd': arg.str().enum([
+      { value: 'date', desc: 'run the "date" command' },
+      { value: 'uptime', desc: 'run the "uptime" command' },
+    ]),
   })
   .parseAsync();
 ```
@@ -1076,11 +1087,17 @@ Defines a custom completion function
  * @callback CustomCompletionFunc
  * @param {string} content
  * @param {DefaultCompletionFunc} defaultCompletion
- * @returns {Promise<string[]>}
+ * @param {GetCmdLineArgumentsFunc} getCmdLineArguments
+ *
+ * @returns {Promise<(string | {value: string, desc?: string})[]>}
  */
 
 /**
  * @typedef {() => Promise<string[]>} DefaultCompletionFunc
+ */
+
+/**
+ * @typedef {() => Record<string, (string | number| boolean) | (string | number | boolean)[]>} GetCmdLineArgumentsFunc
  */
 ```
 
@@ -1093,7 +1110,7 @@ const args = await arg
   .parser({
     '--age': arg
       .num()
-      .comp(async (content, _defaultCompletion) => {
+      .comp(async (content, _defaultCompletion, _getCmdLineArguments) => {
         // offer 3 possible values
         const values = [20, 30, 40].map(String);
         if (!content) {

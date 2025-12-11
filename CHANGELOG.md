@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.17.1]
+* feat: add support for providing descriptions when using custom shell _completion_ functions (`arg.js`)
+* feat: provides existing arguments to custom shell _completion_ functions (`arg.js`)
+* refactor: use `parseAsync` in examples
+
 ## [0.17.0]
 * feat: add descriptions to bash _completions_ (`arg.js`)
 * feat: add descriptions for enum _completions_ (`arg.js`)

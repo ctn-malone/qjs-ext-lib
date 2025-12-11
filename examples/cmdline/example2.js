@@ -11,7 +11,7 @@ import { exec } from '../../src/process.js';
 const COMMANDS = ['date', 'uptime'];
 const DEFAULT_COMMAND = 'date';
 
-const args = arg
+const args = await arg
   .parser({
     '--command': arg
       .str(DEFAULT_COMMAND)
@@ -24,7 +24,7 @@ const args = arg
     '-c': '--command',
     '-v': '--verbose',
   })
-  .parse();
+  .parseAsync();
 
 if (args.get('--verbose')) {
   console.log(`Will run command '${args.get('--command')}'`);

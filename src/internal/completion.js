@@ -40,10 +40,16 @@ const DEFAULT_MAX_WIDTH_FOR_BASH_COMPLETION = 25;
  */
 
 /**
+ * @typedef {() => Record<string, (string | number| boolean) | (string | number | boolean)[]>} GetCmdLineArgumentsFunc
+ */
+
+/**
  * @callback CustomCompletionFunc
  * @param {string} content
  * @param {DefaultCompletionFunc} defaultCompletion
- * @returns {Promise<string[]>}
+ * @param {GetCmdLineArgumentsFunc} getCmdLineArguments
+ *
+ * @returns {Promise<(string | {value: string, desc?: string})[]>}
  */
 
 /** @type {LogFunction | undefined} */
@@ -252,13 +258,13 @@ const findUnusedMainArgNames = (handlers, usedMainArgNames, options) => {
 };
 
 /**
- * @param {string[]} list
+ * @param {string[]} completions
  * @param {CmdLinePart} [curToken]
  *
  * @returns {string[]}
  */
-export const quoteBashCompletions = (list, curToken) => {
-  const quotedList = list.map((str) => {
+const quoteBashCompletions = (completions, curToken) => {
+  const quotedCompletions = completions.map((str) => {
     if (str.includes(' ')) {
       if (!str.includes(' -- ')) {
         let quoteChar = curToken?.quoteChar || '"';
@@ -267,37 +273,67 @@ export const quoteBashCompletions = (list, curToken) => {
     }
     return str;
   });
-  return quotedList;
+  return quotedCompletions;
 };
 
 /**
- * @param {string[]} list
+ * @param {string} completionShell
+ * @param {string[]} completions
+ * @param {CmdLinePart} [curToken]
  *
  * @returns {string[]}
  */
-export const escapeZshCompletions = (list) => {
-  const escapedList = list.map((str) => {
+const quoteShellCompletions = (completionShell, completions, curToken) => {
+  // quoting / escaping is only necessary for bash
+  if (completionShell === 'bash') {
+    return quoteBashCompletions(completions, curToken);
+  }
+  return completions;
+};
+
+/**
+ * @param {string[]} completions
+ *
+ * @returns {string[]}
+ */
+const escapeZshCompletions = (completions) => {
+  const escapedCompletions = completions.map((str) => {
     if (str.includes(':')) {
       return str.replaceAll(':', '\\:');
     }
     return str;
   });
-  return escapedList;
+  return escapedCompletions;
 };
 
 /**
- * @param {string[]} list
+ * @param {string[]} completions
  *
  * @returns {string[]}
  */
-export const escapeBashCompletions = (list) => {
-  const escapedList = list.map((str) => {
+const escapeBashCompletions = (completions) => {
+  const escapedCompletions = completions.map((str) => {
     if (str.includes(':')) {
       return str.replaceAll(':', '\\:');
     }
     return str;
   });
-  return escapedList;
+  return escapedCompletions;
+};
+
+/**
+ * @param {string} completionShell
+ * @param {string[]} completions
+ *
+ * @returns {string[]}
+ */
+const escapeShellCompletions = (completionShell, completions) => {
+  if (completionShell === 'zsh') {
+    return escapeZshCompletions(completions);
+  } else if (completionShell === 'bash') {
+    return escapeBashCompletions(completions);
+  }
+  return completions;
 };
 
 /**
@@ -315,7 +351,7 @@ const getNoFlagArgName = (argName) => {
  */
 
 /**
- * @param {LogFunction} debug
+ * @param {LogFunction} _debug
  * @param {string[]} argNames
  * @param {Handlers} handlers
  * @param {ReturnType<getAliasesMap>} aliasesMap
@@ -323,7 +359,7 @@ const getNoFlagArgName = (argName) => {
  *
  * @return {string[]}
  */
-const completeArgNames = (debug, argNames, handlers, aliasesMap, options) => {
+const completeArgNames = (_debug, argNames, handlers, aliasesMap, options) => {
   const { includeAliases = true } = options || {};
   /** @type {string[]} */
   const list = [...argNames];
@@ -511,13 +547,12 @@ export const completeCmdLine = async (
             completions = await completeArgValidatorValues(
               debug,
               completionShell,
-              argValidator
+              argValidator,
+              tokens,
+              handlers,
+              aliases
             );
-            if (completionShell === 'bash') {
-              completions = escapeBashCompletions(completions);
-            } else if (completionShell === 'zsh') {
-              completions = escapeZshCompletions(completions);
-            }
+            completions = escapeShellCompletions(completionShell, completions);
           }
         }
       }
@@ -570,19 +605,12 @@ export const completeCmdLine = async (
         }
       }
       completions = result.matches;
-      if (completionShell === 'zsh') {
-        completions = addZshDescriptionsForArgNames(
-          completions,
-          handlers,
-          aliases
-        );
-      } else if (completionShell === 'bash') {
-        completions = addBashDescriptionsForArgNames(
-          completions,
-          handlers,
-          aliases
-        );
-      }
+      completions = addShellDescriptionsForArgNames(
+        completionShell,
+        completions,
+        handlers,
+        aliases
+      );
 
       /*
         We need to list possible values for an argument
@@ -633,13 +661,12 @@ export const completeCmdLine = async (
               debug,
               completionShell,
               argValidator,
+              tokens,
+              handlers,
+              aliases,
               curToken
             );
-            if (completionShell === 'bash') {
-              completions = escapeBashCompletions(completions);
-            } else if (completionShell === 'zsh') {
-              completions = escapeZshCompletions(completions);
-            }
+            completions = escapeShellCompletions(completionShell, completions);
           }
         }
       }
@@ -664,19 +691,12 @@ export const completeCmdLine = async (
       aliasesMap,
       { includeAliases: includeAliasesInArgNamesCompletion }
     );
-    if (completionShell === 'zsh') {
-      completions = addZshDescriptionsForArgNames(
-        completions,
-        handlers,
-        aliases
-      );
-    } else if (completionShell === 'bash') {
-      completions = addBashDescriptionsForArgNames(
-        completions,
-        handlers,
-        aliases
-      );
-    }
+    completions = addShellDescriptionsForArgNames(
+      completionShell,
+      completions,
+      handlers,
+      aliases
+    );
   }
 
   if (completions?.length) {
@@ -701,10 +721,7 @@ export const completeCmdLine = async (
         2
       )}`;
     });
-    // quoting / escaping is only necessary for bash
-    if (completionShell === 'bash') {
-      completions = quoteBashCompletions(completions, curToken);
-    }
+    completions = quoteShellCompletions(completionShell, completions, curToken);
   }
 
   return completions ?? [];
@@ -821,6 +838,48 @@ const addBashDescriptionsForArgValues = (completions, descByValue) => {
 };
 
 /**
+ * @param {string} completionShell
+ * @param {string[]} completions
+ * @param {Handlers} handlers
+ * @param {Record<string, string>} aliases
+ *
+ * @returns {string[]}
+ */
+const addShellDescriptionsForArgNames = (
+  completionShell,
+  completions,
+  handlers,
+  aliases
+) => {
+  if (completionShell === 'zsh') {
+    return addZshDescriptionsForArgNames(completions, handlers, aliases);
+  } else if (completionShell === 'bash') {
+    return addBashDescriptionsForArgNames(completions, handlers, aliases);
+  }
+  return completions;
+};
+
+/**
+ * @param {string} completionShell
+ * @param {string[]} completions
+ * @param {Record<string, string>} descByValue
+ *
+ * @returns {string[]}
+ */
+const addShellDescriptionsForArgValues = (
+  completionShell,
+  completions,
+  descByValue
+) => {
+  if (completionShell === 'zsh') {
+    return addZshDescriptionsForArgValues(completions, descByValue);
+  } else if (completionShell === 'bash') {
+    return addBashDescriptionsForArgValues(completions, descByValue);
+  }
+  return completions;
+};
+
+/**
  * @param {LogFunction} debug
  * @param {string | undefined} content
  *
@@ -852,7 +911,10 @@ const completeShellVariable = (debug, content) => {
  * @param {LogFunction} debug
  * @param {string} completionShell
  * @param {ArgValidator} argValidator
- * @param {CmdLinePart} [token]
+ * @param {CmdLinePart[]} tokens
+ * @param {Handlers} handlers
+ * @param {Record<string, string>} aliases
+ * @param {CmdLinePart} [curToken]
  *
  * @returns {Promise<string[]>}
  */
@@ -860,14 +922,29 @@ const completeArgValidatorValues = async (
   debug,
   completionShell,
   argValidator,
-  token
+  tokens,
+  handlers,
+  aliases,
+  curToken
 ) => {
-  const content = token?.content ?? '';
-  const customCompletion = /** @type {CustomCompletionFunc | undefined} */ (
+  const content = curToken?.content ?? '';
+  const customCompletionCb = /** @type {CustomCompletionFunc | undefined} */ (
     /** @type {any} */ (argValidator)._customComplete
   );
   /** @type {string[] | undefined} */
-  let output = undefined;
+  let completions = undefined;
+
+  /** @type {GetCmdLineArgumentsFunc} */
+  const getCmdLineArgumentsCb = () => {
+    /*
+      - If no current token exists, it means that last token is an argument name.
+        In this case, we should discard the last token
+      - If a current token exists, it means that last token is a partial argument value.
+        In this case, we should discard the last 2 tokens
+     */
+    const _tokens = curToken ? tokens.slice(0, -2) : tokens.slice(0, -1);
+    return processTokens(_tokens, handlers, aliases);
+  };
 
   try {
     if (argValidator instanceof StringArgValidator) {
@@ -876,27 +953,29 @@ const completeArgValidatorValues = async (
           (/** @type {{value: string, desc?: string}} */ e) => e.value
         )
       );
-      const defaultCompletion = async () => {
+      const defaultCompletionCb = async () => {
         if (!words?.length) {
           return [];
         }
         return findMatching(words, content).matches;
       };
-      if (customCompletion) {
-        output = await runCustomCompletion(
+      if (customCompletionCb) {
+        completions = await runCustomCompletion(
           debug,
           content,
-          customCompletion,
-          defaultCompletion
+          customCompletionCb,
+          defaultCompletionCb,
+          completionShell,
+          getCmdLineArgumentsCb
         );
       } else if (words?.length) {
-        output = await runDefaultCompletion(
+        completions = await runDefaultCompletion(
           debug,
           content,
-          defaultCompletion,
+          defaultCompletionCb,
           'enum'
         );
-        if (output?.length > 1) {
+        if (completions?.length > 1) {
           /** @type {Record<string, string>} */
           const descByValue = {};
           /** @type {any} */ (argValidator)._enum?.forEach(
@@ -907,52 +986,57 @@ const completeArgValidatorValues = async (
               descByValue[e.value] = e.desc;
             }
           );
-          if (completionShell === 'zsh') {
-            output = addZshDescriptionsForArgValues(output, descByValue);
-          } else if (completionShell === 'bash') {
-            output = addBashDescriptionsForArgValues(output, descByValue);
-          }
+          completions = addShellDescriptionsForArgValues(
+            completionShell,
+            completions,
+            descByValue
+          );
         }
       }
     } else if (argValidator instanceof PathArgValidator) {
-      const defaultCompletion = async () => {
+      const defaultCompletionCb = async () => {
         const isDir = /** @type {any} */ (argValidator)._isDir;
         return isDir ? ['@QEL_DIR@'] : ['@QEL_PATH@'];
       };
-      if (customCompletion) {
-        output = await runCustomCompletion(
+      if (customCompletionCb) {
+        completions = await runCustomCompletion(
           debug,
           content,
-          customCompletion,
-          defaultCompletion
+          customCompletionCb,
+          defaultCompletionCb,
+          completionShell,
+          getCmdLineArgumentsCb
         );
       } else {
-        output = await runDefaultCompletion(
+        completions = await runDefaultCompletion(
           debug,
           content,
-          defaultCompletion,
+          defaultCompletionCb,
           'path'
         );
       }
     } else {
-      const defaultValue = /** @type {string|number|boolean|undefined} */ (
-        /** @type {any} */ (argValidator)._defaultValue
-      );
-      const defaultCompletion = async () => {
+      const defaultValue =
+        /** @type {string | number | boolean | undefined} */ (
+          /** @type {any} */ (argValidator)._defaultValue
+        );
+      const defaultCompletionCb = async () => {
         return defaultValue !== undefined ? [defaultValue.toString()] : [];
       };
-      if (customCompletion) {
-        output = await runCustomCompletion(
+      if (customCompletionCb) {
+        completions = await runCustomCompletion(
           debug,
           content,
-          customCompletion,
-          defaultCompletion
+          customCompletionCb,
+          defaultCompletionCb,
+          completionShell,
+          getCmdLineArgumentsCb
         );
       } else if (defaultValue !== undefined) {
-        output = await runDefaultCompletion(
+        completions = await runDefaultCompletion(
           debug,
           content,
-          defaultCompletion,
+          defaultCompletionCb,
           'default'
         );
       }
@@ -961,13 +1045,13 @@ const completeArgValidatorValues = async (
     debug(() => `Argument value completion error: ${e.message}\n${e.stack}`);
   }
 
-  return output ?? [];
+  return completions ?? [];
 };
 
 /**
  * @param {LogFunction} debug
  * @param {string} content
- * @param {DefaultCompletionFunc} defaultCompletion
+ * @param {DefaultCompletionFunc} defaultCompletionCb
  * @param {string} type
  *
  * @returns {Promise<string[]>}
@@ -975,12 +1059,12 @@ const completeArgValidatorValues = async (
 const runDefaultCompletion = async (
   debug,
   content,
-  defaultCompletion,
+  defaultCompletionCb,
   type
 ) => {
   debug(() => `Argument value completion (${type}) from '${content}'`);
   try {
-    return await defaultCompletion();
+    return await defaultCompletionCb();
   } catch (/** @type {any} */ e) {
     debug(() => `Argument value completion error: ${e.message}\n${e.stack}`);
   }
@@ -990,22 +1074,122 @@ const runDefaultCompletion = async (
 /**
  * @param {LogFunction} debug
  * @param {string} content
- * @param {CustomCompletionFunc} customCompletion
- * @param {DefaultCompletionFunc} defaultCompletion
+ * @param {CustomCompletionFunc} customCompletionCb
+ * @param {DefaultCompletionFunc} defaultCompletionCb
+ * @param {string} completionShell
+ * @param {GetCmdLineArgumentsFunc} getCmdLineArgumentsCb
  *
  * @returns {Promise<string[]>}
  */
 const runCustomCompletion = async (
   debug,
   content,
-  customCompletion,
-  defaultCompletion
+  customCompletionCb,
+  defaultCompletionCb,
+  completionShell,
+  getCmdLineArgumentsCb
 ) => {
   debug(() => `Argument value completion (custom) from '${content}'`);
+  /** @type {Awaited<ReturnType<CustomCompletionFunc>> | undefined} */
+  let completions = undefined;
   try {
-    return await customCompletion(content, defaultCompletion);
+    completions = await customCompletionCb(
+      content,
+      defaultCompletionCb,
+      getCmdLineArgumentsCb
+    );
   } catch (/** @type {any} */ e) {
     debug(() => `Argument value completion error: ${e.message}\n${e.stack}`);
   }
-  return [];
+  if (!completions) {
+    return [];
+  }
+  /** @type {string[]} */
+  const values = [];
+  /** @type {Record<string, string>} */
+  const descByValue = {};
+
+  for (const item of completions) {
+    if (typeof item === 'string' && item) {
+      values.push(item);
+      continue;
+    }
+    if (typeof item !== 'object') {
+      continue;
+    }
+    if (item.value === undefined) {
+      continue;
+    }
+    values.push(item.value);
+    if (item.desc) {
+      descByValue[item.value] = item.desc;
+    }
+  }
+
+  return addShellDescriptionsForArgValues(completionShell, values, descByValue);
+};
+
+/**
+ * @callback ProcessTokensFunc
+ * @param {CmdLinePart[]} tokens
+ * @param {Handlers} handlers
+ * @param {Record<string, string>} aliases
+ *
+ * @returns {ReturnType<GetCmdLineArgumentsFunc>}
+ */
+
+/**
+ * Convert the list of tokens to a dictionary {[argName]: argValue}
+ *
+ * @type {ProcessTokensFunc}
+ */
+export const processTokens = (tokens, handlers, aliases) => {
+  /** @type {ReturnType<ProcessTokensFunc>} */
+  const result = {};
+  /** @type {{argName: string, allowMany: boolean} | undefined} */
+  let curArg = undefined;
+  for (const token of tokens) {
+    if (maybeArgument(token)) {
+      curArg = undefined;
+      const output = findHandler(token.content, handlers, aliases);
+      if (!output) {
+        continue;
+      }
+      const { argName, isNoflag, handler } = output;
+      const [_type, isFlag, allowMany, argValidator] = handler;
+      // handle flags (they have no value)
+      if (isFlag || argValidator instanceof FlagArgValidator) {
+        const value = !isNoflag;
+        if (allowMany) {
+          if (result[argName] === undefined) {
+            result[argName] = [];
+          }
+          /** @type {any[]} */ (result[argName]).push(value);
+        } else {
+          result[argName] = value;
+        }
+      }
+      // handle arguments with value
+      else {
+        curArg = { argName, allowMany };
+        continue;
+      }
+    } else {
+      // if we don't have an argument, we can discard the value
+      if (!curArg) {
+        continue;
+      }
+      const value = token.content;
+      const { argName, allowMany } = curArg;
+      if (allowMany) {
+        if (result[argName] === undefined) {
+          result[argName] = [];
+        }
+        /** @type {any[]} */ (result[argName]).push(value);
+      } else {
+        result[argName] = value;
+      }
+    }
+  }
+  return result;
 };
