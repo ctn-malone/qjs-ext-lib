@@ -474,29 +474,58 @@ const trimString = (str) => {
 
 /**
  * Split a sentence (without \n) into lines which are smaller than a maximum length
+ * NB: primary indent will be preserved
  *
  * @param {string} sentence
  * @param {number} [maxLength]
  *
  * @returns {string[]}
  */
-const splitSentence = (sentence, maxLength) => {
+export const splitSentence = (sentence, maxLength) => {
   if (!maxLength || sentence.length <= maxLength) {
     return [sentence];
   }
-  const words = sentence.split(/\s+/g);
+  let primaryIndent = '';
+  let secondaryIndent = '';
+  let str = sentence;
+
+  // primary indent
+  let matches = str.match(/^(\s*)[^\s]+/);
+  if (matches) {
+    primaryIndent = matches[1];
+    str = str.substring(primaryIndent.length);
+  }
+
+  // secondary indent
+  matches = str.match(/^([\-+*#]\s*)[^\-+*#]/);
+  if (matches) {
+    secondaryIndent = ' '.repeat(matches[1].length);
+  }
+
+  const words = str.split(/\s+/g);
   const lines = [];
   let currentLine = '';
 
+  // decrease max length to account for primary indent
+  maxLength -= primaryIndent.length;
+
   for (const word of words) {
     if (currentLine.length + word.length > maxLength) {
-      lines.push(currentLine.trim());
+      lines.push(
+        `${primaryIndent}${
+          lines.length ? secondaryIndent : ''
+        }${currentLine.trim()}`
+      );
       currentLine = '';
     }
     currentLine += `${word} `;
   }
   if (currentLine.length) {
-    lines.push(currentLine.trim());
+    lines.push(
+      `${primaryIndent}${
+        lines.length ? secondaryIndent : ''
+      }${currentLine.trim()}`
+    );
   }
 
   return lines;
@@ -539,7 +568,7 @@ export const splitParagraph = (paragraph, maxLength) => {
 const getDescription = (isFlag, options = {}) => {
   let { description, defaultValue, maxLength } = options;
   /** @type {string|undefined} */
-  let defaultValueMessage;
+  let defaultValueMessage = undefined;
 
   if (defaultValue) {
     defaultValueMessage = `(default: ${defaultValue})`;
@@ -554,11 +583,13 @@ const getDescription = (isFlag, options = {}) => {
   if (!description) {
     return defaultValueMessage;
   }
-  description = splitParagraph(description, maxLength).join('\n');
 
   if (defaultValueMessage) {
-    return `${description} ${defaultValueMessage}`;
+    description = `${description} ${defaultValueMessage}`;
   }
+
+  description = splitParagraph(description, maxLength).join('\n');
+
   return description;
 };
 
@@ -894,7 +925,8 @@ export class ArgValidator {
       maxLength: options.maxLength,
     });
     if (description) {
-      usage.push(...splitParagraph(description, options.maxLength));
+      // description has already been formatted
+      usage.push(...description.split('\n'));
     }
     for (const validator of this._validators) {
       if (validator.description) {

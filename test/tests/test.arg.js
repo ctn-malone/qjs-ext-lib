@@ -14,7 +14,7 @@ const createTmpDir = () => {
   return tmpDir;
 };
 
-const removeDir = (dir) => {
+const removeDir = (/** @type {string} */ dir) => {
   execSync(`rm -rf ${dir}`);
 };
 
@@ -881,7 +881,7 @@ export default () => {
     let errMessage;
     try {
       validator.validate('0', '--argname');
-    } catch (e) {
+    } catch (/** @type {any} */ e) {
       errMessage = e.message;
     }
     tester.assert(
