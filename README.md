@@ -1,3 +1,5 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A set of pure JS extensions for [QuickJS](https://github.com/ctn-malone/quickjs-cross-compiler)
 
 * parse command line arguments and build static command line utilities using JS (see [doc](doc/arg.md))
