@@ -56,7 +56,7 @@ import {
  * @typedef {Object} ArgHelpOptions
  * @property {boolean} [enabled=false]
  * @property {string} [description]
- * @property {string[]} [examples]
+ * @property {(string | ExampleGenerator)[]} [examples]
  * @property {string[]} [flags=["--help","-h"]]
  * @property {boolean} [capitalizeUsage=false]
  */
@@ -132,6 +132,13 @@ import {
 
 /**
  * @typedef {DescribeUsageItem[]} DescribeUsageOutput
+ */
+
+/**
+ * @callback ExampleGenerator
+ * @param {string} scriptName
+ *
+ * @returns {string}
  */
 
 /**
@@ -739,7 +746,7 @@ class ArgParser {
 
     /**
      * @private
-     * @type {string[]}
+     * @type {(string | ExampleGenerator)[]}
      */
     this._examples = [];
 
@@ -765,7 +772,7 @@ class ArgParser {
   }
 
   /**
-   * @param {string[]} examples
+   * @param {(string | ExampleGenerator)[]} examples
    *
    * @returns {this}
    * @throws {Error} if "examples" is an Array of strings
@@ -775,13 +782,15 @@ class ArgParser {
       throw new Error("Argument 'list' should be an array");
     }
     for (const example of examples) {
-      if (typeof example !== 'string') {
+      if (typeof example === 'string') {
+        this._examples.push(example.trim());
+      } else if (typeof example === 'function') {
+        this._examples.push(example);
+      } else {
         throw new Error(
-          `Argument 'examples' should be an array of strings (${example})`
+          `Argument 'examples' should be an array of strings or example generators (${example})`
         );
       }
-      const str = example.trim();
-      this._examples.push(str);
     }
     return this;
   }
@@ -1149,7 +1158,11 @@ const getHelp = (
     content += '\n\n';
     content += `EXAMPLES\n`;
     for (const example of helpOptions.examples) {
-      content += `\n$ ${scriptName} ${example.trim()}\n`;
+      if (typeof example === 'string') {
+        content += `\n$ ${scriptName} ${example.trim()}\n`;
+      } else {
+        content += `\n$ ${example(scriptName).trim()}\n`;
+      }
     }
   }
   return content.trim();

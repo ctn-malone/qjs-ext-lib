@@ -190,17 +190,34 @@ const parser = arg.parser({
 
 Sets examples (displayed when `--help` flag is used)
 
-* **examples** (*string[]*) : examples to display in help
+* **examples** (*(string | ExampleGenerator)[]*) : examples to display in help
 
 **returns** *self*
 
-<u>Example</u>
+```js
+/**
+ * @callback ExampleGenerator
+ * @param {string} scriptName
+ *
+ * @returns {string}
+ */
+```
+
+<u>Examples</u>
 
 ```js
 const parser = arg.parser({
   '--name': arg.str().req(),
 }).ex([
   '--name john'
+]);
+```
+
+```js
+const parser = arg.parser({
+  '--name': arg.str().req(),
+}).ex([
+  (scriptName) => `${scriptName} --name john`
 ]);
 ```
 

@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.17.2]
+* feat: add support for string generators when defining examples (`arg.js`)
+* fix: fix indent when displaying `ArgValidator` usage (`arg.js`)
+
 ## [0.17.1]
 * feat: add support for providing descriptions when using custom shell _completion_ functions (`arg.js`)
 * feat: provides existing arguments to custom shell _completion_ functions (`arg.js`)
