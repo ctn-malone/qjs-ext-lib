@@ -372,7 +372,7 @@ class Curl {
         if ('application/x-www-form-urlencoded' != contentType) {
           this._curlArgs.push('-H');
           this._curlArgs.push(
-            `Content-Type: application/x-www-form-urlencoded`
+            `Content-Type: application/x-www-form-urlencoded`,
           );
         }
         for (const [key, value] of Object.entries(opt.data)) {
@@ -533,6 +533,9 @@ class Curl {
       for (const [key, value] of Object.entries(opt.params)) {
         if (Array.isArray(value)) {
           for (let i = 0; i < value.length; ++i) {
+            if (value[i] === undefined) {
+              continue;
+            }
             if ('' != qs) {
               qs += '&';
             }
@@ -541,6 +544,9 @@ class Curl {
             }=${encodeURIComponent(value[i])}`;
           }
         } else {
+          if (value === undefined) {
+            continue;
+          }
           if ('' != qs) {
             qs += '&';
           }
@@ -851,7 +857,7 @@ class Curl {
             (size = conditionalOutputTmpFile.read(
               buffer.buffer,
               0,
-              CONDITIONAL_OUTPUT_BUFFER_SIZE
+              CONDITIONAL_OUTPUT_BUFFER_SIZE,
             ))
           ) {
             destFile.write(buffer.buffer, 0, size);
@@ -1233,7 +1239,10 @@ class Curl {
 
 /**
  * @typedef {Object} CurlRequestExtraOptions
+ * @property {boolean} [exitOnError=false] - if `true`, exit process if curl failed or HTTP failed (default = `false`)
  * @property {boolean} [ignoreError=false] - if `true`, promise will resolve to the response's body even if curl failed or HTTP failed (default = `false`)
+ *                                           It will be ignored if `exitOnError` is `true`
+ * @property {HandleCurlRequestErrorMapping} [exitOnErrorMapping]
  */
 
 /**
@@ -1253,12 +1262,17 @@ class Curl {
  */
 const curlRequest = async (url, opt) => {
   const options = Object.assign({}, opt);
+  const exitOnError = true === options.exitOnError;
   const ignoreError = true === options.ignoreError;
+  delete (/** @type {any} */ (options).exitOnError);
   delete (/** @type {any} */ (options).ignoreError);
   const c = new Curl(url, opt);
   const success = await c.run();
   if (success) {
     return c.body;
+  }
+  if (exitOnError) {
+    handleCurlRequestError(c, options.exitOnErrorMapping);
   }
   if (ignoreError) {
     let body = c.body;
@@ -1271,7 +1285,7 @@ const curlRequest = async (url, opt) => {
   if (c.curlFailed) {
     message = c.curlError;
   }
-  if ('object' == typeof message) {
+  if (message instanceof Object) {
     message = JSON.stringify(message);
   }
   /** @type {any} */
@@ -1315,7 +1329,7 @@ const multiCurl = async (list) => {
  *
  * @returns {never}
  */
-export const exit = (exitCode, message) => {
+const exit = (exitCode, message) => {
   if (message) {
     std.err.puts(`${message.trim()}\n`);
   }
