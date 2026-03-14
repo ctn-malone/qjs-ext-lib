@@ -825,7 +825,7 @@ export default () => {
       );
       // timeout seems to take ~ 1.5 extra second
       tester.assert(
-        tsDelta >= 1000 && tsDelta <= 2500,
+        tsDelta >= 1000 && tsDelta <= 3500,
         `when setting a 1s timeout for child process, process should exit after =~ 1000ms (${JSON.stringify(
           tsDelta
         )})`

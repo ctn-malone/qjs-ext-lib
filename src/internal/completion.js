@@ -75,7 +75,7 @@ export const createLogger = (debugFilePath) => {
       /** @type {std.StdFile} */ (debugFile).puts(`${message}\n`);
     };
   } else {
-    logFunction = () => {};
+    logFunction = () => { };
   }
   return logFunction;
 };
@@ -791,6 +791,10 @@ const addBashDescriptionsForArgNames = (completions, handlers, aliases) => {
     }
   }
   return completions.map((name) => {
+    // don't add description for --no-x flags
+    if (name.startsWith('--no-')) {
+      return name;
+    }
     const mainArgName = getMainArgName(name, aliases);
     const [_type, _isFlag, _allowMany, argValidator] = handlers[mainArgName];
     /** @type {string | undefined} */
@@ -950,8 +954,8 @@ const completeArgValidatorValues = async (
     if (argValidator instanceof StringArgValidator) {
       const words = /** @type {string[] | undefined} */ (
         /** @type {any} */ (argValidator)._enum?.map(
-          (/** @type {{value: string, desc?: string}} */ e) => e.value
-        )
+        (/** @type {{value: string, desc?: string}} */ e) => e.value
+      )
       );
       const defaultCompletionCb = async () => {
         if (!words?.length) {

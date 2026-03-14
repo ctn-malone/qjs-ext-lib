@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.17.3]
+* fix: filter undefined values for query parameters (`curl.js`)
+* refactor: don't output completion description for `--no-x` flags (`args.js`)
+* refactor: add support for exiting process on http error when calling `curlRequest` (`curl.js`)
+* refactor: add support for exiting process on error when calling `exec` or `execSync` (`process.js`)
+
 ## [0.17.2]
 * feat: add support for string generators when defining examples (`arg.js`)
 * fix: fix indent when displaying `ArgValidator` usage (`arg.js`)
