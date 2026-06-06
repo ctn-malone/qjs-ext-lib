@@ -838,33 +838,61 @@ class Curl {
             // invalid JSON, do nothing, keep raw body
           }
         }
-      }
-      // check condition
-      else if (undefined !== conditionalOutputTmpFile) {
-        const canWrite = notNull(this._outputFile.onCheckCondition)(this);
-        if (canWrite) {
-          /** @type {any} */
-          let errObj;
-          const destFile = std.open(this._outputFile.filepath, 'wb', errObj);
-          if (null === destFile) {
-            conditionalOutputTmpFile.close();
-            throw new Error(`Could not open dest file (${errObj.errno})`);
+      } else {
+        /** @type { string | undefined } */
+        let errBody = undefined;
+        // check condition
+        if (undefined !== conditionalOutputTmpFile) {
+          const canWrite = notNull(this._outputFile.onCheckCondition)(this);
+          if (canWrite) {
+            /** @type {any} */
+            let errObj;
+            const destFile = std.open(this._outputFile.filepath, 'wb', errObj);
+            if (null === destFile) {
+              conditionalOutputTmpFile.close();
+              throw new Error(`Could not open dest file (${errObj.errno})`);
+            }
+            const buffer = new Uint8Array(CONDITIONAL_OUTPUT_BUFFER_SIZE);
+            let size;
+            while (
+              0 !=
+              (size = conditionalOutputTmpFile.read(
+                buffer.buffer,
+                0,
+                CONDITIONAL_OUTPUT_BUFFER_SIZE,
+              ))
+            ) {
+              destFile.write(buffer.buffer, 0, size);
+            }
+            destFile.close();
           }
-          const buffer = new Uint8Array(CONDITIONAL_OUTPUT_BUFFER_SIZE);
-          let size;
-          while (
-            0 !=
-            (size = conditionalOutputTmpFile.read(
-              buffer.buffer,
-              0,
-              CONDITIONAL_OUTPUT_BUFFER_SIZE,
-            ))
-          ) {
-            destFile.write(buffer.buffer, 0, size);
+          // always save body in case of error
+          if (this._didFail) {
+            conditionalOutputTmpFile.seek(0, std.SEEK_SET);
+            errBody = conditionalOutputTmpFile.readAsString();
           }
-          destFile.close();
+          conditionalOutputTmpFile.close();
+        } else {
+          // always save body in case of error
+          if (this._didFail) {
+            const output = std.loadFile(this._outputFile.filepath);
+            if (output !== null) {
+              errBody = output;
+            }
+          }
         }
-        conditionalOutputTmpFile.close();
+        // try to parse error body
+        if (errBody !== undefined) {
+          this._body = errBody;
+          if ('application/json' == this._contentType && this._parseJson) {
+            try {
+              const body = JSON.parse(this._body);
+              this._body = body;
+            } catch (e) {
+              // invalid JSON, do nothing, keep raw body
+            }
+          }
+        }
       }
     }
 

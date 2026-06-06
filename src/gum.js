@@ -362,8 +362,8 @@ export const chooseItemFromList = (list, opt) => {
         opt.paddingRight,
         opt.paddingBottom,
         opt.paddingLeft,
-        'GUM_CHOOSE_'
-      )
+        'GUM_CHOOSE_',
+      ),
     );
   }
 
@@ -482,8 +482,8 @@ export const chooseItemsFromList = (list, opt) => {
         opt.paddingRight,
         opt.paddingBottom,
         opt.paddingLeft,
-        'GUM_CHOOSE_'
-      )
+        'GUM_CHOOSE_',
+      ),
     );
   }
 
@@ -595,8 +595,8 @@ export const filterItemFromList = (list, opt) => {
         opt.paddingRight,
         opt.paddingBottom,
         opt.paddingLeft,
-        'GUM_FILTER_'
-      )
+        'GUM_FILTER_',
+      ),
     );
   }
 
@@ -717,8 +717,8 @@ export const filterItemsFromList = (list, opt) => {
         opt.paddingRight,
         opt.paddingBottom,
         opt.paddingLeft,
-        'GUM_FILTER_'
-      )
+        'GUM_FILTER_',
+      ),
     );
   }
 
@@ -881,8 +881,8 @@ export const style = (text, opt) => {
       opt.marginTop,
       opt.marginRight,
       opt.marginBottom,
-      opt.marginLeft
-    )
+      opt.marginLeft,
+    ),
   );
   cmdline.push(
     '--padding',
@@ -891,8 +891,8 @@ export const style = (text, opt) => {
       opt.paddingTop,
       opt.paddingRight,
       opt.paddingBottom,
-      opt.paddingLeft
-    )
+      opt.paddingLeft,
+    ),
   );
   if (opt.bold !== undefined) {
     cmdline.push(`--bold=${opt.bold ? 'yes' : 'no'}`);
@@ -1077,8 +1077,8 @@ export const renderTable = (columns, rows, opt) => {
         opt.paddingRight,
         opt.paddingBottom,
         opt.paddingLeft,
-        'GUM_TABLE_'
-      )
+        'GUM_TABLE_',
+      ),
     );
   }
 
@@ -1172,8 +1172,8 @@ export const chooseRowFromTable = (columns, rows, opt) => {
         opt.paddingRight,
         opt.paddingBottom,
         opt.paddingLeft,
-        'GUM_TABLE_'
-      )
+        'GUM_TABLE_',
+      ),
     );
   }
 
@@ -1264,8 +1264,8 @@ export const confirm = (opt) => {
         opt.paddingRight,
         opt.paddingBottom,
         opt.paddingLeft,
-        'GUM_CONFIRM_'
-      )
+        'GUM_CONFIRM_',
+      ),
     );
   }
 
@@ -1354,8 +1354,8 @@ export const chooseFile = (opt) => {
         opt.paddingRight,
         opt.paddingBottom,
         opt.paddingLeft,
-        'GUM_FILE_'
-      )
+        'GUM_FILE_',
+      ),
     );
   }
 
@@ -1430,8 +1430,8 @@ export const chooseDirectory = (opt) => {
         opt.paddingRight,
         opt.paddingBottom,
         opt.paddingLeft,
-        'GUM_FILE_'
-      )
+        'GUM_FILE_',
+      ),
     );
   }
 
@@ -1496,7 +1496,8 @@ const SPIN_DEFAULT_PADDING_BOTTOM = 0;
  *
  * > gum spin ...
  *
- * @param {Promise<any>} promise - promise to wait for
+ * @param {Promise<any> | Process} promise - promise to wait for or {Process}
+ *                                           When passing a {Process}, it must have been started previously 
  * @param {Object} [opt] - options
  * @param {string} [opt.title="Loading..."] - title value (default = "Loading...") ($GUM_SPIN_TITLE)
  * @param {string} [opt.spinner="dot"] - spinner value (default = Spinner.DOT) ($GUM_SPIN_SPINNER)
@@ -1541,8 +1542,8 @@ export const spin = async (promise, opt) => {
         opt.paddingRight,
         opt.paddingBottom,
         opt.paddingLeft,
-        'GUM_SPIN_'
-      )
+        'GUM_SPIN_',
+      ),
     );
   }
 
@@ -1564,7 +1565,6 @@ export const spin = async (promise, opt) => {
 
   /** @type {Promise<boolean>} */
   const spinnerPromise = new Promise(async (resolve, reject) => {
-    const pipe = notNull(os.pipe());
     const spinProcess = new Process(cmdline, {
       env,
       replaceEnv: false,
@@ -1588,6 +1588,13 @@ export const spin = async (promise, opt) => {
     });
     spinProcess.run();
 
+    /** @type {Process | undefined} */
+    let process = undefined;
+    if (promise instanceof Process) {
+      process = promise;
+      promise = process.wait();
+    }
+
     // wait for promise to resolve
     try {
       await promise;
@@ -1596,6 +1603,13 @@ export const spin = async (promise, opt) => {
       return reject(e);
     }
     await stopSpinner();
+    if (process) {
+      const exitCode = process.state.exitCode;
+      // process was cancelled
+      if (exitCode === -2 || exitCode === 130) {
+        return resolve(true);
+      }
+    }
     return resolve(false);
   });
   return spinnerPromise;
@@ -1606,7 +1620,8 @@ export const spin = async (promise, opt) => {
  *
  * > gum spin ...
  *
- * @param {Promise<any>} promise - promise to wait for
+ * @param {Promise<any> | Process} promise - promise to wait for or {Process}
+ *                                           When passing a {Process}, it must have been started previously
  * @param {Object} [opt] - options
  * @param {string} [opt.title="Loading..."] - title value (default = "Loading...") ($GUM_SPIN_TITLE)
  * @param {string} [opt.spinner="dot"] - spinner value (default = Spinner.DOT) ($GUM_SPIN_SPINNER)
@@ -1660,6 +1675,13 @@ const spinLegacy = async (promise, opt) => {
       await spinProcess.wait();
     };
 
+    /** @type {Process | undefined} */
+    let process = undefined;
+    if (promise instanceof Process) {
+      process = promise;
+      promise = process.wait();
+    }
+
     // wait for promise to resolve and stop spinner when it's done
     try {
       await promise;
@@ -1668,6 +1690,13 @@ const spinLegacy = async (promise, opt) => {
       return reject(e);
     }
     await stopSpinner();
+    if (process) {
+      const exitCode = process.state.exitCode;
+      // process was cancelled
+      if (exitCode === -2 || exitCode === 130) {
+        return resolve(true);
+      }
+    }
     return resolve(false);
   });
   return spinnerPromise;
@@ -1732,7 +1761,7 @@ export const input = (opt) => {
   }
   cmdline.push(
     '--char-limit',
-    (opt.charLimit ?? INPUT_DEFAULT_CHAR_LIMIT).toString()
+    (opt.charLimit ?? INPUT_DEFAULT_CHAR_LIMIT).toString(),
   );
   if (opt.width !== undefined) {
     cmdline.push('--width', opt.width.toString());
@@ -1750,8 +1779,8 @@ export const input = (opt) => {
         opt.paddingRight,
         opt.paddingBottom,
         opt.paddingLeft,
-        'GUM_INPUT_'
-      )
+        'GUM_INPUT_',
+      ),
     );
   }
 
@@ -1834,7 +1863,7 @@ export const write = (opt) => {
   }
   cmdline.push(
     '--char-limit',
-    (opt.charLimit ?? WRITE_DEFAULT_CHAR_LIMIT).toString()
+    (opt.charLimit ?? WRITE_DEFAULT_CHAR_LIMIT).toString(),
   );
   if (opt.width !== undefined) {
     cmdline.push('--width', opt.width.toString());
@@ -1858,8 +1887,8 @@ export const write = (opt) => {
         opt.paddingRight,
         opt.paddingBottom,
         opt.paddingLeft,
-        'GUM_WRITE_'
-      )
+        'GUM_WRITE_',
+      ),
     );
   }
 
@@ -1987,7 +2016,7 @@ export const join = (text, opt) => {
   cmdline.push('--align', opt.align ?? JOIN_DEFAULT_ALIGN);
   const direction = opt.direction ?? JOIN_DEFAULT_DIRECTION;
   cmdline.push(
-    direction === JoinDirection.VERTICAL ? '--vertical' : '--horizontal'
+    direction === JoinDirection.VERTICAL ? '--vertical' : '--horizontal',
   );
 
   addCustomArguments(cmdline, opt.custom?.args, ['vertical', 'horizontal']);
@@ -2045,7 +2074,7 @@ export const pager = (content, opt) => {
 
   const cmdline = ['gum', 'pager', content];
   cmdline.push(
-    `--show-line-numbers=${opt.showLineNumbers !== false ? 'yes' : 'no'}`
+    `--show-line-numbers=${opt.showLineNumbers !== false ? 'yes' : 'no'}`,
   );
   cmdline.push(`--soft-wrap=${opt.softWrap ? 'yes' : 'no'}`);
 
@@ -2058,8 +2087,8 @@ export const pager = (content, opt) => {
         opt.paddingRight,
         opt.paddingBottom,
         opt.paddingLeft,
-        'GUM_PAGER_'
-      )
+        'GUM_PAGER_',
+      ),
     );
   }
 

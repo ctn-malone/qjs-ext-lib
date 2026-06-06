@@ -150,9 +150,9 @@ import {
  * @property {() => Promise<void>} checkCompletion - function which will wait if completion needs to be performed
  * @property {() => string} getUsage - return usage content
  * @property {() => DescribeUsageOutput} describeUsage - return an object describing usage
- * @property {(message?: string) => void} usage - output usage to stderr and exit with code 2
+ * @property {(message?: string) => never} usage - output usage to stderr and exit with code 2
  * @property {() => string} getHelp - return help content
- * @property {() => void} help - output help to stderr and exit with code 0
+ * @property {() => never} help - output help to stderr and exit with code 0
  * @property {string[]} _ - extra arguments (positional and unknown)
  */
 
@@ -207,7 +207,7 @@ const arg = (specs, options) => {
   if (!specs) {
     throw new ArgError(
       'Argument specification object is required',
-      ArgErrorCode.ARG_CONFIG_NO_SPEC
+      ArgErrorCode.ARG_CONFIG_NO_SPEC,
     );
   }
   options = options || {};
@@ -244,21 +244,21 @@ const arg = (specs, options) => {
     if (!key) {
       throw new ArgError(
         'Argument key cannot be an empty string',
-        ArgErrorCode.ARG_CONFIG_EMPTY_KEY
+        ArgErrorCode.ARG_CONFIG_EMPTY_KEY,
       );
     }
 
     if (key[0] !== '-') {
       throw new ArgError(
         `Argument key must start with '-' but found: '${key}'`,
-        ArgErrorCode.ARG_CONFIG_NONOPT_KEY
+        ArgErrorCode.ARG_CONFIG_NONOPT_KEY,
       );
     }
 
     if (key.length === 1) {
       throw new ArgError(
         `Argument key must have a name; singular '-' keys are not allowed: ${key}`,
-        ArgErrorCode.ARG_CONFIG_NONAME_KEY
+        ArgErrorCode.ARG_CONFIG_NONAME_KEY,
       );
     }
 
@@ -317,14 +317,14 @@ const arg = (specs, options) => {
     } else {
       throw new ArgError(
         `Type missing or not a function or valid array type: ${key}`,
-        ArgErrorCode.ARG_CONFIG_VAD_TYPE
+        ArgErrorCode.ARG_CONFIG_VAD_TYPE,
       );
     }
 
     if (key[1] !== '-' && key.length > 2) {
       throw new ArgError(
         `Short argument keys (with a single hyphen) must have only one character: ${key}`,
-        ArgErrorCode.ARG_CONFIG_SHORTOPT_TOOLONG
+        ArgErrorCode.ARG_CONFIG_SHORTOPT_TOOLONG,
       );
     }
 
@@ -384,7 +384,7 @@ const arg = (specs, options) => {
               } else {
                 throw new ArgError(
                   `Unknown or unexpected option: ${originalArgName}`,
-                  ArgErrorCode.ARG_UNKNOWN_OPTION
+                  ArgErrorCode.ARG_UNKNOWN_OPTION,
                 );
               }
             }
@@ -398,7 +398,7 @@ const arg = (specs, options) => {
             ) {
               throw new ArgError(
                 `Argument requires value (but was followed by another short argument): ${originalArgName}`,
-                ArgErrorCode.ARG_MISSING_REQUIRED_SHORTARG
+                ArgErrorCode.ARG_MISSING_REQUIRED_SHORTARG,
               );
             }
             if (isFlag || argValidator instanceof FlagArgValidator) {
@@ -406,7 +406,7 @@ const arg = (specs, options) => {
                 isFlag ? !isNoflag : (!isNoflag).toString(),
                 argName,
                 result[argName],
-                i
+                i,
               );
             } else if (argStr === undefined) {
               if (
@@ -424,7 +424,7 @@ const arg = (specs, options) => {
                   originalArgName === argName ? '' : ` (alias for ${argName})`;
                 throw new ArgError(
                   `Argument requires value: ${originalArgName}${extended}`,
-                  ArgErrorCode.ARG_MISSING_REQUIRED_LONGARG
+                  ArgErrorCode.ARG_MISSING_REQUIRED_LONGARG,
                 );
               }
               type === Number && ensureNumber(argName, argv[i + 1]);
@@ -462,9 +462,6 @@ const arg = (specs, options) => {
       try {
         const value = type(undefined, argName, undefined, undefined);
         if (value === undefined) {
-          continue;
-        }
-        if (Array.isArray(value) && !value.length) {
           continue;
         }
         result[argName] = value;
@@ -529,7 +526,7 @@ const arg = (specs, options) => {
       helpOptions,
       versionOptions,
       /** @type {Required<ArgUsageLayoutOptions>} */ (usageOptions.layout),
-      scriptName
+      scriptName,
     );
   };
 
@@ -538,7 +535,7 @@ const arg = (specs, options) => {
    *
    * @param {string} [errMessage] - error message to print before usage
    *
-   * @return {never}
+   * @returns {never}
    */
   result.usage = (errMessage) => {
     if (errMessage) {
@@ -569,14 +566,14 @@ const arg = (specs, options) => {
       helpOptions,
       versionOptions,
       /** @type {Required<ArgUsageLayoutOptions>} */ (usageOptions.layout),
-      scriptName
+      scriptName,
     );
   };
 
   /**
    * Print help and exit with code 0
    *
-   * @return {never}
+   * @returns {never}
    */
   result.help = () => {
     std.out.puts(`${result.getHelp()}\n`);
@@ -608,7 +605,7 @@ const arg = (specs, options) => {
   if (isCompletionNeeded()) {
     const cmdLine = /** @type {string} */ (getValueFromEnv('COMP_LINE'));
     let cursorPos = parseInt(
-      /** @type {string} */ (getValueFromEnv('COMP_POINT'))
+      /** @type {string} */ (getValueFromEnv('COMP_POINT')),
     );
     if (isNaN(cursorPos)) {
       cursorPos = cmdLine ? cmdLine.length - 1 : 0;
@@ -619,7 +616,7 @@ const arg = (specs, options) => {
     const completionShell =
       getValueFromEnv('QEL_COMPLETION_SHELL') || DEFAULT_COMPLETION_SHELL;
     const includeAliasesInArgNamesCompletion = !['false', '0'].includes(
-      getValueFromEnv('QEL_COMPLETION_INCLUDE_ARG_ALIASES') ?? 'true'
+      getValueFromEnv('QEL_COMPLETION_INCLUDE_ARG_ALIASES') ?? 'true',
     );
     const debugFilePath = getValueFromEnv('QEL_COMPLETION_DEBUG');
 
@@ -642,7 +639,7 @@ const arg = (specs, options) => {
       handlers,
       aliases,
       helpOptions,
-      versionOptions
+      versionOptions,
     );
     std.out.puts(`${JSON.stringify(output, null, 2)}\n`);
     std.exit(0);
@@ -680,7 +677,7 @@ const ensureNumber = (name, value) => {
   if (!isValidNumber(value)) {
     throw new ArgError(
       `Invalid argument value: ${name} ${value} (it should be a number)`,
-      ArgErrorCode.ARG_INVALID_OPTION
+      ArgErrorCode.ARG_INVALID_OPTION,
     );
   }
 };
@@ -788,7 +785,7 @@ class ArgParser {
         this._examples.push(example);
       } else {
         throw new Error(
-          `Argument 'examples' should be an array of strings or example generators (${example})`
+          `Argument 'examples' should be an array of strings or example generators (${example})`,
         );
       }
     }
@@ -942,7 +939,7 @@ const getUsage = (
   helpOptions,
   versionOptions,
   usageLayoutOptions,
-  scriptName
+  scriptName,
 ) => {
   let content = `Usage: ${scriptName} [ARG] ...`;
 
@@ -1029,7 +1026,7 @@ const getUsage = (
   const usageIndent = ''.padEnd(
     maxLengthForArgNames +
       usageLayoutOptions.usageIndent +
-      ARG_NAME_USAGE_SEPARATOR.length
+      ARG_NAME_USAGE_SEPARATOR.length,
   );
   const maxLengthForUsage = usageLayoutOptions.maxLength - usageIndent.length;
   const usageLines = [];
@@ -1042,7 +1039,7 @@ const getUsage = (
       if (allowMany) {
         usage = formatGeneratedUsageMessage(
           MESSAGE_ARG_MULTIPLE,
-          maxLengthForUsage
+          maxLengthForUsage,
         );
       }
     } else {
@@ -1057,8 +1054,8 @@ const getUsage = (
     }
     usageLines.push(
       `${argNames}${''.padEnd(
-        usageLayoutOptions.usageIndent
-      )}${ARG_NAME_USAGE_SEPARATOR}${usage.shift()}`
+        usageLayoutOptions.usageIndent,
+      )}${ARG_NAME_USAGE_SEPARATOR}${usage.shift()}`,
     );
     for (const line of usage) {
       usageLines.push(`${usageIndent}${line}`);
@@ -1070,18 +1067,18 @@ const getUsage = (
     helpArgNames = helpArgNames.padEnd(maxLengthForArgNames);
     usageLines.push(
       `${helpArgNames}${''.padEnd(
-        usageLayoutOptions.usageIndent
-      )}${ARG_NAME_USAGE_SEPARATOR}${getHelpUsage(helpOptions.capitalizeUsage)}`
+        usageLayoutOptions.usageIndent,
+      )}${ARG_NAME_USAGE_SEPARATOR}${getHelpUsage(helpOptions.capitalizeUsage)}`,
     );
   }
   if (versionArgNames) {
     versionArgNames = versionArgNames.padEnd(maxLengthForArgNames);
     usageLines.push(
       `${versionArgNames}${''.padEnd(
-        usageLayoutOptions.usageIndent
+        usageLayoutOptions.usageIndent,
       )}${ARG_NAME_USAGE_SEPARATOR}${getVersionUsage(
-        versionOptions.capitalizeUsage
-      )}`
+        versionOptions.capitalizeUsage,
+      )}`,
     );
   }
 
@@ -1137,11 +1134,11 @@ const getHelp = (
   helpOptions,
   versionOptions,
   usageLayoutOptions,
-  scriptName
+  scriptName,
 ) => {
   let content = splitParagraph(
     helpOptions.description ?? '',
-    usageLayoutOptions.maxLength
+    usageLayoutOptions.maxLength,
   ).join('\n');
   if (content) {
     content += '\n\n';
@@ -1152,7 +1149,7 @@ const getHelp = (
     helpOptions,
     versionOptions,
     usageLayoutOptions,
-    scriptName
+    scriptName,
   );
   if (helpOptions.examples.length) {
     content += '\n\n';
@@ -1187,7 +1184,7 @@ const describeUsage = (handlers, aliases, helpOptions, versionOptions) => {
     const [type, isFlag, allowMany, argValidator] = handlers[key];
     if (argValidator) {
       output.push(
-        argValidator.describeUsage(key, allowMany, aliasesMap[key] ?? [])
+        argValidator.describeUsage(key, allowMany, aliasesMap[key] ?? []),
       );
       continue;
     }
@@ -1197,7 +1194,7 @@ const describeUsage = (handlers, aliases, helpOptions, versionOptions) => {
       argType = 'number';
     }
     output.push(
-      createUsageItem(key, argType, allowMany, isFlag, aliasesMap[key])
+      createUsageItem(key, argType, allowMany, isFlag, aliasesMap[key]),
     );
   }
   if (helpOptions.enabled) {
@@ -1206,7 +1203,7 @@ const describeUsage = (handlers, aliases, helpOptions, versionOptions) => {
       'flag',
       false,
       false,
-      helpOptions.flags.slice(1)
+      helpOptions.flags.slice(1),
     );
     item.description = getHelpUsage(helpOptions.capitalizeUsage);
     item.shortDescription = item.description.split('\n')[0];
@@ -1218,7 +1215,7 @@ const describeUsage = (handlers, aliases, helpOptions, versionOptions) => {
       'flag',
       false,
       false,
-      versionOptions.flags.slice(1)
+      versionOptions.flags.slice(1),
     );
     item.description = getVersionUsage(versionOptions.capitalizeUsage);
     item.shortDescription = item.description.split('\n')[0];
