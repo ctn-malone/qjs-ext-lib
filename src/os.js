@@ -1,6 +1,7 @@
 /** @format */
 // @ts-check
 import * as _os from 'os';
+import { exit } from './std.js';
 
 const os = /** @type {any} **/ (_os);
 
@@ -410,7 +411,7 @@ export const signal = (signal, func) => {
         signal,
         /** @type {((restoreHandler: () => void) => void) | null | undefined} */ (
           prevHandler
-        )
+        ),
       );
       os.signal(signal, prevHandler);
     };
@@ -478,6 +479,16 @@ export const SIGUSR1 = os.SIGUSR1;
 
 /** @type {number} - user-defined signal 2 */
 export const SIGUSR2 = os.SIGUSR2;
+
+/*
+  Setup default signal handlers to ensure std.onExit is
+  called upon receiving some signals
+ */
+for (const sig of [SIGTERM, SIGINT]) {
+  os.signal(sig, () => {
+    exit(128 + sig);
+  });
+}
 
 /**
  * Send the signal "sig" to the process "pid"

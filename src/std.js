@@ -8,6 +8,18 @@ import * as std from 'std';
  */
 
 /**
+ * @typedef {() => void} ExitCallBack
+ */
+
+/** @type {ExitCallBack[]} */
+const exitCallbacks = [];
+
+/** @param {ExitCallBack} cb */
+export const onExit = (cb) => {
+  exitCallbacks.push(cb);
+};
+
+/**
  * Exit the process
  *
  * @param {number} exitCode
@@ -15,6 +27,14 @@ import * as std from 'std';
  * @returns {never}
  */
 export const exit = (exitCode) => {
+  for (const cb of exitCallbacks) {
+    try {
+      cb();
+    } catch (/** @type {any} */ e) {
+      std.err.puts(`${e.messsage}\n${e.stack}`);
+      std.exit(1);
+    }
+  }
   std.exit(exitCode);
   /*
     While this is not needed, it will help type checker to

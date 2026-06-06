@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.18.0]
+* refactor: correctly type `usage` & `help` functions (`arg.js`)
+* refactor: return a `[]` when an `ArgValidator` which can be set multiple times was not set
+* refactor: provide the _body_ through `Curl.body` if the request failed and an _output file_ was used (`curl.js`)
+* feat: add an `onExit` callback (`std.js`)
+* refactor: allow to pass a `Process` to `gum.spin()` (`gum.js`)
+* chore(flake): export both `minimalShellHook` and `shellHook` from `qel.nix`
+
 ## [0.17.3]
 * fix: filter undefined values for query parameters (`curl.js`)
 * refactor: don't output completion description for `--no-x` flags (`args.js`)

@@ -533,7 +533,7 @@ Display a spinner while a promise is resolving
 > gum spin ...
 ```
 
-* **promise** (*Promise*) : promise to wait for
+* **promise** (*Promise|Process*) : promise to wait for or `Process`. When passing a `Process`, it must have been started previously
 * opt (*object*) : options
   * opt.title (*string*) : title value (default = `"Loading..."`) ($GUM_SPIN_TITLE)
   * opt.spinner (*string*) : spinner value (default = `Spinner.DOT`) ($GUM_SPIN_SPINNER)
@@ -546,7 +546,7 @@ Display a spinner while a promise is resolving
 
 **returns** *Promise<boolean>* whether or not spinner was cancelled (ie: using Ctrl+C)
 
-<u>Example</u>
+<u>Examples</u>
 
 ```js
 import * as gum from 'ext/gum.js';
@@ -557,6 +557,38 @@ const main = async () => {
     spinner: gum.Spinner.PULSE,
     title: 'Please, be patient...',
   });
+};
+main();
+```
+
+```js
+import * as os from 'ext/os.js';
+import * as std from 'ext/std.js';
+import { Process } from 'ext/process.js';
+import * as gum from 'ext/gum.js';
+
+const main = async () => {
+  const process = new Process('cat', {
+    lineBuffered: true,
+  });
+  process.setEventListener('stdout', (payload) => {
+    if (payload.data === 'exit') {
+      process.kill();
+    }
+  });
+  process.run();
+  const wasCancelled = await gum.spin(process, {
+    spinner: gum.Spinner.PULSE,
+    title: 'Please, be patient...',
+  });
+  if (wasCancelled) {
+    std.err.puts(`Execution was cancelled\n`);
+    process.kill();
+    await process.wait();
+    std.exit(os.SIGINT);
+  }
+  await process.wait();
+  std.exit(0);
 };
 main();
 ```

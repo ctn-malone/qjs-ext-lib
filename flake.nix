@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    quickjs-static.url = "github:ctn-malone/quickjs-cross-compiler?rev=1066cf6aad9f10edfafc4e0302d7d951a327f437";
+    quickjs-static.url = "github:ctn-malone/quickjs-cross-compiler?rev=90d7a32d44841560f88d9492020411a8d73124ad";
     # pin gum to version 0.17.0
     nixpkgs-gum.url = "github:nixos/nixpkgs/554be6495561ff07b6c724047bdd7e0716aa7b46";
   };

@@ -131,13 +131,17 @@ with pkgs; rec {
   } else
     { });
 
-  shellHook = ''
+  minimalShellHook = ''
     if [ -d src ] ; then
       dir="$(pwd)"
       cd src && qel-symlink.sh --quiet
       cd "$dir"
     fi
     eval "$(qel-completion.sh --dev --no-release)"
+  '';
+
+  shellHook = ''
+    ${minimalShellHook}
     echo -e "To compile a script, use ${
       highlight "qjsc.sh -o <binary> <source>"
     } (ex: ${
