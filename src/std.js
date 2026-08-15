@@ -236,7 +236,7 @@ export const Error = {
   EBADF: std.Error.EBADF,
   EBUSY: std.Error.EBUSY,
   EEXIST: std.Error.EEXIST,
-  EINTR: std.Error.EINTR,
+  EINTR: std.Error.EINTR ?? 4,
   EINVAL: std.Error.EINVAL,
   EIO: std.Error.EIO,
   ENOENT: std.Error.ENOENT,
@@ -245,7 +245,7 @@ export const Error = {
   ENOSYS: std.Error.ENOSYS,
   EPERM: std.Error.EPERM,
   EPIPE: std.Error.EPIPE,
-  EWOULDBLOCK: std.Error.EWOULDBLOCK,
+  EWOULDBLOCK: std.Error.EWOULDBLOCK ?? 11,
 };
 
 /**

@@ -683,7 +683,7 @@ export const getParentWorker = () => {
  */
 
 /**
- * Apply or remove an advisory lock on an open file
+ * Apply an advisory lock on an open file
  *
  * @param {number} fd
  * @param {number} operation - os.LOCK_*

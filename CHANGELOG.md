@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.19.0]
+* docs(os): add documentation for extra functions in `os` module (`os.js`)
+* feat(extra): add `withExclusiveLock` function (`extra.js`)
+* feat(extra): add `mktemp` function (`extra.js`)
+* feat(extra): add `mkdtemp` function (`extra.js`)
+
 ## [0.18.0]
 * refactor: correctly type `usage` & `help` functions (`arg.js`)
 * refactor: return a `[]` when an `ArgValidator` which can be set multiple times was not set

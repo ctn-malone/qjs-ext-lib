@@ -37,12 +37,14 @@ const waitForLockUsingBinary = (filepath) => {
     });
     p.setEventListener('exit', (state) => {
       if (!gotStdOut) {
+        os.close(stdinPipe[1]);
         let errMessage = `Call to flock binary failed (${state.exitCode})`;
         const stderr = p.stderr;
         if (stderr) {
           errMessage += `: ${stderr}`;
         }
-        reject(errMessage);
+        // @ts-ignore
+        reject(new InternalError(errMessage));
       }
     });
     p.run();
